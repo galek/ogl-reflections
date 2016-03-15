@@ -1,0 +1,8 @@
+﻿  main.cpp
+c:\users\acterhd\documents\visual studio 2015\projects\ogl_reflections_cubemap\ogl_reflections\main.cpp(83): warning C4267: инициализация: преобразование из "size_t" в "GLint"; возможна потеря данных
+c:\users\acterhd\documents\visual studio 2015\projects\ogl_reflections_cubemap\ogl_reflections\main.cpp(83): warning C4267: инициализация: преобразование из "size_t" в "const GLint"; возможна потеря данных
+c:\users\acterhd\documents\visual studio 2015\projects\ogl_reflections_cubemap\ogl_reflections\main.cpp(99): warning C4267: аргумент: преобразование из "size_t" в "GLsizei"; возможна потеря данных
+c:\users\acterhd\documents\visual studio 2015\projects\ogl_reflections_cubemap\ogl_reflections\main.cpp(403): warning C4267: аргумент: преобразование из "size_t" в "GLsizei"; возможна потеря данных
+LINK : warning LNK4098: сшсышюЄхър яю єьюыўрэш■ "LIBCMT" яЁюЄштюЁхўшЄ шёяюы№чютрэш■ фЁєушї сшсышюЄхъ; шёяюы№чєщЄх ярЁрьхЄЁ /NODEFAULTLIB:library
+glew32s.lib(glew.obj) : warning LNK4099: "vc120.pdb" PDB эх эрщфхэ ё "glew32s.lib(glew.obj)" шыш эр "C:\Users\acterhd\Documents\Visual Studio 2015\Projects\ogl_reflections_cubemap\x64\Debug\vc120.pdb"; ъюьяюэютър юс·хъЄр т√яюыэ хЄё  ъръ яЁш юЄёєЄёЄтшш юЄырфюўэ√ї фрээ√ї
+  ogl_reflections.vcxproj -> C:\Users\acterhd\Documents\Visual Studio 2015\Projects\ogl_reflections_cubemap\x64\Debug\ogl_reflections.exe
