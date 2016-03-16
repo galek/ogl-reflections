@@ -361,9 +361,6 @@ int main()
 	
 	
 
-
-
-
 	glm::vec3 scale(glm::compMax(bound.mx.xyz - bound.mn.xyz));
 	glm::vec3 offset((bound.mx.xyz + bound.mx.xyz) / 2.0f - scale);
 
@@ -538,34 +535,11 @@ int main()
 		clock_t c = tt - t;
 		glm::vec3 eye = glm::vec3(9.0, 9.0, 9.0);
 		glm::vec3 view = glm::vec3(0.0, 6.0, 0.0);
-		//glm::vec3 eye = glm::vec3(3.0, 0.0, 3.0);
-		//glm::vec3 view = glm::vec3(0.0, 0.0, 0.0);
+		//glm::vec3 eye = glm::vec3(4.0, 3.0, 4.0);
+		//glm::vec3 view = glm::vec3(0.0, 2.0, 0.0);
 		eye -= view;
 		eye = rotate(eye, ((float)c) / 1000.0f, glm::vec3(0.0, 1.0, 0.0));
 		eye += view;
-
-		
-
-
-
-
-
-
-
-
-		
-
-
-		
-
-
-
-
-
-
-		
-
-		
 
 		{
 			glUseProgram(0);
