@@ -217,7 +217,8 @@ void main(){
             uint triangleCount = 300000;
             Thash hash = thashes[voxel.last];
             bool needsSkip = false;
-            for(uint i=0;i<=min(voxel.count, triangleCount);i++){
+            uint cnt = min(voxel.count, triangleCount);
+            for(uint i=0;i<cnt;i++){
                 if(!needsSkip){
                     vec3 trivert[3];
 
