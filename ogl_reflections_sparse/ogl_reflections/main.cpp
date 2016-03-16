@@ -379,8 +379,8 @@ int main()
 		//glBindBuffer(GL_SHADER_STORAGE_BUFFER, tspace);
 		//glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, tsize, dthash.data());
 
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
-		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vsize, dvoxels.data());
+		//glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
+		//glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vsize, dvoxels.data());
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, subgridc, dvoxels_subgrid.data());
@@ -397,11 +397,11 @@ int main()
 		glGenBuffers(1, &helper);
 		glGenBuffers(1, &lscounter);
 
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, helper);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
 		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, lscounter);
 		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, helper);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint), nullptr, GL_DYNAMIC_STORAGE_BIT);
 	}
 
 	GLuint size = 1;
@@ -530,6 +530,9 @@ int main()
 				break;
 			}
 		}
+		
+
+
 
 		clock_t tt = clock();
 		clock_t c = tt - t;
