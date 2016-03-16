@@ -1,5 +1,7 @@
 ﻿// Link statically with GLEW
 #define GLEW_STATIC
+#define GLM_SWIZZLE 
+#define GLM_SWIZZLE_XYZW 
 //#define GLM_GTC_matrix_transform
 
 // Headers
@@ -13,6 +15,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/component_wise.hpp>
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include <ctime>
 
@@ -48,6 +51,11 @@ struct Voxel {
 	GLuint coordZ = 0;
 };
 
+struct Minmax {
+	glm::vec4 mn;
+	glm::vec4 mx;
+};
+
 size_t tiled(const size_t &sz, const size_t &gmaxtile) {
 	size_t dv = gmaxtile - (((sz - 1) % gmaxtile) + 1);
 	size_t gs = sz + dv;
@@ -77,12 +85,14 @@ int validateShader(GLuint shader) {
 GLuint loadShader(std::string filename, GLuint type) {
 	GLuint shader = glCreateShader(type);
 	std::string src = readFile(filename.c_str());
+
 	const GLchar * csrc = src.c_str();
 	const GLint len = src.size();
 	glShaderSource(shader, 1, &csrc, &len);
 	glCompileShader(shader);
 
 	std::cout << "\n" << filename << "\n" << std::endl;
+	//std::cout << src << std::endl;
 	int valid = validateShader(shader);
 	return valid ? shader : -1;
 }
@@ -180,6 +190,16 @@ int main()
 		glUseProgram(voxelizerFixProgram);
 	}
 
+	GLuint voxelizerMinmaxProgram;
+	{
+		GLuint compShader = loadShader("./voxelizer/minmax.comp", GL_COMPUTE_SHADER);
+		voxelizerMinmaxProgram = glCreateProgram();
+		glAttachShader(voxelizerMinmaxProgram, compShader);
+		glBindFragDataLocation(voxelizerMinmaxProgram, 0, "outColor");
+		glLinkProgram(voxelizerMinmaxProgram);
+		glUseProgram(voxelizerMinmaxProgram);
+	}
+
 	GLuint voxelizerProgram;
 	{
 		GLuint vertexShader = loadShader("./voxelizer/voxelizer.vert", GL_VERTEX_SHADER);
@@ -256,7 +276,7 @@ int main()
 		glGenRenderbuffers(1, &rboDepthStencil);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepthStencil);
 	}
-
+	
 	
 	
 
@@ -274,21 +294,72 @@ int main()
 	
 
 	
+	GLuint mcounter;
+	GLuint minmaxBuf;
+
+	glGenBuffers(1, &mcounter);
+	glGenBuffers(1, &minmaxBuf);
+
+	unsigned trisize = indices.size() / 3;
+	{
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mcounter);
+		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, minmaxBuf);
+		unsigned size = indices.size() / 3;
+
+		unsigned scounter = size;
+		unsigned csize = size;
+		do {
+			size = size / 2 + size % 2;
+			scounter += size;
+		} while (size > 1);
+
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, scounter * sizeof(Minmax), nullptr, GL_DYNAMIC_STORAGE_BIT);
+	}
+
+	Minmax bound;
+	GLuint count = 0;
+	GLuint prev = 0;
+	GLuint from = 0;
+	do {
+		prev = from;
+
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mcounter);
+		glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &from);
+
+		GLuint gcount = (from - prev);
+		count = from < 1 ? ((trisize / 2) + (trisize % 2)) : ((gcount / 2 + gcount % 2));
+
+		glUseProgram(voxelizerMinmaxProgram);
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, minmaxBuf);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, vbo_triangle_ssbo);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ebo_triangle_ssbo);
+		glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, mcounter);
+
+		glUniform1ui(glGetUniformLocation(voxelizerMinmaxProgram, "count"), count);
+		glUniform1ui(glGetUniformLocation(voxelizerMinmaxProgram, "prev"), prev);
+		glUniform1ui(glGetUniformLocation(voxelizerMinmaxProgram, "from"), from);
+		glUniform1ui(glGetUniformLocation(voxelizerMinmaxProgram, "tcount"), trisize);
+
+		GLuint dsize = tiled(count, 256);
+		glDispatchCompute((dsize < 256 ? 256 : dsize) / 256, 1, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	} while (count > 1);
+
+	glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, mcounter);
+	glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &from);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, minmaxBuf);
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, (from - 1) * sizeof(Minmax), sizeof(Minmax), &bound);
 
 
 
 
 
-
-
-
-
-
-
-
-	glm::vec3 scale = glm::vec3(24.0f);
-	//glm::vec3 scale = glm::vec3(4.0f);
-	glm::vec3 offset = -scale / 2.0f;
+	glm::vec3 scale(glm::compMax(bound.mx.xyz - bound.mn.xyz));
+	glm::vec3 offset((bound.mx.xyz + bound.mx.xyz) / 2.0f - scale);
 
 	{
 		glUseProgram(0);
@@ -366,7 +437,7 @@ int main()
 			glUniform3fv(glGetUniformLocation(voxelizerFixProgram, "scale"), 1, glm::value_ptr(scale));
 
 			GLuint tsize = tiled(size, 256);
-			glDispatchCompute(tsize < 256 ? 256 : tsize, 1, 1);
+			glDispatchCompute((tsize < 256 ? 256 : tsize) / 256, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 			GLuint osize = size;

@@ -43,7 +43,7 @@ void main(){
     vert1 = positions[1];
     vert2 = positions[2];
 
-    vec3 norm = abs(normalize(cross(vert1 - vert0, vert2 - vert0)));
+    vec3 norm = abs(normalize(cross(positions[1] - positions[0], positions[2] - positions[0])));
 
     vec3 mn = min(positions[0], min(positions[1], positions[2]));
     vec3 mx = max(positions[0], max(positions[1], positions[2]));
