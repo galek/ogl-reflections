@@ -98,54 +98,32 @@ vec2 intersectCube(vec3 origin, vec3 ray, vec3 cubeMin, vec3 cubeMax) {
    }
 }
 
-
-float intersectTriangle(vec3 orig, vec3 dir, inout vec2 _uv, vec3 vertices[3])
-{
-    vec3 u, v, n; // triangle vectors
-    vec3 w0, w;  // ray vectors
-    float r, a, b; // params to calc ray-plane intersect
-
-    // get triangle edge vectors and plane normal
-    u = vertices[1] - vertices[0];
-    v = vertices[2] - vertices[0];
-    n = cross(u, v);
-
-    w0 = orig - vertices[0];
-    a = -dot(n, w0);
-    b = dot(n, dir);
-    if (abs(b) < 1e-5)
-    {
-        // ray is parallel to triangle plane, and thus can never intersect.
-        return INFINITY;
-    }
-
-    // get intersect point of ray with triangle plane
-    r = a / b;
-    if (r < 0.0f)
-        return INFINITY; // ray goes away from triangle.
-
-    vec3 I = orig + r * dir;
-    float uu, uv, vv, wu, wv, D;
-    uu = dot(u, u);
-    uv = dot(u, v);
-    vv = dot(v, v);
-    w = I - vertices[0];
-    wu = dot(w, u);
-    wv = dot(w, v);
-    D = uv * uv - uu * vv;
-
-    // get and test parametric coords
-    float s, t;
-    s = (uv * wv - vv * wu) / D;
-    if (s < 0.0f || s > 1.0f)
-        return INFINITY;
-    t = (uv * wu - uu * wv) / D;
-    if (t < 0.0f || (s + t) > 1.0f)
-        return INFINITY;
-
-    _uv = vec2(s, t);
-
-    return (r > 1e-5) ? r : INFINITY;
+float intersect(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV){
+    vec3 e1 = ve[1] - ve[0];
+    vec3 e2 = ve[2] - ve[0];
+    vec3 normal = normalize(cross(e1, e2));
+    float b = dot(normal, dir);
+    vec3 w0 = orig - ve[0];
+    float a = -dot(normal, w0);
+    float t = a / b;
+    vec3 p = orig + t * dir;
+    float uu, uv, vv, wu, wv, inverseD;
+    uu = dot(e1, e1);
+    uv = dot(e1, e2);
+    vv = dot(e2, e2);
+    vec3 w = p - ve[0];
+    wu = dot(w, e1);
+    wv = dot(w, e2);
+    inverseD = uv * uv - uu * vv;
+    inverseD = 1.0f / inverseD;
+    float u = (uv * wv - vv * wu) * inverseD;
+    if (u < 0.0f || u > 1.0f)
+    return -1.0f;
+    float v = (uv * wu - uu * wv) * inverseD;
+    if (v < 0.0f || (u + v) > 1.0f)
+    return -1.0f;
+    UV = vec2(u,v);
+    return t;
 }
 
 struct TResult {
@@ -208,27 +186,28 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                 vec3 normald;
                 for(uint i=0;i<=min(vox.count, triangleCount);i++){
                     if(!needsSkip){
-                        vec3 triverts[3];
-                        vec3 trinorms[3];
-
                         uint tri = hash.triangle;
-                        uint j = 0;
-                        j = indics[tri * 3 + 0];
-                        triverts[0] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
-                        trinorms[0] = vec3(norms[j * 3 + 0], norms[j * 3 + 1], norms[j * 3 + 2]);
-                        j = indics[tri * 3 + 1];
-                        triverts[1] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
-                        trinorms[1] = vec3(norms[j * 3 + 0], norms[j * 3 + 1], norms[j * 3 + 2]);
-                        j = indics[tri * 3 + 2];
-                        triverts[2] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
-                        trinorms[2] = vec3(norms[j * 3 + 0], norms[j * 3 + 1], norms[j * 3 + 2]);
+
+                        vec3 triverts[3];
+                        uint ji[3];
+                        for(uint x=0;x<3;x++){
+                            uint j = indics[tri * 3 + x];
+                            ji[x] = j;
+                            triverts[x] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
+                        }
 
                         vec2 uv;
-                        float _d = intersectTriangle(orig, dir, uv, triverts);
+                        float _d = intersect(orig, dir, triverts, uv);
                         if(_d >= 0.0f && _d < dd) {
                             dd = _d;
                             lastTd = tri;
-                            vec3 no = normalize(cross(triverts[1] - triverts[0], triverts[2] - triverts[0]));
+
+                            vec3 trinorms[3];
+                            for(uint x=0;x<3;x++){
+                                uint j = ji[x];
+                                trinorms[x] = vec3(norms[j * 3 + 0], norms[j * 3 + 1], norms[j * 3 + 2]);
+                            }
+
                             normald = normalize(trinorms[1]) * uv.x;
                             normald += normalize(trinorms[2]) * uv.y;
                             normald += normalize(trinorms[0]) * (1.0f - uv.x - uv.y);
