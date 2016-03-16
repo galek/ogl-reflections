@@ -207,69 +207,71 @@ void main(){
             uint d = loc / 4;
             uvec3 co = uvec3(w, h, d);
 
-            Voxel voxel = voxels[parent];
-            uvec3 parentSpace = uvec3(voxel.coordX, voxel.coordY, voxel.coordZ);
-            uvec3 globalSpace = parentSpace * 2 + co;
+            if(voxels_subgrid[parent * 8 + loc] == 0xFFFFFFFF){
+                Voxel voxel = voxels[parent];
+                uvec3 parentSpace = uvec3(voxel.coordX, voxel.coordY, voxel.coordZ);
+                uvec3 globalSpace = parentSpace * 2 + co;
 
-            vec3 norm = vec3(globalSpace) + 0.5;
-            float bcenter[3]; store3(norm, bcenter);
+                vec3 norm = vec3(globalSpace) + 0.5;
+                float bcenter[3]; store3(norm, bcenter);
 
-            uint triangleCount = 300000;
-            Thash hash = thashes[voxel.last];
-            bool needsSkip = false;
-            uint cnt = min(voxel.count, triangleCount);
-            for(uint i=0;i<cnt;i++){
-                if(!needsSkip){
-                    vec3 trivert[3];
+                uint triangleCount = 300000;
+                Thash hash = thashes[voxel.last];
+                bool needsSkip = false;
+                uint cnt = min(voxel.count, triangleCount);
+                for(uint i=0;i<cnt;i++){
+                    if(!needsSkip){
+                        vec3 trivert[3];
 
-                    uint tri = hash.triangle;
-                    uint j = 0;
-                    j = indics[tri * 3 + 0];
-                    trivert[0] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
-                    j = indics[tri * 3 + 1];
-                    trivert[1] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
-                    j = indics[tri * 3 + 2];
-                    trivert[2] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
+                        uint tri = hash.triangle;
+                        uint j = 0;
+                        j = indics[tri * 3 + 0];
+                        trivert[0] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
+                        j = indics[tri * 3 + 1];
+                        trivert[1] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
+                        j = indics[tri * 3 + 2];
+                        trivert[2] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
 
-                    for (int i = 0; i < 3; i++) {
-                        vec3 pos = trivert[i];
-                        pos -= offset;
-                        pos /= scale;
-                        pos *= resX;
-                        trivert[i] = pos;
-                    }
+                        for (int i = 0; i < 3; i++) {
+                            vec3 pos = trivert[i];
+                            pos -= offset;
+                            pos /= scale;
+                            pos *= resX;
+                            trivert[i] = pos;
+                        }
 
-                    float triverts[3][3];
-                    store3(trivert[0], triverts[0]);
-                    store3(trivert[1], triverts[1]);
-                    store3(trivert[2], triverts[2]);
+                        float triverts[3][3];
+                        store3(trivert[0], triverts[0]);
+                        store3(trivert[1], triverts[1]);
+                        store3(trivert[2], triverts[2]);
 
-                    if(triBoxOverlap(bcenter, bhalfsize, triverts) == 1){
-                        Voxel newVoxel;
-                        newVoxel.coordX = globalSpace.x;
-                        newVoxel.coordY = globalSpace.y;
-                        newVoxel.coordZ = globalSpace.z;
-                        newVoxel.count = 0;
-                        newVoxel.last = LONGEST;
+                        if(triBoxOverlap(bcenter, bhalfsize, triverts) == 1){
+                            Voxel newVoxel;
+                            newVoxel.coordX = globalSpace.x;
+                            newVoxel.coordY = globalSpace.y;
+                            newVoxel.coordZ = globalSpace.z;
+                            newVoxel.count = 0;
+                            newVoxel.last = LONGEST;
 
-                        uint vloc = atomicCounterIncrement(scounter);
-                        uint hloc = atomicCounterIncrement(lscounter_to);
-                        to_helper[hloc] = vloc;
+                            uint vloc = atomicCounterIncrement(scounter);
+                            uint hloc = atomicCounterIncrement(lscounter_to);
+                            to_helper[hloc] = vloc;
 
-                        voxels[vloc] = newVoxel;
-                        voxels_subgrid[parent * 8 + loc] = vloc;
+                            voxels[vloc] = newVoxel;
+                            voxels_subgrid[parent * 8 + loc] = vloc;
 
-                        needsSkip = true;
-                    }
+                            needsSkip = true;
+                        }
 
-                    uint previous = hash.previous;
-                    if(previous != LONGEST){
-                        hash = thashes[previous];
+                        uint previous = hash.previous;
+                        if(previous != LONGEST){
+                            hash = thashes[previous];
+                        } else {
+                            needsSkip = true;
+                        }
                     } else {
-                        needsSkip = true;
+                        break;
                     }
-                } else {
-                    break;
                 }
             }
         }
