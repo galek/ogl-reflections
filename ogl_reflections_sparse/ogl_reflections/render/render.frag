@@ -154,7 +154,8 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
     uint lastT = LONGEST;
     vec3 normal;
 
-    const uint triangleCount = 1000;
+    const uint globalTCount = 500000;
+    const uint triangleCount = globalTCount / resX + globalTCount % resX;
     const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 2;
     uint iteration = 0;
 

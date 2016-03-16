@@ -136,7 +136,7 @@ int main()
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 	}
 
-	std::string inputfile = "models/teapot.obj";
+	std::string inputfile = "models/armadillo.obj";
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
@@ -533,10 +533,10 @@ int main()
 
 		clock_t tt = clock();
 		clock_t c = tt - t;
-		glm::vec3 eye = glm::vec3(9.0, 9.0, 9.0);
-		glm::vec3 view = glm::vec3(0.0, 6.0, 0.0);
-		//glm::vec3 eye = glm::vec3(3.0, 0.0, 3.0);
-		//glm::vec3 view = glm::vec3(0.0, 0.0, 0.0);
+		//glm::vec3 eye = glm::vec3(9.0, 9.0, 9.0);
+		//glm::vec3 view = glm::vec3(0.0, 6.0, 0.0);
+		glm::vec3 eye = glm::vec3(3.0, 0.0, 3.0);
+		glm::vec3 view = glm::vec3(0.0, 0.0, 0.0);
 		eye -= view;
 		eye = rotate(eye, ((float)c) / 1000.0f, glm::vec3(0.0, 1.0, 0.0));
 		eye += view;
