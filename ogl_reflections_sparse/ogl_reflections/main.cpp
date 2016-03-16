@@ -358,6 +358,7 @@ int main()
 
 
 
+	
 	glm::vec3 scale(glm::compMax(bound.mx.xyz - bound.mn.xyz));
 	glm::vec3 offset((bound.mx.xyz + bound.mx.xyz) / 2.0f - scale);
 
@@ -549,11 +550,10 @@ int main()
 
 
 
+
+
+
 		
-
-
-
-
 
 
 
