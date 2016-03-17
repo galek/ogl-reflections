@@ -178,7 +178,7 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
 
     const uint globalTCount = 200000;
     const uint triangleCount = globalTCount / resX + globalTCount % resX;
-    const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 2;
+    const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 4;
     uint iteration = 0;
 
     do {
@@ -235,9 +235,10 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                                 texcoords[x] = vec2(texcs[j * 2 + 0], texcs[j * 2 + 1]);
                             }
 
-                            normald = normalize(trinorms[1]) * uv.x;
-                            normald += normalize(trinorms[2]) * uv.y;
-                            normald += normalize(trinorms[0]) * (1.0f - uv.x - uv.y);
+                            //normald = normalize(trinorms[1]) * uv.x;
+                            //normald += normalize(trinorms[2]) * uv.y;
+                            //normald += normalize(trinorms[0]) * (1.0f - uv.x - uv.y);
+                            normald = cross(triverts[2] - triverts[0], triverts[1] - triverts[0]);
                             normald = normalize(normald);
 
                             texcoordd = texcoords[1] * uv.x;
@@ -298,9 +299,9 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
         test.y >= 0.0f &&
         test.z >= 0.0f &&
 
-        test.x <= float(resX) &&
-        test.y <= float(resX) &&
-        test.z <= float(resX)
+        test.x < float(resX) &&
+        test.y < float(resX) &&
+        test.z < float(resX)
     );
 
     if(lastT != LONGEST && d >= 0.0f && d < INFINITY) {

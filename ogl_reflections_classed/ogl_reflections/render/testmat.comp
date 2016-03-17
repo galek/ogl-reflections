@@ -33,6 +33,8 @@ layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 uniform float reflectionRate;
 uniform uint materialID;
 
+uniform sampler2D tex;
+
 void main()
 {
     const vec3 light = vec3(0.0f, 3.0f, -9.0f);
@@ -42,19 +44,22 @@ void main()
         Hit hit = hits[t];
         if(hit.materialID == materialID){
             Ray ray = rays[t];
-            if(ray.actived > 0){
+            if(ray.actived > 0 && hit.params.x < 1.0f){
                 Ray newRay = ray;
                 newRay.origin += newRay.direct * hit.dist;
 
                 vec3 normal = -normalize(hit.normal * dot(hit.normal, newRay.direct));
                 float light = dot(normalize(light - newRay.origin), normal) * 0.5 + 0.5;
 
-                vec3 color = vec3(0.9f, 0.5f, 0.5f) * light;
+                vec3 color = /*vec3(0.9f, 0.5f, 0.5f) **/ texture(tex, hit.texcoord).rgb * light;
                 newRay.final = mix(newRay.final, color, newRay.params.x);
                 newRay.params.x = reflectionRate;
 
                 newRay.direct = normalize(reflect(newRay.direct, normal));
-                newRay.origin += normalize(normal * dot(newRay.direct, normal)) * 0.0001f;
+                newRay.origin += normalize(normal * dot(newRay.direct, normal)) * 0.01f;
+
+                hit.params.x = 1.0f;
+                hits[t] = hit;
                 rays[t] = newRay;
             }
         }

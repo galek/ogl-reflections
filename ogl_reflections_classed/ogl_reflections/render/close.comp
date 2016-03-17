@@ -36,7 +36,7 @@ void main()
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
 
         Hit hit = hits[t];
-        if(hit.dist >= 10000.0f){
+        if(hit.dist >= 10000.0f || hit.params.x > 1.0f){
             Ray ray = rays[t];
             ray.actived = 0;
             rays[t] = ray;
