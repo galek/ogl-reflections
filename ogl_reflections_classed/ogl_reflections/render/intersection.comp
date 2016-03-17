@@ -22,6 +22,7 @@ layout(std430, binding=2) buffer s_thashes {Thash thashes[];};
 layout(std430, binding=3) buffer s_vbo {float verts[];};
 layout(std430, binding=4) buffer s_ebo {uint indics[];};
 layout(std430, binding=5) buffer s_norm {float norms[];};
+layout(std430, binding=6) buffer s_tex {float texcs[];};
 
 struct Ray {
     int actived;
@@ -146,6 +147,7 @@ struct TResult {
     float dist;
     uint triangle;
     vec3 normal;
+    vec2 texcoord;
 };
 
 TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
@@ -169,6 +171,7 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
     float d = INFINITY;
     uint lastT = LONGEST;
     vec3 normal;
+    vec2 texcoord;
 
     const uint globalTCount = 500000;
     const uint triangleCount = globalTCount / resX + globalTCount % resX;
@@ -201,6 +204,7 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                 float dd = INFINITY;
                 uint lastTd = LONGEST;
                 vec3 normald;
+                vec2 texcoordd;
                 for(uint i=0;i<=min(vox.count, triangleCount);i++){
                     if(!needsSkip){
                         uint tri = hash.triangle;
@@ -220,14 +224,21 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                             lastTd = tri;
 
                             vec3 trinorms[3];
+                            vec2 texcoords[3];
                             for(uint x=0;x<3;x++){
                                 uint j = ji[x];
                                 trinorms[x] = vec3(norms[j * 3 + 0], norms[j * 3 + 1], norms[j * 3 + 2]);
+                                texcoords[x] = vec2(texcs[j * 2 + 0], texcs[j * 2 + 1]);
                             }
 
                             normald = normalize(trinorms[1]) * uv.x;
                             normald += normalize(trinorms[2]) * uv.y;
                             normald += normalize(trinorms[0]) * (1.0f - uv.x - uv.y);
+                            normald = normalize(normald);
+
+                            texcoordd = texcoords[1] * uv.x;
+                            texcoordd += texcoords[2] * uv.y;
+                            texcoordd += texcoords[0] * (1.0f - uv.x - uv.y);
                         }
 
                         uint previous = hash.previous;
@@ -243,11 +254,13 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                     res.dist = d;
                     res.triangle = lastT;
                     res.normal = normal;
+                    res.texcoord = texcoord;
                     return res;
                 } else {
                     d = dd;
                     lastT = lastTd;
                     normal = normald;
+                    texcoord = texcoordd;
                 }
             }
         }
@@ -271,7 +284,7 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
         }
 
     } while(
-        iteration < iterationCount &&
+        iteration <= iterationCount &&
 
         test.x >= 0.0f &&
         test.y >= 0.0f &&
@@ -333,6 +346,7 @@ void main()
                 newHit.normal = res.normal;
                 newHit.triangle = res.triangle;
                 newHit.materialID = materialID;
+                newHit.texcoord = res.texcoord;
                 hits[t] = newHit;
             }
         }

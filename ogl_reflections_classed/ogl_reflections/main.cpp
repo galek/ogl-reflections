@@ -286,6 +286,7 @@ class TestMat {
 private:
 	GLuint matProgram;
 	GLuint materialID = 0;
+	GLuint tex;
 
 	void init() {
 		GLuint compShader = loadShader("./render/testmat.comp", GL_COMPUTE_SHADER);
@@ -302,8 +303,15 @@ public:
 	void setMaterialID(GLuint id) {
 		materialID = id;
 	}
+	void setTexture(GLuint tx) {
+		tex = tx;
+	}
 	void shade(RObject &rays, GLfloat reflectionRate) {
 		glUseProgram(matProgram);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glUniform1i(glGetUniformLocation(matProgram, "texture"), 0);
 
 		rays.bind();
 		glUniform1ui(glGetUniformLocation(matProgram, "materialID"), materialID);
@@ -335,6 +343,7 @@ private:
 	GLuint ebo_triangle_ssbo;
 	GLuint vbo_triangle_ssbo;
 	GLuint norm_triangle_ssbo;
+	GLuint tex_triangle_ssbo;
 	GLuint voxelizerFixProgram;
 	GLuint voxelizerMinmaxProgram;
 	GLuint voxelizerProgram;
@@ -351,24 +360,23 @@ private:
 
 	Minmax bound;
 	GLuint triangleCount = 0;
+	GLuint materialID = 0;
 
 	GLuint intersectionProgram;
 
 	glm::vec3 offset;
 	glm::vec3 scale;
 
-	GLuint materialID = 0;
-
 public:
 	void setMaterialID(GLuint id) {
 		materialID = id;
 	}
 
-	void loadMesh(tinyobj::shape_t shape) {
-		unsigned id = 0;
+	void loadMesh(tinyobj::shape_t &shape) {
 		std::vector<float>& vertices = shape.mesh.positions;
 		std::vector<unsigned>& indices = shape.mesh.indices;
 		std::vector<float>& normals = shape.mesh.normals;
+		std::vector<float>& texcoords = shape.mesh.texcoords;
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vbo_triangle_ssbo);
 		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
@@ -378,6 +386,9 @@ public:
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, norm_triangle_ssbo);
 		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * normals.size(), normals.data(), GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, tex_triangle_ssbo);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * texcoords.size(), texcoords.data(), GL_DYNAMIC_DRAW);
 
 		triangleCount = indices.size() / 3;
 	}
@@ -396,7 +407,8 @@ private:
 		glGenBuffers(1, &vbo_triangle_ssbo);
 		glGenBuffers(1, &ebo_triangle_ssbo);
 		glGenBuffers(1, &norm_triangle_ssbo);
-		
+		glGenBuffers(1, &tex_triangle_ssbo);
+
 		{
 			GLuint compShader = loadShader("./render/intersection.comp", GL_COMPUTE_SHADER);
 			intersectionProgram = glCreateProgram();
@@ -529,6 +541,7 @@ public:
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, vbo_triangle_ssbo);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ebo_triangle_ssbo);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, norm_triangle_ssbo);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, tex_triangle_ssbo);
 	}
 
 	void bindOctree() {
@@ -752,7 +765,7 @@ int main()
 		for (int i = 0;i < 2;i++) {
 			rays.begin();
 			teapot.intersection(rays);
-			mat.shade(rays, 0.1);
+			mat.shade(rays, 0.2);
 			rays.close();
 		}
 
