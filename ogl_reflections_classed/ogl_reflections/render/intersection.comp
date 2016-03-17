@@ -23,6 +23,7 @@ layout(std430, binding=3) buffer s_vbo {float verts[];};
 layout(std430, binding=4) buffer s_ebo {uint indics[];};
 layout(std430, binding=5) buffer s_norm {float norms[];};
 layout(std430, binding=6) buffer s_tex {float texcs[];};
+layout(std430, binding=7) buffer s_mat {int mats[];};
 
 struct Ray {
     int actived;
@@ -42,8 +43,8 @@ struct Hit {
     vec4 params;
 };
 
-layout(std430, binding=7) buffer s_rays {Ray rays[];};
-layout(std430, binding=8) buffer s_hits {Hit hits[];};
+layout(std430, binding=8) buffer s_rays {Ray rays[];};
+layout(std430, binding=9) buffer s_hits {Hit hits[];};
 
 uniform vec2 sceneRes;
 uniform uint maxDepth;
@@ -148,6 +149,7 @@ struct TResult {
     uint triangle;
     vec3 normal;
     vec2 texcoord;
+    int materialID;
 };
 
 TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
@@ -170,10 +172,11 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
 
     float d = INFINITY;
     uint lastT = LONGEST;
+    int materialID = -1;
     vec3 normal;
     vec2 texcoord;
 
-    const uint globalTCount = 500000;
+    const uint globalTCount = 200000;
     const uint triangleCount = globalTCount / resX + globalTCount % resX;
     const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 2;
     uint iteration = 0;
@@ -202,6 +205,7 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                 bool needsSkip = false;
 
                 float dd = INFINITY;
+                int materialIDd = -1;
                 uint lastTd = LONGEST;
                 vec3 normald;
                 vec2 texcoordd;
@@ -239,6 +243,8 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                             texcoordd = texcoords[1] * uv.x;
                             texcoordd += texcoords[2] * uv.y;
                             texcoordd += texcoords[0] * (1.0f - uv.x - uv.y);
+
+                            materialIDd = mats[tri];
                         }
 
                         uint previous = hash.previous;
@@ -255,12 +261,14 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                     res.triangle = lastT;
                     res.normal = normal;
                     res.texcoord = texcoord;
+                    res.materialID = materialID;
                     return res;
                 } else {
                     d = dd;
                     lastT = lastTd;
                     normal = normald;
                     texcoord = texcoordd;
+                    materialID = materialIDd;
                 }
             }
         }
@@ -290,15 +298,17 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
         test.y >= 0.0f &&
         test.z >= 0.0f &&
 
-        test.x < float(resX) &&
-        test.y < float(resX) &&
-        test.z < float(resX)
+        test.x <= float(resX) &&
+        test.y <= float(resX) &&
+        test.z <= float(resX)
     );
 
     if(lastT != LONGEST && d >= 0.0f && d < INFINITY) {
         res.dist = d;
         res.triangle = lastT;
         res.normal = normal;
+        res.texcoord = texcoord;
+        res.materialID = materialID;
         return res;
     }
 
@@ -345,7 +355,7 @@ void main()
                 newHit.dist = res.dist;
                 newHit.normal = res.normal;
                 newHit.triangle = res.triangle;
-                newHit.materialID = materialID;
+                newHit.materialID = uint(res.materialID);
                 newHit.texcoord = res.texcoord;
                 hits[t] = newHit;
             }

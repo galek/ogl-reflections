@@ -23,8 +23,8 @@ struct Hit {
     vec4 params;
 };
 
-layout(std430, binding=7) buffer s_rays {Ray rays[];};
-layout(std430, binding=8) buffer s_hits {Hit hits[];};
+layout(std430, binding=8) buffer s_rays {Ray rays[];};
+layout(std430, binding=9) buffer s_hits {Hit hits[];};
 
 uniform vec2 sceneRes;
 

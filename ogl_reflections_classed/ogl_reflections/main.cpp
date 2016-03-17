@@ -7,6 +7,7 @@
 // Headers
 #include <GL/glew.h>
 #include <SFML/Window.hpp>
+#include <SFML/Graphics.hpp>
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -222,7 +223,7 @@ public:
 		
 		bind(); 
 
-		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "projInv"), 1, false, glm::value_ptr(glm::inverse(glm::perspective(3.14f / 3.0f, float(width) / float(height), 0.001f, 1000.0f))));
+		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "projInv"), 1, false, glm::value_ptr(glm::inverse(glm::perspective(3.14f / 3.0f, float(width) / float(height), 0.01f, 1000.0f))));
 		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "camInv"), 1, false, glm::value_ptr(glm::inverse(glm::lookAt(eye, view, glm::vec3(0.0, 1.0, 0.0)))));
 		glUniform2f(glGetUniformLocation(cameraProgram, "sceneRes"), width, height);
 
@@ -249,8 +250,8 @@ public:
 	}
 
 	void bind() {
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, rays);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, hits);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, rays);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, hits);
 	}
 
 	void render() {
@@ -333,7 +334,7 @@ public:
 
 private:
 	GLuint vsize = sizeof(Voxel) * 128 * 128 * 128;
-	GLuint tsize = sizeof(Thash) * 512 * 512 * 64;
+	GLuint tsize = sizeof(Thash) * 256 * 256 * 256;
 	GLuint subgridc = sizeof(GLuint) * 128 * 128 * 128 * 8;
 
 	std::vector<Voxel> dvoxels;
@@ -344,6 +345,7 @@ private:
 	GLuint vbo_triangle_ssbo;
 	GLuint norm_triangle_ssbo;
 	GLuint tex_triangle_ssbo;
+	GLuint mat_triangle_ssbo;
 	GLuint voxelizerFixProgram;
 	GLuint voxelizerMinmaxProgram;
 	GLuint voxelizerProgram;
@@ -372,11 +374,30 @@ public:
 		materialID = id;
 	}
 
-	void loadMesh(tinyobj::shape_t &shape) {
-		std::vector<float>& vertices = shape.mesh.positions;
-		std::vector<unsigned>& indices = shape.mesh.indices;
-		std::vector<float>& normals = shape.mesh.normals;
-		std::vector<float>& texcoords = shape.mesh.texcoords;
+	void loadMesh(std::vector<tinyobj::shape_t>& shape) {
+		std::vector<float> vertices;
+		std::vector<unsigned> indices;
+		std::vector<float> normals;
+		std::vector<float> texcoords;
+		std::vector<int> material_ids;
+
+		for (unsigned i = 0;i < shape.size();i++) {
+			for (unsigned j = 0;j < shape[i].mesh.indices.size();j++) {
+				indices.push_back(shape[i].mesh.indices[j] + vertices.size() / 3);
+			}
+			for (unsigned j = 0;j < shape[i].mesh.positions.size();j++) {
+				vertices.push_back(shape[i].mesh.positions[j]);
+			}
+			for (unsigned j = 0;j < shape[i].mesh.normals.size();j++) {
+				normals.push_back(shape[i].mesh.normals[j]);
+			}
+			for (unsigned j = 0;j < shape[i].mesh.texcoords.size();j++) {
+				texcoords.push_back(shape[i].mesh.texcoords[j]);
+			}
+			for (unsigned j = 0;j < shape[i].mesh.material_ids.size();j++) {
+				material_ids.push_back(shape[i].mesh.material_ids[j]);
+			}
+		}
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vbo_triangle_ssbo);
 		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
@@ -390,13 +411,16 @@ public:
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, tex_triangle_ssbo);
 		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * texcoords.size(), texcoords.data(), GL_DYNAMIC_DRAW);
 
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, mat_triangle_ssbo);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int) * material_ids.size(), material_ids.data(), GL_DYNAMIC_DRAW);
+
 		triangleCount = indices.size() / 3;
 	}
 
 private:
 	void init() {
-		dvoxels = std::vector<Voxel>(vsize / sizeof(Voxel), Voxel());
 		dvoxels_subgrid = std::vector<unsigned>(subgridc / sizeof(unsigned), 0xFFFFFFFF);
+		dvoxels = std::vector<Voxel>(vsize / sizeof(Voxel), Voxel());
 		dthash = std::vector<Thash>(tsize / sizeof(Thash), Thash());
 
 		glGenBuffers(1, &vspace);
@@ -408,6 +432,7 @@ private:
 		glGenBuffers(1, &ebo_triangle_ssbo);
 		glGenBuffers(1, &norm_triangle_ssbo);
 		glGenBuffers(1, &tex_triangle_ssbo);
+		glGenBuffers(1, &mat_triangle_ssbo);
 
 		{
 			GLuint compShader = loadShader("./render/intersection.comp", GL_COMPUTE_SHADER);
@@ -714,28 +739,42 @@ int main()
 
 	
 
-	
 
-	std::string inputfile = "models/teapot.obj";
+
+	std::string inputfile = "crytek-sponza/sponza_unified.obj";
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
 	bool ret = tinyobj::LoadObj(shapes, materials, err, inputfile.c_str());
+	std::vector<TestMat> msponza(materials.size());
+	for (int i = 0;i < msponza.size();i++) {
+		sf::Image img_data;
+		std::string tex = materials[i].diffuse_texname;
+		if (tex != "") {
+			if (!img_data.loadFromFile(tex))
+			{
+				std::cout << "Could not load '" << tex << "'" << std::endl;
+				//return false;
+			}
+			GLuint texture_handle;
+			glGenTextures(1, &texture_handle);
+			glBindTexture(GL_TEXTURE_2D, texture_handle);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			msponza[i].setTexture(texture_handle);
+			msponza[i].setMaterialID(i);
+		}
+	}
 
-
-
-	TObject teapot;
-	teapot.loadMesh(shapes[0]);
-	teapot.calcMinmax();
-	teapot.buildOctree();
-	teapot.setMaterialID(0);
+	TObject sponza;
+	sponza.loadMesh(shapes);
+	sponza.calcMinmax();
+	sponza.buildOctree();
 
 	RObject rays;
-	TestMat mat;
-	mat.setMaterialID(0);
-
-	
-
 	clock_t t = clock();
 
 	bool running = true;
@@ -755,17 +794,20 @@ int main()
 		clock_t tt = clock();
 		clock_t c = tt - t;
 
-		glm::vec3 eye = glm::vec3(9.0, 9.0, 9.0);
-		glm::vec3 view = glm::vec3(0.0, 6.0, 0.0);
+		glm::vec3 eye = glm::vec3(100.0, 100.0, 100.0);
+		glm::vec3 view = glm::vec3(0.0, 100.0, 0.0);
 		eye -= view;
 		eye = rotate(eye, ((float)c) / 1000.0f, glm::vec3(0.0, 1.0, 0.0));
 		eye += view;
+		view = eye + normalize(view - eye);
 
 		rays.camera(eye, view);
 		for (int i = 0;i < 2;i++) {
 			rays.begin();
-			teapot.intersection(rays);
-			mat.shade(rays, 0.2);
+			sponza.intersection(rays);
+			for (int i = 0;i < msponza.size();i++) {
+				msponza[i].shade(rays, 0.2);
+			}
 			rays.close();
 		}
 
