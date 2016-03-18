@@ -333,9 +333,9 @@ public:
 	}
 
 private:
-	GLuint vsize = sizeof(Voxel) * 128 * 128 * 128;
+	GLuint vsize = sizeof(Voxel) * 256 * 256 * 256;
 	GLuint tsize = sizeof(Thash) * 256 * 256 * 256;
-	GLuint subgridc = sizeof(GLuint) * 128 * 128 * 128 * 8;
+	GLuint subgridc = sizeof(GLuint) * 256 * 256 * 256 * 8;
 
 	std::vector<Voxel> dvoxels;
 	std::vector<GLuint> dvoxels_subgrid;
@@ -725,8 +725,8 @@ public:
 
 class Camera {
 public:
-	glm::vec3 eye = glm::vec3(1.0, 100.0, 1.0);
-	glm::vec3 view = glm::vec3(0.0, 100.0, 0.0);
+	glm::vec3 eye = glm::vec3(1.0, 20.0, 1.0);
+	glm::vec3 view = glm::vec3(0.0, 20.0, 0.0);
 
 	sf::Vector2i mposition;
 
@@ -895,7 +895,7 @@ int main()
 		//sponza.calcMinmax();
 		//sponza.buildOctree();
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 3;i++) {
+		for (int i = 0;i < 5;i++) {
 			rays.begin();
 			sponza.intersection(rays);
 			for (int i = 0;i < msponza.size();i++) {

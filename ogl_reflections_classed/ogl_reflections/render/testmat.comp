@@ -37,7 +37,7 @@ uniform sampler2D tex;
 
 void main()
 {
-    const vec3 light = vec3(0.0f, 3.0f, -9.0f);
+    const vec3 light = vec3(0.0f, 10.0f, 0.0f);
 
     if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
@@ -55,7 +55,7 @@ void main()
                 vec4 tx = texture(tex, hit.texcoord);
                 vec3 color = /*vec3(0.9f, 0.5f, 0.5f) **/ tx.rgb * tx.a * light;
 
-                if(tx.a >= 1.0f){
+                if(tx.a > 0.5f){
                     newRay.final = mix(newRay.final, color, newRay.params.x);
                     newRay.direct = normalize(reflect(newRay.direct, normal));
                     newRay.params.x = reflectionRate;

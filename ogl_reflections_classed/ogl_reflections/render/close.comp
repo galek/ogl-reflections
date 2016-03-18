@@ -37,7 +37,7 @@ void main()
 
         Hit hit = hits[t];
         Ray ray = rays[t];
-        if(hit.dist >= 10000.0f || hit.params.x > 1.0f || ray.params.y > 2.0f){
+        if(hit.dist >= 10000.0f || hit.params.x < 1.0f || ray.params.y >= 2.0f){
             ray.actived = 0;
             rays[t] = ray;
         }
