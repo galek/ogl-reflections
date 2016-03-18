@@ -70,7 +70,7 @@ void main()
                 prenormal = normalize(getNormalMapping(hit.texcoord) * tbn);
 
                 vec3 normal = -normalize(prenormal * dot(prenormal, newRay.direct));
-                float light = dot(normalize(light - newRay.origin), normal);
+                float light = dot(normalize(light - newRay.origin), normal) * 0.5f + 0.5f;
 
 
                 vec4 tx = texture(tex, hit.texcoord);

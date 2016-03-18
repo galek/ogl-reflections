@@ -993,7 +993,7 @@ int main()
 		//sponza.calcMinmax();
 		//sponza.buildOctree();
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 2;i++) {
+		for (int i = 0;i < 4;i++) {
 			rays.begin();
 			sponza.intersection(rays);
 			for (int i = 0;i < msponza.size();i++) {
