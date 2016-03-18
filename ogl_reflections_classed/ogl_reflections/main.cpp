@@ -261,7 +261,7 @@ public:
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
+		//glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
 		glCullFace(GL_FRONT_AND_BACK);
 		glUseProgram(renderProgram);
 
@@ -680,8 +680,8 @@ public:
 				glClear(GL_COLOR_BUFFER_BIT);
 				glDisable(GL_BLEND);
 				glDisable(GL_DEPTH_TEST);
-				glSubpixelPrecisionBiasNV(GL_SUBPIXEL_PRECISION_BIAS_X_BITS_NV, GL_SUBPIXEL_PRECISION_BIAS_Y_BITS_NV);
-				glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
+				//glSubpixelPrecisionBiasNV(GL_SUBPIXEL_PRECISION_BIAS_X_BITS_NV, GL_SUBPIXEL_PRECISION_BIAS_Y_BITS_NV);
+				//glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
 				glCullFace(GL_FRONT_AND_BACK);
 
 				glUseProgram(voxelizerProgram);

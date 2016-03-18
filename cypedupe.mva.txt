@@ -1,0 +1,30 @@
+﻿Reflections
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch is up-to-date with 'origin/master'.
+#
+# Changes to be committed:
+#	modified:   ogl_reflections_classed/.vs/ogl_reflections/v14/.suo
+#	modified:   ogl_reflections_classed/ogl_reflections.sdf
+#	new file:   ogl_reflections_classed/ogl_reflections/lost_empire-Alpha.png
+#	new file:   ogl_reflections_classed/ogl_reflections/lost_empire-RGB.png
+#	new file:   ogl_reflections_classed/ogl_reflections/lost_empire-RGBA.png
+#	new file:   ogl_reflections_classed/ogl_reflections/lost_empire.jpg
+#	new file:   ogl_reflections_classed/ogl_reflections/lost_empire.mtl
+#	new file:   ogl_reflections_classed/ogl_reflections/lost_empire.obj
+#	modified:   ogl_reflections_classed/ogl_reflections/main.cpp
+#	modified:   ogl_reflections_classed/ogl_reflections/render/close.comp
+#	modified:   ogl_reflections_classed/ogl_reflections/render/testmat.comp
+#	modified:   ogl_reflections_classed/ogl_reflections/x64/Release/main.obj
+#	modified:   ogl_reflections_classed/ogl_reflections/x64/Release/ogl_reflections.log
+#	modified:   ogl_reflections_classed/ogl_reflections/x64/Release/vc140.pdb
+#	modified:   ogl_reflections_classed/x64/Release/ogl_reflections.exe
+#	modified:   ogl_reflections_classed/x64/Release/ogl_reflections.iobj
+#	modified:   ogl_reflections_classed/x64/Release/ogl_reflections.ipdb
+#	modified:   ogl_reflections_classed/x64/Release/ogl_reflections.pdb
+#
+# Untracked files:
+#	s43qhnl0.r3g.txt
+#
+
