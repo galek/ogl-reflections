@@ -36,6 +36,7 @@ uniform uint materialID;
 
 uniform sampler2D tex;
 uniform sampler2D bump;
+uniform sampler2D spec;
 
 vec3 getNormalMapping(vec2 texcoordi){
     vec2 textures = textureSize(bump, 0);
@@ -50,7 +51,7 @@ vec3 getNormalMapping(vec2 texcoordi){
 
 void main()
 {
-    const vec3 light = vec3(0.0f, 10.0f, 0.0f);
+    const vec3 light = vec3(0.0f, 100.0f, 0.0f);
 
     if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
@@ -69,7 +70,7 @@ void main()
                 prenormal = normalize(getNormalMapping(hit.texcoord) * tbn);
 
                 vec3 normal = -normalize(prenormal * dot(prenormal, newRay.direct));
-                float light = dot(normalize(light - newRay.origin), normal) * 0.5 + 0.5;
+                float light = dot(normalize(light - newRay.origin), normal);
 
 
                 vec4 tx = texture(tex, hit.texcoord);
@@ -79,11 +80,14 @@ void main()
                 //vec3(hit.texcoord, 0.0f)*
                 light;
 
+
+                float spc = texture(spec, hit.texcoord).r * 0.5f;
                 if(tx.a > 0.01f){
                     newRay.final = mix(newRay.final, color, newRay.params.x);
                     newRay.direct = normalize(reflect(newRay.direct, normal));
-                    newRay.params.x = reflectionRate;
+                    newRay.params.x = spc;
                     newRay.params.y += 1.0f;
+                    if(spc < 0.001f) newRay.actived = 0;
                 }
 
                 newRay.origin += normalize(normal * dot(newRay.direct, normal)) * 0.01f;
