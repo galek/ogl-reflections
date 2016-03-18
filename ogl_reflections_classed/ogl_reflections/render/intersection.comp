@@ -260,7 +260,7 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                     }
                 }
 
-                if(dd > d && lastT != LONGEST && d >= 0.0f && d < INFINITY) {
+                if(dd >= d && lastT != LONGEST && d >= 0.0f && d < INFINITY) {
                     res.dist = d;
                     res.triangle = lastT;
                     res.normal = normal;
