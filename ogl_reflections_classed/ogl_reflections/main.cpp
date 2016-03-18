@@ -821,10 +821,10 @@ public:
 		vi.z -= diff / 500.0f;
 	}
 	void rotateY(glm::vec3 &vi, float diff) {
-		vi = glm::rotateX(vi, -diff / 5000000.0f);
+		vi = glm::rotateX(vi, -diff / 2000000.0f);
 	}
 	void rotateX(glm::vec3 &vi, float diff) {
-		vi = glm::rotateY(vi, -diff / 5000000.0f);
+		vi = glm::rotateY(vi, -diff / 2000000.0f);
 	}
 };
 
@@ -968,7 +968,7 @@ int main()
 		//sponza.calcMinmax();
 		//sponza.buildOctree();
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 3;i++) {
+		for (int i = 0;i < 2;i++) {
 			rays.begin();
 			sponza.intersection(rays);
 			for (int i = 0;i < msponza.size();i++) {

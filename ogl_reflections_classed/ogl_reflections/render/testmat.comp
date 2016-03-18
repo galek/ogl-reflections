@@ -58,7 +58,7 @@ void main()
         if(hit.materialID == materialID){
             Ray ray = rays[t];
 
-            if(ray.actived > 0 && hit.params.x < 1.0f && ray.params.y < 2.0f){
+            if(ray.actived > 0 && hit.params.x < 1.0f && ray.params.y < ray.params.z){
                 Ray newRay = ray;
                 newRay.origin += newRay.direct * hit.dist;
 
