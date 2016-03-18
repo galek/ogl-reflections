@@ -17,6 +17,7 @@ struct Hit {
     uint triangle;
     uint materialID;
     vec3 normal;
+    vec3 tangent;
     vec2 texcoord;
     vec4 params;
 };
@@ -34,6 +35,18 @@ uniform float reflectionRate;
 uniform uint materialID;
 
 uniform sampler2D tex;
+uniform sampler2D bump;
+
+vec3 getNormalMapping(vec2 texcoordi){
+    vec2 textures = textureSize(bump, 0);
+    vec2 texcoord = (floor(texcoordi * textures) + 0.5f) / textures;
+    float val = texture(bump, texcoord).r;
+    float valX = texture(bump, texcoord + vec2(1.0f / textures.x, 0.0f)).r;
+    float valY = texture(bump, texcoord + vec2(0.0f, 1.0f / textures.y)).r;
+    vec3 h = vec3(1.0f,0.0f,val - valX);
+    vec3 v = vec3(0.0f,1.0f,val - valY);
+    return normalize(cross(h,v));
+}
 
 void main()
 {
@@ -49,11 +62,22 @@ void main()
                 Ray newRay = ray;
                 newRay.origin += newRay.direct * hit.dist;
 
-                vec3 normal = -normalize(hit.normal * dot(hit.normal, newRay.direct));
+                vec3 binormal = normalize(cross(hit.tangent, hit.normal));
+                mat3 tbn = transpose(mat3(hit.tangent, binormal, hit.normal));
+
+                vec3 prenormal = hit.normal;
+                prenormal = normalize(getNormalMapping(hit.texcoord) * tbn);
+
+                vec3 normal = -normalize(prenormal * dot(prenormal, newRay.direct));
                 float light = dot(normalize(light - newRay.origin), normal) * 0.5 + 0.5;
 
+
                 vec4 tx = texture(tex, hit.texcoord);
-                vec3 color = /*vec3(0.9f, 0.5f, 0.5f) **/ tx.rgb * tx.a * light;
+                vec3 color =
+                //vec3(texture(bump, hit.texcoord).r) *
+                tx.rgb * tx.a *
+                //vec3(hit.texcoord, 0.0f)*
+                light;
 
                 if(tx.a > 0.5f){
                     newRay.final = mix(newRay.final, color, newRay.params.x);
@@ -63,6 +87,7 @@ void main()
                 }
 
                 newRay.origin += normalize(normal * dot(newRay.direct, normal)) * 0.01f;
+                //newRay.final = prenormal * 0.5 + 0.5;
 
                 hit.params.x = 1.0f;
                 hits[t] = hit;

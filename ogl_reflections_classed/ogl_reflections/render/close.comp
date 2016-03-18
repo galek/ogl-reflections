@@ -17,6 +17,7 @@ struct Hit {
     uint triangle;
     uint materialID;
     vec3 normal;
+    vec3 tangent;
     vec2 texcoord;
     vec4 params;
 };

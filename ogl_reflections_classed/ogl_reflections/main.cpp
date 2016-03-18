@@ -117,6 +117,7 @@ struct Hit {
 	GLuint triangle;
 	GLuint materialID;
 	glm::vec4 normal;
+	glm::vec4 tangent;
 	glm::vec4 texcoord;
 	glm::vec4 params;
 };
@@ -293,46 +294,6 @@ public:
 
 
 
-class TestMat {
-private:
-	GLuint matProgram;
-	GLuint materialID = 0;
-	GLuint tex;
-
-	void init() {
-		GLuint compShader = loadShader("./render/testmat.comp", GL_COMPUTE_SHADER);
-		matProgram = glCreateProgram();
-		glAttachShader(matProgram, compShader);
-		glBindFragDataLocation(matProgram, 0, "outColor");
-		glLinkProgram(matProgram);
-		glUseProgram(matProgram);
-	}
-public:
-	TestMat() {
-		init();
-	}
-	void setMaterialID(GLuint id) {
-		materialID = id;
-	}
-	void setTexture(GLuint tx) {
-		tex = tx;
-	}
-	void shade(RObject &rays, GLfloat reflectionRate) {
-		glUseProgram(matProgram);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		glUniform1i(glGetUniformLocation(matProgram, "texture"), 0);
-
-		rays.bind();
-		glUniform1ui(glGetUniformLocation(matProgram, "materialID"), materialID);
-		glUniform1f(glGetUniformLocation(matProgram, "reflectionRate"), reflectionRate);
-		glUniform2f(glGetUniformLocation(matProgram, "sceneRes"), width, height);
-
-		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	}
-};
 
 
 
@@ -733,6 +694,57 @@ public:
 };
 
 
+class TestMat {
+private:
+	GLuint matProgram;
+	GLuint materialID = 0;
+	GLuint tex;
+	GLuint btex;
+
+	void init() {
+		GLuint compShader = loadShader("./render/testmat.comp", GL_COMPUTE_SHADER);
+		matProgram = glCreateProgram();
+		glAttachShader(matProgram, compShader);
+		glBindFragDataLocation(matProgram, 0, "outColor");
+		glLinkProgram(matProgram);
+		glUseProgram(matProgram);
+	}
+public:
+	TestMat() {
+		init();
+	}
+	void setMaterialID(GLuint id) {
+		materialID = id;
+	}
+	void setTexture(GLuint tx) {
+		tex = tx;
+	}
+	void setBump(GLuint tx) {
+		btex = tx;
+	}
+	void shade(RObject &rays, GLfloat reflectionRate) {
+		glUseProgram(matProgram);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glUniform1i(glGetUniformLocation(matProgram, "tex"), 0);
+		
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, btex);
+		glUniform1i(glGetUniformLocation(matProgram, "bump"), 1);
+		
+		rays.bind();
+		glUniform1ui(glGetUniformLocation(matProgram, "materialID"), materialID);
+		glUniform1f(glGetUniformLocation(matProgram, "reflectionRate"), reflectionRate);
+		glUniform2f(glGetUniformLocation(matProgram, "sceneRes"), width, height);
+
+		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+};
+
+
+
 class Camera {
 public:
 	glm::vec3 eye = glm::vec3(1.0, 20.0, 1.0);
@@ -876,11 +888,11 @@ int main()
 	for (int i = 0;i < msponza.size();i++) {
 		sf::Image img_data;
 		std::string tex = materials[i].diffuse_texname;
+
 		if (tex != "") {
 			if (!img_data.loadFromFile(tex))
 			{
 				std::cout << "Could not load '" << tex << "'" << std::endl;
-				//return false;
 			}
 			GLuint texture_handle;
 			glGenTextures(1, &texture_handle);
@@ -891,8 +903,26 @@ int main()
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			msponza[i].setTexture(texture_handle);
-			msponza[i].setMaterialID(i);
 		}
+
+
+		tex = materials[i].bump_texname;
+		if(tex != ""){
+			if (!img_data.loadFromFile(tex))
+			{
+				std::cout << "Could not load '" << tex << "'" << std::endl;
+			}
+			GLuint texture_handle;
+			glGenTextures(1, &texture_handle);
+			glBindTexture(GL_TEXTURE_2D, texture_handle);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			msponza[i].setBump(texture_handle);
+		}
+		msponza[i].setMaterialID(i);
 	}
 
 	TObject sponza;
@@ -938,7 +968,7 @@ int main()
 		//sponza.calcMinmax();
 		//sponza.buildOctree();
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 5;i++) {
+		for (int i = 0;i < 3;i++) {
 			rays.begin();
 			sponza.intersection(rays);
 			for (int i = 0;i < msponza.size();i++) {
