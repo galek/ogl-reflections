@@ -809,16 +809,16 @@ public:
 	}
 
 	void leftRight(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.x -= diff / 500.0f;
-		vi.x -= diff / 500.0f;
+		ca.x -= diff / 1000.0f;
+		vi.x -= diff / 1000.0f;
 	}
 	void topBottom(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.y += diff / 500.0f;
-		vi.y += diff / 500.0f;
+		ca.y += diff / 1000.0f;
+		vi.y += diff / 1000.0f;
 	}
 	void forwardBackward(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.z -= diff / 500.0f;
-		vi.z -= diff / 500.0f;
+		ca.z -= diff / 1000.0f;
+		vi.z -= diff / 1000.0f;
 	}
 	void rotateY(glm::vec3 &vi, float diff) {
 		vi = glm::rotateX(vi, -diff / 2000000.0f);
@@ -968,7 +968,7 @@ int main()
 		//sponza.calcMinmax();
 		//sponza.buildOctree();
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 2;i++) {
+		for (int i = 0;i < 4;i++) {
 			rays.begin();
 			sponza.intersection(rays);
 			for (int i = 0;i < msponza.size();i++) {
