@@ -39,10 +39,10 @@ uniform sampler2D bump;
 
 vec3 getNormalMapping(vec2 texcoordi){
     vec2 textures = textureSize(bump, 0);
-    vec2 texcoord = (floor(texcoordi * textures) + 0.5f) / textures;
+    vec2 texcoord = texcoordi;//(floor(texcoordi * textures) + 0.5f) / textures;
     float val = texture(bump, texcoord).r;
-    float valX = texture(bump, texcoord + vec2(1.0f / textures.x, 0.0f)).r;
-    float valY = texture(bump, texcoord + vec2(0.0f, 1.0f / textures.y)).r;
+    float valX = texture(bump, texcoord + vec2(1.0f / textures.x, 0.0f) * 1.0f).r;
+    float valY = texture(bump, texcoord + vec2(0.0f, 1.0f / textures.y) * 1.0f).r;
     vec3 h = vec3(1.0f,0.0f,val - valX);
     vec3 v = vec3(0.0f,1.0f,val - valY);
     return normalize(cross(h,v));
@@ -79,7 +79,7 @@ void main()
                 //vec3(hit.texcoord, 0.0f)*
                 light;
 
-                if(tx.a > 0.5f){
+                if(tx.a > 0.01f){
                     newRay.final = mix(newRay.final, color, newRay.params.x);
                     newRay.direct = normalize(reflect(newRay.direct, normal));
                     newRay.params.x = reflectionRate;

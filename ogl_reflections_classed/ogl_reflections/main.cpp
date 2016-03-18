@@ -98,8 +98,8 @@ GLuint loadShader(std::string filename, GLuint type) {
 	return valid ? shader : -1;
 }
 
-const GLuint width = 800;
-const GLuint height = 600;
+const GLuint width = 1280;
+const GLuint height = 720;
 const GLuint maxDepth = 9; //Size3D = 2^(X-1)
 const GLuint _zero = 0;
 
@@ -898,8 +898,8 @@ int main()
 			glGenTextures(1, &texture_handle);
 			glBindTexture(GL_TEXTURE_2D, texture_handle);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			msponza[i].setTexture(texture_handle);
@@ -916,8 +916,8 @@ int main()
 			glGenTextures(1, &texture_handle);
 			glBindTexture(GL_TEXTURE_2D, texture_handle);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			msponza[i].setBump(texture_handle);
@@ -968,7 +968,7 @@ int main()
 		//sponza.calcMinmax();
 		//sponza.buildOctree();
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 4;i++) {
+		for (int i = 0;i < 2;i++) {
 			rays.begin();
 			sponza.intersection(rays);
 			for (int i = 0;i < msponza.size();i++) {
