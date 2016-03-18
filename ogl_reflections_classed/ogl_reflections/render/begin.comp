@@ -36,7 +36,7 @@ void main()
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
 
         Hit hit;
-        hit.dist = 10000.0f;
+        hit.dist = 100000.0f;
         hit.triangle = LONGEST;
         hit.materialID = LONGEST;
         hit.normal = vec3(0.0f);

@@ -30,6 +30,8 @@ uniform vec2 sceneRes;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
+uniform samplerCube cubeTex;
+
 void main()
 {
     if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
@@ -39,6 +41,9 @@ void main()
         Ray ray = rays[t];
         if(hit.dist >= 10000.0f || hit.params.x < 1.0f || ray.params.y >= 2.0f){
             ray.actived = 0;
+            if(ray.params.y < 2.0f && hit.dist >= 10000.0f) {
+                ray.final = mix(ray.final, vec3(texture(cubeTex, ray.direct).xyz), ray.params.x);
+            }
             rays[t] = ray;
         }
     }
