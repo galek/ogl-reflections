@@ -235,10 +235,10 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                                 texcoords[x] = vec2(texcs[j * 2 + 0], texcs[j * 2 + 1]);
                             }
 
-                            //normald = normalize(trinorms[1]) * uv.x;
-                            //normald += normalize(trinorms[2]) * uv.y;
-                            //normald += normalize(trinorms[0]) * (1.0f - uv.x - uv.y);
-                            normald = cross(triverts[2] - triverts[0], triverts[1] - triverts[0]);
+                            normald = normalize(trinorms[1]) * uv.x;
+                            normald += normalize(trinorms[2]) * uv.y;
+                            normald += normalize(trinorms[0]) * (1.0f - uv.x - uv.y);
+                            //normald = cross(triverts[2] - triverts[0], triverts[1] - triverts[0]);
                             normald = normalize(normald);
 
                             texcoordd = texcoords[1] * uv.x;
@@ -337,8 +337,6 @@ TResult traverse(vec3 orig, vec3 dir){
     res.dist = INFINITY;
     return res;
 }
-
-uniform uint materialID;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 

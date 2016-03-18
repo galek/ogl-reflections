@@ -223,7 +223,7 @@ public:
 		
 		bind(); 
 
-		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "projInv"), 1, false, glm::value_ptr(glm::inverse(glm::perspective(3.14f / 3.0f, float(width) / float(height), 0.001f, 1000.0f))));
+		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "projInv"), 1, false, glm::value_ptr(glm::inverse(glm::perspective(3.14f / 3.0f, float(width) / float(height), 0.01f, 1000.0f))));
 		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "camInv"), 1, false, glm::value_ptr(glm::inverse(glm::lookAt(eye, view, glm::vec3(0.0, 1.0, 0.0)))));
 		glUniform2f(glGetUniformLocation(cameraProgram, "sceneRes"), width, height);
 
@@ -567,6 +567,7 @@ public:
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ebo_triangle_ssbo);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, norm_triangle_ssbo);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, tex_triangle_ssbo);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, mat_triangle_ssbo);
 	}
 
 	void bindOctree() {
@@ -794,8 +795,8 @@ int main()
 		clock_t tt = clock();
 		clock_t c = tt - t;
 
-		glm::vec3 eye = glm::vec3(1.0, 1.0, 1.0);
-		glm::vec3 view = glm::vec3(0.0, 1.0, 0.0);
+		glm::vec3 eye = glm::vec3(1.0, 100.0, 1.0);
+		glm::vec3 view = glm::vec3(0.0, 100.0, 0.0);
 		eye -= view;
 		eye = rotate(eye, ((float)c) / 5000.0f, glm::vec3(0.0, 1.0, 0.0));
 		eye += view;

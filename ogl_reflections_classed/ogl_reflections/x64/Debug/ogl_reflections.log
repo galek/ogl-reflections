@@ -10,13 +10,14 @@ c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_re
 c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(271): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
 c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(320): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
 c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(322): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(399): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(533): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(566): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(572): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(638): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(649): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(792): warning C4305: аргумент: усечение из "double" к "GLfloat"
+c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(386): warning C4267: аргумент: преобразование из "size_t" в "unsigned int"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(417): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(553): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(587): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
+c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(593): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(659): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(670): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
+c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\main.cpp(810): warning C4305: аргумент: усечение из "double" к "GLfloat"
 LINK : warning LNK4098: сшсышюЄхър яю єьюыўрэш■ "LIBCMT" яЁюЄштюЁхўшЄ шёяюы№чютрэш■ фЁєушї сшсышюЄхъ; шёяюы№чєщЄх ярЁрьхЄЁ /NODEFAULTLIB:library
 glew32s.lib(glew.obj) : warning LNK4099: "vc120.pdb" PDB эх эрщфхэ ё "glew32s.lib(glew.obj)" шыш эр "C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Debug\vc120.pdb"; ъюьяюэютър юс·хъЄр т√яюыэ хЄё  ъръ яЁш юЄёєЄёЄтшш юЄырфюўэ√ї фрээ√ї
   ogl_reflections.vcxproj -> C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Debug\ogl_reflections.exe
