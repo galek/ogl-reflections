@@ -347,7 +347,7 @@ void main()
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
 
         Ray ray = rays[t];
-        if(ray.actived > 0){
+        if(ray.actived > 0 && ray.params.y < 2.0f){
             Hit hit = hits[t];
             TResult res = traverse(ray.origin, ray.direct);
             if(res.dist < hit.dist){

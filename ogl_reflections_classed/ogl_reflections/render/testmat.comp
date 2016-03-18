@@ -45,7 +45,7 @@ void main()
         if(hit.materialID == materialID){
             Ray ray = rays[t];
 
-            if(ray.actived > 0 && hit.params.x < 1.0f){
+            if(ray.actived > 0 && hit.params.x < 1.0f && ray.params.y < 2.0f){
                 Ray newRay = ray;
                 newRay.origin += newRay.direct * hit.dist;
 
@@ -53,14 +53,13 @@ void main()
                 float light = dot(normalize(light - newRay.origin), normal) * 0.5 + 0.5;
 
                 vec4 tx = texture(tex, hit.texcoord);
-                vec3 color = /*vec3(0.9f, 0.5f, 0.5f) **/ tx.rgb * /*tx.a **/ light;
-                newRay.final = mix(newRay.final, color, newRay.params.x);
+                vec3 color = /*vec3(0.9f, 0.5f, 0.5f) **/ tx.rgb * tx.a * light;
 
-                if(tx.a > 0.9f){
+                if(tx.a >= 1.0f){
+                    newRay.final = mix(newRay.final, color, newRay.params.x);
                     newRay.direct = normalize(reflect(newRay.direct, normal));
                     newRay.params.x = reflectionRate;
-                } else {
-                    newRay.params.x = 1.0f;
+                    newRay.params.y += 1.0f;
                 }
 
                 newRay.origin += normalize(normal * dot(newRay.direct, normal)) * 0.01f;

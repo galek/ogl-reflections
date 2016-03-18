@@ -53,6 +53,7 @@ void main()
         ray.color = vec3(1.0f);
         ray.final = vec3(0.0f);
         ray.params.x = 1.0f;
+        ray.params.y = 0.0f;
         rays[t] = ray;
     }
 }
