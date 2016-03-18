@@ -15,14 +15,14 @@ main.cpp(417): warning C4267: =: преобразование из "size_t" в "
 main.cpp(553): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
 main.cpp(587): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
 main.cpp(593): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(659): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(670): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
-main.cpp(810): warning C4305: аргумент: усечение из "double" к "GLfloat"
+main.cpp(661): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
+main.cpp(672): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
+main.cpp(816): warning C4305: аргумент: усечение из "double" к "GLfloat"
 LINK : warning LNK4098: библиотека по умолчанию "LIBCMT" противоречит использованию других библиотек; используйте параметр /NODEFAULTLIB:library
   Создание кода
-  29 of 2047 functions ( 1.4%) were compiled, the rest were copied from previous compilation.
+  27 of 2011 functions ( 1.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    6 functions had inline decision re-evaluated but remain unchanged
+    7 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
 glew32s.lib(glew.obj) : warning LNK4099: "vc120.pdb" PDB не найден с "glew32s.lib(glew.obj)" или на "C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Release\vc120.pdb"; компоновка объекта выполняется как при отсутствии отладочных данных
   ogl_reflections.vcxproj -> C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Release\ogl_reflections.exe

@@ -100,7 +100,7 @@ GLuint loadShader(std::string filename, GLuint type) {
 
 const GLuint width = 800;
 const GLuint height = 600;
-const GLuint maxDepth = 8; //Size3D = 2^(X-1)
+const GLuint maxDepth = 9; //Size3D = 2^(X-1)
 const GLuint _zero = 0;
 
 struct Ray {
@@ -420,7 +420,7 @@ public:
 private:
 	void init() {
 		dvoxels_subgrid = std::vector<unsigned>(subgridc / sizeof(unsigned), 0xFFFFFFFF);
-		dvoxels = std::vector<Voxel>(vsize / sizeof(Voxel), Voxel());
+		//dvoxels = std::vector<Voxel>(vsize / sizeof(Voxel), Voxel());
 		dthash = std::vector<Thash>(tsize / sizeof(Thash), Thash());
 
 		glGenBuffers(1, &vspace);
@@ -602,6 +602,8 @@ public:
 		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, subgridc, dvoxels_subgrid.data());
+		//glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
+		//glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Voxel), dvoxels.data());
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -797,11 +799,15 @@ int main()
 
 		glm::vec3 eye = glm::vec3(1.0, 100.0, 1.0);
 		glm::vec3 view = glm::vec3(0.0, 100.0, 0.0);
+		//glm::vec3 eye = glm::vec3(2.0, 0.0, 2.0);
+		//glm::vec3 view = glm::vec3(0.0, 0.0, 0.0);
 		eye -= view;
 		eye = rotate(eye, ((float)c) / 5000.0f, glm::vec3(0.0, 1.0, 0.0));
 		eye += view;
 		view = eye + normalize(view - eye);
 
+		//sponza.calcMinmax();
+		//sponza.buildOctree();
 		rays.camera(eye, view);
 		for (int i = 0;i < 2;i++) {
 			rays.begin();
