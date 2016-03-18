@@ -207,7 +207,9 @@ void main(){
             uint d = loc / 4;
             uvec3 co = uvec3(w, h, d);
 
-            if(voxels_subgrid[parent * 8 + loc] == 0xFFFFFFFF){
+            voxels_subgrid[parent * 8 + loc] = 0xFFFFFFFF;
+
+            //if(voxels_subgrid[parent * 8 + loc] == 0xFFFFFFFF){
                 Voxel voxel = voxels[parent];
                 uvec3 parentSpace = uvec3(voxel.coordX, voxel.coordY, voxel.coordZ);
                 uvec3 globalSpace = parentSpace * 2 + co;
@@ -219,6 +221,8 @@ void main(){
                 Thash hash = thashes[voxel.last];
                 bool needsSkip = false;
                 uint cnt = min(voxel.count, triangleCount);
+
+
                 for(uint i=0;i<cnt;i++){
                     if(!needsSkip){
                         vec3 trivert[3];
@@ -273,7 +277,7 @@ void main(){
                         break;
                     }
                 }
-            }
+            //}
         }
     }
 }

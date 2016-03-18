@@ -419,9 +419,9 @@ public:
 
 private:
 	void init() {
-		dvoxels_subgrid = std::vector<unsigned>(subgridc / sizeof(unsigned), 0xFFFFFFFF);
+		//dvoxels_subgrid = std::vector<unsigned>(subgridc / sizeof(unsigned), 0xFFFFFFFF);
 		//dvoxels = std::vector<Voxel>(vsize / sizeof(Voxel), Voxel());
-		dthash = std::vector<Thash>(tsize / sizeof(Thash), Thash());
+		//dthash = std::vector<Thash>(tsize / sizeof(Thash), Thash());
 
 		glGenBuffers(1, &vspace);
 		glGenBuffers(1, &tspace);
@@ -600,8 +600,8 @@ public:
 		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, scounter);
 		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
-		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, subgridc, dvoxels_subgrid.data());
+		//glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
+		//glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, subgridc, dvoxels_subgrid.data());
 		//glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
 		//glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Voxel), dvoxels.data());
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);

@@ -66,6 +66,8 @@ uvec2 searchVoxelIndex(uvec3 idx){
             } else {
                 hash = voxels[sub];
             }
+        } else {
+            break;
         }
     }
 

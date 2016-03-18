@@ -81,6 +81,8 @@ uint searchVoxelIndex(uvec3 idx){
             } else {
                 hash = voxels[sub];
             }
+        } else {
+            break;
         }
     }
 
