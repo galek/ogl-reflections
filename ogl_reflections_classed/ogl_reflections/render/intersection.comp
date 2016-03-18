@@ -244,6 +244,7 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                             texcoordd = texcoords[1] * uv.x;
                             texcoordd += texcoords[2] * uv.y;
                             texcoordd += texcoords[0] * (1.0f - uv.x - uv.y);
+                            texcoordd.y = 1.0f - texcoordd.y;
 
                             materialIDd = mats[tri];
                         }
