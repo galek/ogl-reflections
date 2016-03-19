@@ -821,7 +821,7 @@ public:
 		glUniform1ui(glGetUniformLocation(matProgram, "materialID"), materialID);
 		glUniform1f(glGetUniformLocation(matProgram, "reflectionRate"), reflectionRate);
 		glUniform2f(glGetUniformLocation(matProgram, "sceneRes"), width, height);
-		glUniform3fv(glGetUniformLocation(matProgram, "light"), 1, glm::value_ptr(glm::vec3(0.0f, 10.0f, 0.0f)));
+		glUniform3fv(glGetUniformLocation(matProgram, "light"), 1, glm::value_ptr(glm::vec3(9.0f, 200.0f, 9.0f)));
 
 		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -832,8 +832,8 @@ public:
 
 class Camera {
 public:
-	glm::vec3 eye = glm::vec3(9.0, 9.0, 9.0);
-	glm::vec3 view = glm::vec3(0.0, 9.0, 0.0);
+	glm::vec3 eye = glm::vec3(90.0, 100.0, 90.0);
+	glm::vec3 view = glm::vec3(0.0, 100.0, 0.0);
 
 	sf::Vector2i mposition;
 
@@ -907,22 +907,22 @@ public:
 	}
 
 	void leftRight(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.x -= diff / 10000.0f;
-		vi.x -= diff / 10000.0f;
+		ca.x -= diff / 5000.0f;
+		vi.x -= diff / 5000.0f;
 	}
 	void topBottom(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.y += diff / 10000.0f;
-		vi.y += diff / 10000.0f;
+		ca.y += diff / 5000.0f;
+		vi.y += diff / 5000.0f;
 	}
 	void forwardBackward(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.z -= diff / 10000.0f;
-		vi.z -= diff / 10000.0f;
+		ca.z -= diff / 5000.0f;
+		vi.z -= diff / 5000.0f;
 	}
 	void rotateY(glm::vec3 &vi, float diff) {
-		vi = glm::rotateX(vi, -diff / 2000000.0f);
+		vi = glm::rotateX(vi, -diff / float(height) / 1000.0f);
 	}
 	void rotateX(glm::vec3 &vi, float diff) {
-		vi = glm::rotateY(vi, -diff / 2000000.0f);
+		vi = glm::rotateY(vi, -diff / float(width) / 1000.0f);
 	}
 };
 
@@ -965,6 +965,38 @@ GLuint initCubeMap()
 }
 
 
+GLuint loadWithDefault(std::string tex, glm::vec4 def) {
+	sf::Image img_data;
+	GLuint texture_handle;
+	glGenTextures(1, &texture_handle);
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
+	if (tex != "" && img_data.loadFromFile(tex)) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
+	}
+	else {
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1, 1, 0, GL_RGBA, GL_FLOAT, glm::value_ptr(def));
+	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	return texture_handle;
+}
+
+GLuint loadBump(std::string tex) {
+	return loadWithDefault(tex, glm::vec4(0.5f, 0.5f, 1.0f, 1.0f));
+}
+
+GLuint loadDiffuse(std::string tex) {
+	return loadWithDefault(tex, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+}
+
+GLuint loadSpecular(std::string tex) {
+	return loadWithDefault(tex, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+}
+
+
 int main()
 {
 	sf::ContextSettings settings;
@@ -992,68 +1024,12 @@ int main()
 	sponza[0].buildOctree();
 	
 	std::vector<TestMat> msponza(materials.size());
-
-	sf::Image img_data;
 	for (int i = 0;i < msponza.size();i++) {
-		sf::Image img_data;
-		std::string tex = materials[i].diffuse_texname;
-
-		if (tex != "") {
-			if (!img_data.loadFromFile(tex))
-			{
-				std::cout << "Could not load '" << tex << "'" << std::endl;
-			}
-			GLuint texture_handle;
-			glGenTextures(1, &texture_handle);
-			glBindTexture(GL_TEXTURE_2D, texture_handle);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			msponza[i].setTexture(texture_handle);
-		}
-
-
-		tex = materials[i].bump_texname;
-		if(tex != ""){
-			if (!img_data.loadFromFile(tex))
-			{
-				std::cout << "Could not load '" << tex << "'" << std::endl;
-			}
-			GLuint texture_handle;
-			glGenTextures(1, &texture_handle);
-			glBindTexture(GL_TEXTURE_2D, texture_handle);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			msponza[i].setBump(texture_handle);
-		}
-
-		tex = materials[i].specular_texname;
-		if (tex != "") {
-			if (!img_data.loadFromFile(tex))
-			{
-				std::cout << "Could not load '" << tex << "'" << std::endl;
-			}
-			GLuint texture_handle;
-			glGenTextures(1, &texture_handle);
-			glBindTexture(GL_TEXTURE_2D, texture_handle);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			msponza[i].setSpecular(texture_handle);
-		}
+		msponza[i].setBump(loadBump(materials[i].bump_texname));
+		msponza[i].setSpecular(loadSpecular(materials[i].specular_texname));
+		msponza[i].setTexture(loadDiffuse(materials[i].diffuse_texname));
 		msponza[i].setMaterialID(i);
 	}
-
-
-	std::vector<TestMat> mteapot(1);
-	std::string tex = "normal.png";
 
 	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
 	std::vector<TObject> teapot;
@@ -1064,61 +1040,11 @@ int main()
 	teapot[0].calcMinmax();
 	teapot[0].buildOctree();
 
-	{
-		std::string tex = "normal.png";
-		if (tex != "") {
-			if (!img_data.loadFromFile(tex))
-			{
-				std::cout << "Could not load '" << tex << "'" << std::endl;
-			}
-			GLuint texture_handle;
-			glGenTextures(1, &texture_handle);
-			glBindTexture(GL_TEXTURE_2D, texture_handle);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			mteapot[0].setBump(texture_handle);
-		}
-
-		tex = "diffuse.png";
-		if (tex != "") {
-			if (!img_data.loadFromFile(tex))
-			{
-				std::cout << "Could not load '" << tex << "'" << std::endl;
-			}
-			GLuint texture_handle;
-			glGenTextures(1, &texture_handle);
-			glBindTexture(GL_TEXTURE_2D, texture_handle);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			mteapot[0].setTexture(texture_handle);
-		}
-
-		tex = "specular.png";
-		if (tex != "") {
-			if (!img_data.loadFromFile(tex))
-			{
-				std::cout << "Could not load '" << tex << "'" << std::endl;
-			}
-			GLuint texture_handle;
-			glGenTextures(1, &texture_handle);
-			glBindTexture(GL_TEXTURE_2D, texture_handle);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			mteapot[0].setSpecular(texture_handle);
-		}
-
-		mteapot[0].setMaterialID(msponza.size());
-	}
-
+	std::vector<TestMat> mteapot(1);
+	mteapot[0].setMaterialID(msponza.size());
+	mteapot[0].setBump(loadBump(""));
+	mteapot[0].setSpecular(/*loadSpecular("")*/loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
+	mteapot[0].setTexture(loadDiffuse(""));
 	
 	
 	
@@ -1160,25 +1086,30 @@ int main()
 		cam.work(c);
 
 		//teapot.move(glm::vec3(0.01f, 0.0f, 0.0f) * (float)c / 1000.0f);
-		for (int i = 0;i < teapot.size();i++) {
-			teapot[i].calcMinmax();
-			teapot[i].buildOctree();
-		}
+		//for (int i = 0;i < teapot.size();i++) {
+		//	teapot[i].calcMinmax();
+		//	teapot[i].buildOctree();
+		//}
 		rays.camera(cam.eye, cam.view);
 		for (int i = 0;i < 3;i++) {
 			rays.begin();
 			glm::mat4 trans;
+
+			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+			
+			trans = glm::translate(trans, glm::vec3(0.0f, 100.0f, 0.0f));
+			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
 			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
 			for (int i = 0;i < teapot.size();i++) {
 				teapot[i].intersection(rays, trans);
 			}
-			//for (int i = 0;i < sponza.size();i++) {
-			//	sponza[i].intersection(rays, glm::mat4());
-			//}
-			//for (int i = 0;i < msponza.size();i++) {
-			//	msponza[i].shade(rays, 0.5f);
-			//}
+			for (int i = 0;i < sponza.size();i++) {
+				sponza[i].intersection(rays, glm::mat4());
+			}
+			for (int i = 0;i < msponza.size();i++) {
+				msponza[i].shade(rays, 0.5f);
+			}
 			for (int i = 0;i < mteapot.size();i++) {
 				mteapot[i].shade(rays, 1.0f);
 			}
