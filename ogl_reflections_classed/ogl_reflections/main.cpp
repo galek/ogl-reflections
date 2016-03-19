@@ -1159,17 +1159,17 @@ int main()
 		//	teapot[i].buildOctree();
 		//}
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 3;i++) {
+		for (int i = 0;i < 4;i++) {
 			rays.begin();
 			for (int i = 0;i < teapot.size();i++) {
 				teapot[i].intersection(rays);
 			}
-			//for (int i = 0;i < sponza.size();i++) {
-			//	sponza[i].intersection(rays);
-			//}
-			//for (int i = 0;i < msponza.size();i++) {
-			//	msponza[i].shade(rays, 0.5f);
-			//}
+			for (int i = 0;i < sponza.size();i++) {
+				sponza[i].intersection(rays);
+			}
+			for (int i = 0;i < msponza.size();i++) {
+				msponza[i].shade(rays, 0.5f);
+			}
 			for (int i = 0;i < mteapot.size();i++) {
 				mteapot[i].shade(rays, 1.0f);
 			}
