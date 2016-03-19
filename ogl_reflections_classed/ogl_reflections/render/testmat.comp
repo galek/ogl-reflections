@@ -51,7 +51,7 @@ vec3 getNormalMapping(vec2 texcoordi){
 
 void main()
 {
-    const vec3 light = vec3(0.0f, 100.0f, 0.0f);
+    const vec3 light = vec3(0.0f, 1000.0f, 0.0f);
 
     if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
@@ -70,7 +70,7 @@ void main()
                 prenormal = normalize(getNormalMapping(hit.texcoord) * tbn);
 
                 vec3 normal = -normalize(prenormal * dot(prenormal, newRay.direct));
-                float light = dot(normalize(light - newRay.origin), normal) * 0.5f + 0.5f;
+                float light = dot(normalize(light - newRay.origin), normal);
 
 
                 vec4 tx = texture(tex, hit.texcoord);
@@ -81,7 +81,7 @@ void main()
                 light;
 
 
-                float spc = texture(spec, hit.texcoord).r * 0.5f;
+                float spc = texture(spec, hit.texcoord).r * reflectionRate;
                 if(tx.a > 0.01f){
                     newRay.final = mix(newRay.final, color, newRay.params.x);
                     newRay.direct = normalize(reflect(newRay.direct, normal));

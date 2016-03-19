@@ -100,7 +100,7 @@ GLuint loadShader(std::string filename, GLuint type) {
 
 const GLuint width = 1280;
 const GLuint height = 720;
-const GLuint maxDepth = 9; //Size3D = 2^(X-1)
+const GLuint maxDepth = 8; //Size3D = 2^(X-1)
 const GLuint _zero = 0;
 
 struct Ray {
@@ -304,9 +304,9 @@ public:
 	}
 
 private:
-	GLuint vsize = sizeof(Voxel) * 256 * 256 * 256;
-	GLuint tsize = sizeof(Thash) * 256 * 256 * 256;
-	GLuint subgridc = sizeof(GLuint) * 256 * 256 * 256 * 8;
+	GLuint vsize = sizeof(Voxel) * 128 * 128 * 128;
+	GLuint tsize = sizeof(Thash) * 256 * 128 * 128;
+	GLuint subgridc = sizeof(GLuint) * 128 * 128 * 128 * 8;
 
 	std::vector<Voxel> dvoxels;
 	std::vector<GLuint> dvoxels_subgrid;
@@ -320,6 +320,7 @@ private:
 	GLuint voxelizerFixProgram;
 	GLuint voxelizerMinmaxProgram;
 	GLuint voxelizerProgram;
+	GLuint moverProgram;
 
 	GLuint vspace;
 	GLuint tspace;
@@ -333,6 +334,7 @@ private:
 
 	Minmax bound;
 	GLuint triangleCount = 0;
+	GLuint verticeCount = 0;
 	GLuint materialID = 0;
 
 	GLuint intersectionProgram;
@@ -386,6 +388,7 @@ public:
 		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int) * material_ids.size(), material_ids.data(), GL_DYNAMIC_DRAW);
 
 		triangleCount = indices.size() / 3;
+		verticeCount = vertices.size();
 	}
 
 private:
@@ -433,6 +436,15 @@ private:
 			glUseProgram(voxelizerMinmaxProgram);
 		}
 
+		{
+			GLuint compShader = loadShader("./voxelizer/manipulator.comp", GL_COMPUTE_SHADER);
+			moverProgram = glCreateProgram();
+			glAttachShader(moverProgram, compShader);
+			glBindFragDataLocation(moverProgram, 0, "outColor");
+			glLinkProgram(moverProgram);
+			glUseProgram(moverProgram);
+		}
+
 
 		{
 			GLuint vertexShader = loadShader("./voxelizer/voxelizer.vert", GL_VERTEX_SHADER);
@@ -474,6 +486,18 @@ private:
 	}
 
 public:
+	void move(glm::vec3 offset) {
+		glUseProgram(moverProgram);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, vbo_triangle_ssbo);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ebo_triangle_ssbo);
+		glUniform1ui(glGetUniformLocation(moverProgram, "count"), verticeCount * 3);
+		glUniform3fv(glGetUniformLocation(moverProgram, "offset"), 1, glm::value_ptr(offset));
+
+		GLuint dsize = tiled(verticeCount, 256);
+		glDispatchCompute((dsize < 256 ? 256 : dsize) / 256, 1, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+
 	void calcMinmax() {
 		GLuint mcounter;
 		GLuint minmaxBuf;
@@ -755,8 +779,8 @@ public:
 
 class Camera {
 public:
-	glm::vec3 eye = glm::vec3(1.0, 20.0, 1.0);
-	glm::vec3 view = glm::vec3(0.0, 20.0, 0.0);
+	glm::vec3 eye = glm::vec3(9.0, 9.0, 9.0);
+	glm::vec3 view = glm::vec3(0.0, 9.0, 0.0);
 
 	sf::Vector2i mposition;
 
@@ -817,16 +841,16 @@ public:
 	}
 
 	void leftRight(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.x -= diff / 1000.0f;
-		vi.x -= diff / 1000.0f;
+		ca.x -= diff / 10000.0f;
+		vi.x -= diff / 10000.0f;
 	}
 	void topBottom(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.y += diff / 1000.0f;
-		vi.y += diff / 1000.0f;
+		ca.y += diff / 10000.0f;
+		vi.y += diff / 10000.0f;
 	}
 	void forwardBackward(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.z -= diff / 1000.0f;
-		vi.z -= diff / 1000.0f;
+		ca.z -= diff / 10000.0f;
+		vi.z -= diff / 10000.0f;
 	}
 	void rotateY(glm::vec3 &vi, float diff) {
 		vi = glm::rotateX(vi, -diff / 2000000.0f);
@@ -887,12 +911,23 @@ int main()
 
 	GLuint cubeTex = initCubeMap();
 
-	std::string inputfile = "sponza.obj";
+	std::string inputfile = "models/teapot.obj";
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
-	bool ret = tinyobj::LoadObj(shapes, materials, err, inputfile.c_str());
+	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
+
+	std::vector<TObject> sponza(1);
+	sponza[0].setMaterialID(0);
+	sponza[0].loadMesh(shapes);
+	sponza[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
+	sponza[0].calcMinmax();
+	sponza[0].buildOctree();
+
+	
 	std::vector<TestMat> msponza(materials.size());
+
+	sf::Image img_data;
 	for (int i = 0;i < msponza.size();i++) {
 		sf::Image img_data;
 		std::string tex = materials[i].diffuse_texname;
@@ -950,10 +985,76 @@ int main()
 		msponza[i].setMaterialID(i);
 	}
 
-	TObject sponza;
-	sponza.loadMesh(shapes);
-	sponza.calcMinmax();
-	sponza.buildOctree();
+
+	std::vector<TestMat> mteapot(1);
+	std::string tex = "normal.png";
+
+	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
+	std::vector<TObject> teapot(1);
+	teapot[0].setMaterialID(msponza.size());
+	teapot[0].loadMesh(shapes);
+	teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
+	teapot[0].calcMinmax();
+	teapot[0].buildOctree();
+
+	{
+		std::string tex = "normal.png";
+		if (tex != "") {
+			if (!img_data.loadFromFile(tex))
+			{
+				std::cout << "Could not load '" << tex << "'" << std::endl;
+			}
+			GLuint texture_handle;
+			glGenTextures(1, &texture_handle);
+			glBindTexture(GL_TEXTURE_2D, texture_handle);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			mteapot[0].setBump(texture_handle);
+		}
+
+		tex = "diffuse.png";
+		if (tex != "") {
+			if (!img_data.loadFromFile(tex))
+			{
+				std::cout << "Could not load '" << tex << "'" << std::endl;
+			}
+			GLuint texture_handle;
+			glGenTextures(1, &texture_handle);
+			glBindTexture(GL_TEXTURE_2D, texture_handle);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			mteapot[0].setTexture(texture_handle);
+		}
+
+		tex = "specular.png";
+		if (tex != "") {
+			if (!img_data.loadFromFile(tex))
+			{
+				std::cout << "Could not load '" << tex << "'" << std::endl;
+			}
+			GLuint texture_handle;
+			glGenTextures(1, &texture_handle);
+			glBindTexture(GL_TEXTURE_2D, texture_handle);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			mteapot[0].setSpecular(texture_handle);
+		}
+
+		mteapot[0].setMaterialID(msponza.size());
+	}
+
+	
+	
+	
 
 	RObject rays;
 	rays.includeCubemap(cubeTex);
@@ -990,14 +1091,25 @@ int main()
 
 		cam.work(c);
 
-		//sponza.calcMinmax();
-		//sponza.buildOctree();
+		//teapot.move(glm::vec3(0.01f, 0.0f, 0.0f) * (float)c / 1000.0f);
+		//for (int i = 0;i < teapot.size();i++) {
+		//	teapot[i].calcMinmax();
+		//	teapot[i].buildOctree();
+		//}
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 4;i++) {
+		for (int i = 0;i < 3;i++) {
 			rays.begin();
-			sponza.intersection(rays);
-			for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shade(rays, 0.2);
+			for (int i = 0;i < teapot.size();i++) {
+				teapot[i].intersection(rays);
+			}
+			//for (int i = 0;i < sponza.size();i++) {
+			//	sponza[i].intersection(rays);
+			//}
+			//for (int i = 0;i < msponza.size();i++) {
+			//	msponza[i].shade(rays, 0.5f);
+			//}
+			for (int i = 0;i < mteapot.size();i++) {
+				mteapot[i].shade(rays, 1.0f);
 			}
 			rays.close();
 		}

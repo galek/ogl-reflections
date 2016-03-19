@@ -385,7 +385,11 @@ void main()
                 newHit.dist = res.dist;
                 newHit.normal = res.normal;
                 newHit.triangle = res.triangle;
-                newHit.materialID = uint(res.materialID) + materialID;
+                if(res.materialID >= 0){
+                    newHit.materialID = uint(res.materialID) + materialID;
+                } else {
+                    newHit.materialID = materialID;
+                }
                 newHit.texcoord = res.texcoord;
                 newHit.tangent = res.tangent;
                 hits[t] = newHit;
