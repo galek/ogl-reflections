@@ -100,7 +100,6 @@ GLuint loadShader(std::string filename, GLuint type) {
 
 const GLuint width = 1280;
 const GLuint height = 720;
-const GLuint maxDepth = 9; //Size3D = 2^(X-1)
 const GLuint _zero = 0;
 
 struct Ray {
@@ -347,15 +346,10 @@ public:
 
 class TObject {
 public:
-	TObject() {
-		init();
-	}
+	TObject() {init(4);}
+	TObject(GLuint d) { init(d); }
 
 private:
-	GLuint vsize = sizeof(Voxel) * 128 * 128 * 128;
-	GLuint tsize = sizeof(Thash) * 256 * 128 * 128;
-	GLuint subgridc = sizeof(GLuint) * 128 * 128 * 128 * 8;
-
 	std::vector<Voxel> dvoxels;
 	std::vector<GLuint> dvoxels_subgrid;
 	std::vector<Thash> dthash;
@@ -386,11 +380,33 @@ private:
 	GLuint materialID = 0;
 
 	GLuint intersectionProgram;
+	GLuint maxDepth = 4;
 
 	glm::vec3 offset;
 	glm::vec3 scale;
+	
+	void setDepth(GLuint d) {
+		maxDepth = d;
+
+		unsigned size_r = pow(2, maxDepth - 1);
+
+		GLuint vsize = sizeof(Voxel) * size_r * size_r * 64;
+		GLuint tsize = sizeof(Thash) * 1024 * 1024 * 64;
+		GLuint subgridc = sizeof(GLuint) * size_r * size_r * 64 * 8;
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, tspace);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, tsize, nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, vsize, nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, subgridc, nullptr, GL_DYNAMIC_STORAGE_BIT);
+	}
 
 public:
+	
+
 	void setMaterialID(GLuint id) {
 		materialID = id;
 	}
@@ -440,11 +456,7 @@ public:
 	}
 
 private:
-	void init() {
-		//dvoxels_subgrid = std::vector<unsigned>(subgridc / sizeof(unsigned), 0xFFFFFFFF);
-		//dvoxels = std::vector<Voxel>(vsize / sizeof(Voxel), Voxel());
-		//dthash = std::vector<Thash>(tsize / sizeof(Thash), Thash());
-
+	void init(GLuint depth) {
 		glGenBuffers(1, &vspace);
 		glGenBuffers(1, &tspace);
 		glGenBuffers(1, &subgrid);
@@ -455,6 +467,8 @@ private:
 		glGenBuffers(1, &norm_triangle_ssbo);
 		glGenBuffers(1, &tex_triangle_ssbo);
 		glGenBuffers(1, &mat_triangle_ssbo);
+
+		setDepth(depth);
 
 		{
 			GLuint compShader = loadShader("./render/intersection.comp", GL_COMPUTE_SHADER);
@@ -522,15 +536,6 @@ private:
 
 		glGenRenderbuffers(1, &rboDepthStencil);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepthStencil);
-
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, tspace);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, tsize, nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, vsize, nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, subgridc, nullptr, GL_DYNAMIC_STORAGE_BIT);
 	}
 
 public:
@@ -643,10 +648,6 @@ public:
 		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, scounter);
 		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
-		//glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
-		//glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, subgridc, dvoxels_subgrid.data());
-		//glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
-		//glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Voxel), dvoxels.data());
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -978,13 +979,13 @@ int main()
 	std::string err;
 	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 
-	std::vector<TObject> sponza(1);
+	std::vector<TObject> sponza;
+	sponza.push_back(TObject(10));
 	sponza[0].setMaterialID(0);
 	sponza[0].loadMesh(shapes);
 	sponza[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
 	sponza[0].calcMinmax();
 	sponza[0].buildOctree();
-
 	
 	std::vector<TestMat> msponza(materials.size());
 
@@ -1051,7 +1052,8 @@ int main()
 	std::string tex = "normal.png";
 
 	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
-	std::vector<TObject> teapot(1);
+	std::vector<TObject> teapot;
+	teapot.push_back(TObject(8));
 	teapot[0].setMaterialID(msponza.size());
 	teapot[0].loadMesh(shapes);
 	teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -1159,7 +1161,7 @@ int main()
 		//	teapot[i].buildOctree();
 		//}
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 4;i++) {
+		for (int i = 0;i < 2;i++) {
 			rays.begin();
 			for (int i = 0;i < teapot.size();i++) {
 				teapot[i].intersection(rays);

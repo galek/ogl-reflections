@@ -86,10 +86,10 @@ void main()
 
 
                 float spc = texture(spec, hit.texcoord).r * reflectionRate;
-                if(tx.a >= 0.001f){
+                if(tx.a > 0.999f){
                     newRay.final = mix(newRay.final, color, newRay.params.x);
                     newRay.direct = normalize(reflect(newRay.direct, normal));
-                    newRay.params.x = spc;
+                    newRay.params.x *= spc;
                     newRay.params.y += 1.0f;
                     if(spc < 0.001f) newRay.actived = 0;
                 }
