@@ -100,7 +100,7 @@ GLuint loadShader(std::string filename, GLuint type) {
 
 const GLuint width = 1280;
 const GLuint height = 720;
-const GLuint maxDepth = 8; //Size3D = 2^(X-1)
+const GLuint maxDepth = 9; //Size3D = 2^(X-1)
 const GLuint _zero = 0;
 
 struct Ray {
