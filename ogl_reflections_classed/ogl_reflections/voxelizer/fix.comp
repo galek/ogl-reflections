@@ -40,7 +40,7 @@ const uint LONGEST = 0xFFFFFFFF;
   if(x2<min) min=x2;\
   if(x2>max) max=x2;
 
-int planeBoxOverlap(vec3 normal, vec3 vert, vec3 maxbox)
+int planeBoxOverlap(in vec3 normal, in vec3 vert, in vec3 maxbox)
 {
     int q;
     vec3 vmin,vmax;
@@ -95,7 +95,7 @@ int planeBoxOverlap(vec3 normal, vec3 vert, vec3 maxbox)
 	rad = fa * boxhalfsize.x + fb * boxhalfsize.y;   \
 	if(min>rad || max<-rad) return 0;
 
-int triBoxOverlap(vec3 boxcenter,vec3 boxhalfsize,vec3 triverts[3]){
+int triBoxOverlap(in vec3 boxcenter, in vec3 boxhalfsize, in vec3 triverts[3]){
    vec3 v0,v1,v2;
    float min,max,p0,p1,p2,rad,fex,fey,fez;
    vec3 normal,e0,e1,e2;
