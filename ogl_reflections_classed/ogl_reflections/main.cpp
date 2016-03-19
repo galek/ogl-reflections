@@ -922,7 +922,7 @@ public:
 		vi = glm::rotateX(vi, -diff / float(height) / 1000.0f);
 	}
 	void rotateX(glm::vec3 &vi, float diff) {
-		vi = glm::rotateY(vi, -diff / float(width) / 1000.0f);
+		vi = glm::rotateY(vi, -diff / float(height) / 1000.0f);
 	}
 };
 
