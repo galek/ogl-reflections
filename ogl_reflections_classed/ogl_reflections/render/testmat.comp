@@ -49,10 +49,10 @@ vec3 getNormalMapping(vec2 texcoordi){
     return normalize(cross(h,v));
 }
 
+uniform vec3 light;
+
 void main()
 {
-    const vec3 light = vec3(0.0f, 1000.0f, 0.0f);
-
     if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
         Hit hit = hits[t];

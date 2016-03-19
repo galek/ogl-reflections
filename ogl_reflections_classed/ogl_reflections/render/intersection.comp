@@ -371,6 +371,9 @@ uniform uint materialID;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
+uniform mat4 transform;
+uniform mat4 transformInv;
+
 void main()
 {
     if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
@@ -379,11 +382,25 @@ void main()
         Ray ray = rays[t];
         if(ray.actived > 0 && ray.params.y < ray.params.z){
             Hit hit = hits[t];
-            TResult res = traverse(ray.origin, ray.direct);
-            if(res.dist < hit.dist){
+
+            Ray tray = ray;
+
+            vec3 p0 = ray.origin;
+            vec3 p1 = ray.origin + ray.direct;
+            vec3 p0t = (transformInv * vec4(ray.origin, 1.0)).xyz;
+            vec3 p1t = (transformInv * vec4(ray.origin + ray.direct, 1.0)).xyz;
+
+            tray.origin = p0t;
+            tray.direct = p1t - p0t;
+            float rate = length(tray.direct) / length(ray.direct);
+            tray.direct /= rate;
+
+            TResult res = traverse(tray.origin, tray.direct);
+            float dst = res.dist / rate;
+            if(dst < hit.dist){
                 Hit newHit = hit;
-                newHit.dist = res.dist;
-                newHit.normal = res.normal;
+                newHit.dist = dst;
+                newHit.normal = (vec4(res.normal, 0.0) * transformInv).xyz;
                 newHit.triangle = res.triangle;
                 if(res.materialID >= 0){
                     newHit.materialID = uint(res.materialID) + materialID;
@@ -391,7 +408,7 @@ void main()
                     newHit.materialID = materialID;
                 }
                 newHit.texcoord = res.texcoord;
-                newHit.tangent = res.tangent;
+                newHit.tangent = (vec4(res.tangent, 0.0) * transformInv).xyz;
                 hits[t] = newHit;
             }
         }

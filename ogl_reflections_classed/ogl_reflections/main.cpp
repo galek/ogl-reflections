@@ -624,7 +624,7 @@ public:
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, tspace);
 	}
 
-	void intersection(RObject &rays) {
+	void intersection(RObject &rays, glm::mat4 trans) {
 		glUseProgram(intersectionProgram);
 
 		bindOctree();
@@ -637,6 +637,9 @@ public:
 		glUniform3fv(glGetUniformLocation(intersectionProgram, "offset"), 1, glm::value_ptr(offset));
 		glUniform3fv(glGetUniformLocation(intersectionProgram, "scale"), 1, glm::value_ptr(scale));
 		glUniform1ui(glGetUniformLocation(intersectionProgram, "materialID"), materialID);
+
+		glUniformMatrix4fv(glGetUniformLocation(intersectionProgram, "transform"), 1, false, glm::value_ptr(trans));
+		glUniformMatrix4fv(glGetUniformLocation(intersectionProgram, "transformInv"), 1, false, glm::value_ptr(glm::inverse(trans)));
 
 		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -818,6 +821,7 @@ public:
 		glUniform1ui(glGetUniformLocation(matProgram, "materialID"), materialID);
 		glUniform1f(glGetUniformLocation(matProgram, "reflectionRate"), reflectionRate);
 		glUniform2f(glGetUniformLocation(matProgram, "sceneRes"), width, height);
+		glUniform3fv(glGetUniformLocation(matProgram, "light"), 1, glm::value_ptr(glm::vec3(0.0f, 10.0f, 0.0f)));
 
 		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -1163,15 +1167,18 @@ int main()
 		rays.camera(cam.eye, cam.view);
 		for (int i = 0;i < 2;i++) {
 			rays.begin();
+			glm::mat4 trans;
+			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+
 			for (int i = 0;i < teapot.size();i++) {
-				teapot[i].intersection(rays);
+				teapot[i].intersection(rays, trans);
 			}
-			for (int i = 0;i < sponza.size();i++) {
-				sponza[i].intersection(rays);
-			}
-			for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shade(rays, 0.5f);
-			}
+			//for (int i = 0;i < sponza.size();i++) {
+			//	sponza[i].intersection(rays);
+			//}
+			//for (int i = 0;i < msponza.size();i++) {
+			//	msponza[i].shade(rays, 0.5f);
+			//}
 			for (int i = 0;i < mteapot.size();i++) {
 				mteapot[i].shade(rays, 1.0f);
 			}
