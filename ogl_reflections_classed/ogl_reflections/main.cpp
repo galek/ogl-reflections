@@ -1160,12 +1160,12 @@ int main()
 		cam.work(c);
 
 		//teapot.move(glm::vec3(0.01f, 0.0f, 0.0f) * (float)c / 1000.0f);
-		//for (int i = 0;i < teapot.size();i++) {
-		//	teapot[i].calcMinmax();
-		//	teapot[i].buildOctree();
-		//}
+		for (int i = 0;i < teapot.size();i++) {
+			teapot[i].calcMinmax();
+			teapot[i].buildOctree();
+		}
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 2;i++) {
+		for (int i = 0;i < 3;i++) {
 			rays.begin();
 			glm::mat4 trans;
 			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -1174,7 +1174,7 @@ int main()
 				teapot[i].intersection(rays, trans);
 			}
 			//for (int i = 0;i < sponza.size();i++) {
-			//	sponza[i].intersection(rays);
+			//	sponza[i].intersection(rays, glm::mat4());
 			//}
 			//for (int i = 0;i < msponza.size();i++) {
 			//	msponza[i].shade(rays, 0.5f);
