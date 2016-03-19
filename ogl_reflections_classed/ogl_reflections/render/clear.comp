@@ -1,0 +1,18 @@
+#version 450 core
+
+const uint LONGEST = 0xFFFFFFFF;
+const float INFINITY = 1e10;
+
+layout(std430, binding=10) buffer s_samp {vec4 samples[];};
+
+uniform vec2 sceneRes;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+void main()
+{
+    if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
+        uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
+        samples[t] = vec4(0.0f);
+    }
+}

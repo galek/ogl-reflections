@@ -131,8 +131,12 @@ private:
 	GLuint cameraProgram;
 	GLuint renderProgram;
 	GLuint closeProgram;
+	GLuint clearProgram;
+	GLuint samplerProgram;
+
 	GLuint rays;
 	GLuint hits;
+	GLuint samples;
 
 	GLuint vbo;
 	GLuint ebo;
@@ -178,6 +182,10 @@ private:
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, hits);
 		glBufferStorage(GL_SHADER_STORAGE_BUFFER, rsize * sizeof(Hit), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
+		glGenBuffers(1, &samples);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, samples);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, rsize * sizeof(glm::vec4), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
 		{
 			GLuint compShader = loadShader("./render/begin.comp", GL_COMPUTE_SHADER);
 			beginProgram = glCreateProgram();
@@ -203,6 +211,24 @@ private:
 			glBindFragDataLocation(cameraProgram, 0, "outColor");
 			glLinkProgram(cameraProgram);
 			glUseProgram(cameraProgram);
+		}
+
+		{
+			GLuint compShader = loadShader("./render/clear.comp", GL_COMPUTE_SHADER);
+			clearProgram = glCreateProgram();
+			glAttachShader(clearProgram, compShader);
+			glBindFragDataLocation(clearProgram, 0, "outColor");
+			glLinkProgram(clearProgram);
+			glUseProgram(clearProgram);
+		}
+
+		{
+			GLuint compShader = loadShader("./render/sampler.comp", GL_COMPUTE_SHADER);
+			samplerProgram = glCreateProgram();
+			glAttachShader(samplerProgram, compShader);
+			glBindFragDataLocation(samplerProgram, 0, "outColor");
+			glLinkProgram(samplerProgram);
+			glUseProgram(samplerProgram);
 		}
 
 		{
@@ -233,6 +259,7 @@ public:
 		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "projInv"), 1, false, glm::value_ptr(glm::inverse(glm::perspective(3.14f / 3.0f, float(width) / float(height), 0.1f, 10000.0f))));
 		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "camInv"), 1, false, glm::value_ptr(glm::inverse(glm::lookAt(eye, view, glm::vec3(0.0, 1.0, 0.0)))));
 		glUniform2f(glGetUniformLocation(cameraProgram, "sceneRes"), width, height);
+		glUniform1f(glGetUniformLocation(cameraProgram, "time"), clock());
 
 		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -243,6 +270,26 @@ public:
 		bind();
 
 		glUniform2f(glGetUniformLocation(beginProgram, "sceneRes"), width, height);
+		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+
+	void sample() {
+		glUseProgram(samplerProgram);
+		bind();
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, samples);
+		glUniform2f(glGetUniformLocation(samplerProgram, "sceneRes"), width, height);
+		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+
+	void clear() {
+		glUseProgram(clearProgram);
+		bind();
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, samples);
+		glUniform2f(glGetUniformLocation(clearProgram, "sceneRes"), width, height);
 		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
@@ -277,6 +324,7 @@ public:
 		glUseProgram(renderProgram);
 
 		bind();
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, samples);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glUniform2f(glGetUniformLocation(renderProgram, "sceneRes"), width, height);
@@ -784,8 +832,14 @@ public:
 
 	sf::Vector2i mposition;
 
+	RObject * raysp;
+
 	glm::mat4 project() {
 		return glm::lookAt(eye, view, glm::vec3(0.0, 1.0, 0.0));
+	}
+
+	void setRays(RObject &rays) {
+		raysp = &rays;
 	}
 
 	void work(float diff) {
@@ -802,6 +856,7 @@ public:
 			float diffY = mpos.y * diff;
 			this->rotateX(vi, diffX);
 			this->rotateY(vi, diffY);
+			raysp->clear();
 		} 
 
 		mposition = position;
@@ -809,31 +864,37 @@ public:
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 		{
 			forwardBackward(ca, vi, diff);
+			raysp->clear();
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 		{
 			forwardBackward(ca, vi, -diff);
+			raysp->clear();
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 		{
 			leftRight(ca, vi, diff);
+			raysp->clear();
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 		{
 			leftRight(ca, vi, -diff);
+			raysp->clear();
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
 		{
 			topBottom(ca, vi, diff);
+			raysp->clear();
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::E) || sf::Keyboard::isKeyPressed(sf::Keyboard::C))
 		{
 			topBottom(ca, vi, -diff);
+			raysp->clear();
 		}
 
 		eye = (unviewm * glm::vec4(ca, 1.0)).xyz;
@@ -1061,6 +1122,7 @@ int main()
 	clock_t t = clock();
 
 	Camera cam;
+	cam.setRays(rays);
 
 	bool running = true;
 	while (running)
@@ -1114,6 +1176,7 @@ int main()
 			rays.close();
 		}
 
+		rays.sample();
 		rays.render();
 
 		window.display();

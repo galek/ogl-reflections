@@ -26,6 +26,7 @@ struct Hit {
 
 layout(std430, binding=8) buffer s_rays {Ray rays[];};
 layout(std430, binding=9) buffer s_hits {Hit hits[];};
+layout(std430, binding=10) buffer s_samp {vec4 samples[];};
 
 uniform vec2 sceneRes;
 
@@ -36,6 +37,6 @@ void main()
         uint t = globalInvocationID.x + globalInvocationID.y * uint(sceneRes.x);
         Ray ray = rays[t];
         Hit hit = hits[t];
-        outColor = vec4(ray.final, 1.0f);
+        outColor = vec4(samples[t].xyz / samples[t].w, 1.0f);
     }
 }
