@@ -33,141 +33,115 @@ uniform vec3 scale;
 
 const uint LONGEST = 0xFFFFFFFF;
 
-void store3(in vec3 a, inout float b[3]){
-    b[0] = a.x;
-    b[1] = a.y;
-    b[2] = a.z;
-}
-
-
-#define X 0
-#define Y 1
-#define Z 2
-
-#define CROSS(dest,v1,v2) \
-          dest[0]=v1[1]*v2[2]-v1[2]*v2[1]; \
-          dest[1]=v1[2]*v2[0]-v1[0]*v2[2]; \
-          dest[2]=v1[0]*v2[1]-v1[1]*v2[0];
-#define DOT(v1,v2) (v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2])
-#define SUB(dest,v1,v2) \
-          dest[0]=v1[0]-v2[0]; \
-          dest[1]=v1[1]-v2[1]; \
-          dest[2]=v1[2]-v2[2];
 #define FINDMINMAX(x0,x1,x2,min,max) \
-    min = max = x0;   \
-    if(x1<min) min=x1;\
-    if(x1>max) max=x1;\
-    if(x2<min) min=x2;\
-    if(x2>max) max=x2;
+  min = max = x0;   \
+  if(x1<min) min=x1;\
+  if(x1>max) max=x1;\
+  if(x2<min) min=x2;\
+  if(x2>max) max=x2;
 
-int planeBoxOverlap(float normal[3], float vert[3], float maxbox[3])
+int planeBoxOverlap(vec3 normal, vec3 vert, vec3 maxbox)
 {
     int q;
-    float vmin[3],vmax[3],v;
-    for(q=X;q<=Z;q++){
-        v=vert[q];
-        if(normal[q]>0.0f){
-            vmin[q]=-maxbox[q] - v;
-            vmax[q]= maxbox[q] - v;
-        }else{
-            vmin[q]= maxbox[q] - v;
-            vmax[q]=-maxbox[q] - v;
-        }
-    }
-    if(DOT(normal,vmin)>0.0f) return 0;
-    if(DOT(normal,vmax)>=0.0f) return 1;
+    vec3 vmin,vmax;
+
+    vmin = mix( maxbox - vert, -maxbox - vert, sign(normal) * 0.5f + 0.5f);
+    vmax = mix(-maxbox - vert,  maxbox - vert, sign(normal) * 0.5f + 0.5f);
+
+    if(dot(normal,vmin)>0.0f) return 0;
+    if(dot(normal,vmax)>=0.0f) return 1;
     return 0;
 }
 
 #define AXISTEST_X01(a, b, fa, fb)			   \
-	p0 = a*v0[Y] - b*v0[Z];			       	   \
-	p2 = a*v2[Y] - b*v2[Z];			       	   \
+	p0 = a*v0.y - b*v0.z;			       	   \
+	p2 = a*v2.y - b*v2.z;			       	   \
         if(p0<p2) {min=p0; max=p2;} else {min=p2; max=p0;} \
-	rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z];   \
+	rad = fa * boxhalfsize.y + fb * boxhalfsize.z;   \
 	if(min>rad || max<-rad) return 0;
 
 #define AXISTEST_X2(a, b, fa, fb)			   \
-	p0 = a*v0[Y] - b*v0[Z];			           \
-	p1 = a*v1[Y] - b*v1[Z];			       	   \
+	p0 = a*v0.y - b*v0.z;			           \
+	p1 = a*v1.y - b*v1.z;			       	   \
         if(p0<p1) {min=p0; max=p1;} else {min=p1; max=p0;} \
-	rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z];   \
+	rad = fa * boxhalfsize.y + fb * boxhalfsize.z;   \
 	if(min>rad || max<-rad) return 0;
 
 #define AXISTEST_Y02(a, b, fa, fb)			   \
-	p0 = -a*v0[X] + b*v0[Z];		      	   \
-	p2 = -a*v2[X] + b*v2[Z];	       	       	   \
+	p0 = -a*v0.x + b*v0.z;		      	   \
+	p2 = -a*v2.x + b*v2.z;	       	       	   \
         if(p0<p2) {min=p0; max=p2;} else {min=p2; max=p0;} \
-	rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z];   \
+	rad = fa * boxhalfsize.x + fb * boxhalfsize.z;   \
 	if(min>rad || max<-rad) return 0;
 
 #define AXISTEST_Y1(a, b, fa, fb)			   \
-	p0 = -a*v0[X] + b*v0[Z];		      	   \
-	p1 = -a*v1[X] + b*v1[Z];	     	       	   \
+	p0 = -a*v0.x + b*v0.z;		      	   \
+	p1 = -a*v1.x + b*v1.z;	     	       	   \
         if(p0<p1) {min=p0; max=p1;} else {min=p1; max=p0;} \
-	rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z];   \
+	rad = fa * boxhalfsize.x + fb * boxhalfsize.z;   \
 	if(min>rad || max<-rad) return 0;
 
 #define AXISTEST_Z12(a, b, fa, fb)			   \
-	p1 = a*v1[X] - b*v1[Y];			           \
-	p2 = a*v2[X] - b*v2[Y];			       	   \
+	p1 = a*v1.x - b*v1.y;			           \
+	p2 = a*v2.x - b*v2.y;			       	   \
         if(p2<p1) {min=p2; max=p1;} else {min=p1; max=p2;} \
-	rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y];   \
+	rad = fa * boxhalfsize.x + fb * boxhalfsize.y;   \
 	if(min>rad || max<-rad) return 0;
 
 #define AXISTEST_Z0(a, b, fa, fb)			   \
-	p0 = a*v0[X] - b*v0[Y];				   \
-	p1 = a*v1[X] - b*v1[Y];			           \
+	p0 = a*v0.x - b*v0.y;				   \
+	p1 = a*v1.x - b*v1.y;			           \
         if(p0<p1) {min=p0; max=p1;} else {min=p1; max=p0;} \
-	rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y];   \
+	rad = fa * boxhalfsize.x + fb * boxhalfsize.y;   \
 	if(min>rad || max<-rad) return 0;
 
-int triBoxOverlap(float boxcenter[3],float boxhalfsize[3],float triverts[3][3]){
-   float v0[3],v1[3],v2[3];
+int triBoxOverlap(vec3 boxcenter,vec3 boxhalfsize,vec3 triverts[3]){
+   vec3 v0,v1,v2;
    float min,max,p0,p1,p2,rad,fex,fey,fez;
-   float normal[3],e0[3],e1[3],e2[3];
+   vec3 normal,e0,e1,e2;
 
-   SUB(v0,triverts[0],boxcenter);
-   SUB(v1,triverts[1],boxcenter);
-   SUB(v2,triverts[2],boxcenter);
+   v0 = triverts[0] - boxcenter;
+   v1 = triverts[1] - boxcenter;
+   v2 = triverts[2] - boxcenter;
 
-   SUB(e0,v1,v0);
-   SUB(e1,v2,v1);
-   SUB(e2,v0,v2);
+   e0= v1-v0;
+   e1= v2-v1;
+   e2= v0-v2;
 
-   fex = abs(e0[X]);
-   fey = abs(e0[Y]);
-   fez = abs(e0[Z]);
+   fex = abs(e0.x);
+   fey = abs(e0.y);
+   fez = abs(e0.z);
 
-   AXISTEST_X01(e0[Z], e0[Y], fez, fey);
-   AXISTEST_Y02(e0[Z], e0[X], fez, fex);
-   AXISTEST_Z12(e0[Y], e0[X], fey, fex);
+   AXISTEST_X01(e0.z, e0.y, fez, fey);
+   AXISTEST_Y02(e0.z, e0.x, fez, fex);
+   AXISTEST_Z12(e0.y, e0.x, fey, fex);
 
-   fex = abs(e1[X]);
-   fey = abs(e1[Y]);
-   fez = abs(e1[Z]);
+   fex = abs(e1.x);
+   fey = abs(e1.y);
+   fez = abs(e1.z);
 
-   AXISTEST_X01(e1[Z], e1[Y], fez, fey);
-   AXISTEST_Y02(e1[Z], e1[X], fez, fex);
-   AXISTEST_Z0(e1[Y], e1[X], fey, fex);
+   AXISTEST_X01(e1.z, e1.y, fez, fey);
+   AXISTEST_Y02(e1.z, e1.x, fez, fex);
+   AXISTEST_Z0(e1.y, e1.x, fey, fex);
 
-   fex = abs(e2[X]);
-   fey = abs(e2[Y]);
-   fez = abs(e2[Z]);
+   fex = abs(e2.x);
+   fey = abs(e2.y);
+   fez = abs(e2.z);
 
-   AXISTEST_X2(e2[Z], e2[Y], fez, fey);
-   AXISTEST_Y1(e2[Z], e2[X], fez, fex);
-   AXISTEST_Z12(e2[Y], e2[X], fey, fex);
+   AXISTEST_X2(e2.z, e2.y, fez, fey);
+   AXISTEST_Y1(e2.z, e2.x, fez, fex);
+   AXISTEST_Z12(e2.y, e2.x, fey, fex);
 
-   FINDMINMAX(v0[X],v1[X],v2[X],min,max);
-   if(min>boxhalfsize[X] || max<-boxhalfsize[X]) return 0;
+   FINDMINMAX(v0.x,v1.x,v2.x,min,max);
+   if(min>boxhalfsize.x || max<-boxhalfsize.x) return 0;
 
-   FINDMINMAX(v0[Y],v1[Y],v2[Y],min,max);
-   if(min>boxhalfsize[Y] || max<-boxhalfsize[Y]) return 0;
+   FINDMINMAX(v0.y,v1.y,v2.y,min,max);
+   if(min>boxhalfsize.y || max<-boxhalfsize.y) return 0;
 
-   FINDMINMAX(v0[Z],v1[Z],v2[Z],min,max);
-   if(min>boxhalfsize[Z] || max<-boxhalfsize[Z]) return 0;
+   FINDMINMAX(v0.z,v1.z,v2.z,min,max);
+   if(min>boxhalfsize.z || max<-boxhalfsize.z) return 0;
 
-   CROSS(normal,e0,e1);
+   normal = cross(e0,e1);
    if(planeBoxOverlap(normal,v0,boxhalfsize) < 1) return 0;
    return 1;
 }
@@ -178,9 +152,6 @@ layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 void main(){
     uint idx = gl_GlobalInvocationID.x;
     uint resX = uint(pow(2, currentDepth));
-
-    float bhalfsize[3];
-    store3(vec3(0.5), bhalfsize);
 
     if(currentDepth == 0) {
         if(idx == 0){
@@ -215,13 +186,11 @@ void main(){
                 uvec3 globalSpace = parentSpace * 2 + co;
 
                 vec3 norm = vec3(globalSpace) + 0.5;
-                float bcenter[3]; store3(norm, bcenter);
 
                 uint triangleCount = 300000;
                 Thash hash = thashes[voxel.last];
                 bool needsSkip = false;
                 uint cnt = min(voxel.count, triangleCount);
-
 
                 for(uint i=0;i<cnt;i++){
                     if(!needsSkip){
@@ -244,12 +213,7 @@ void main(){
                             trivert[i] = pos;
                         }
 
-                        float triverts[3][3];
-                        store3(trivert[0], triverts[0]);
-                        store3(trivert[1], triverts[1]);
-                        store3(trivert[2], triverts[2]);
-
-                        if(triBoxOverlap(bcenter, bhalfsize, triverts) == 1){
+                        if(triBoxOverlap(floor(norm) + 0.5f, vec3(0.5), trivert) == 1){
                             Voxel newVoxel;
                             newVoxel.coordX = globalSpace.x;
                             newVoxel.coordY = globalSpace.y;
