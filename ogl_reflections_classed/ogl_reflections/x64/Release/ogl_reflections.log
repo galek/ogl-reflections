@@ -1,46 +1,8 @@
-﻿  main.cpp
-main.cpp(91): warning C4267: инициализация: преобразование из "size_t" в "GLint"; возможна потеря данных
-main.cpp(91): warning C4267: инициализация: преобразование из "size_t" в "const GLint"; возможна потеря данных
-main.cpp(260): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-main.cpp(261): warning C4244: аргумент: преобразование "clock_t" в "GLfloat", возможна потеря данных
-main.cpp(263): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(271): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-main.cpp(272): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(281): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-main.cpp(282): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(291): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-main.cpp(292): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(304): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-main.cpp(305): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(329): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-main.cpp(397): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
-main.cpp(442): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(443): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(455): warning C4267: аргумент: преобразование из "size_t" в "unsigned int"; возможна потеря данных
-main.cpp(488): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(489): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(592): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(644): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(678): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-main.cpp(687): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(720): warning C4018: <: несоответствие типов со знаком и без знака
-main.cpp(751): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(762): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
-main.cpp(866): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-main.cpp(869): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(985): warning C4101: height: неиспользованная локальная переменная
-main.cpp(985): warning C4101: width: неиспользованная локальная переменная
-main.cpp(984): warning C4101: eFormat: неиспользованная локальная переменная
-main.cpp(983): warning C4101: pBytes: неиспользованная локальная переменная
-main.cpp(984): warning C4101: iComponents: неиспользованная локальная переменная
-main.cpp(1078): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(1085): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(1117): warning C4244: аргумент: преобразование "clock_t" в "float", возможна потеря данных
-LINK : warning LNK4098: библиотека по умолчанию "LIBCMT" противоречит использованию других библиотек; используйте параметр /NODEFAULTLIB:library
+﻿LINK : warning LNK4098: библиотека по умолчанию "LIBCMT" противоречит использованию других библиотек; используйте параметр /NODEFAULTLIB:library
   Создание кода
-  35 of 2055 functions ( 1.7%) were compiled, the rest were copied from previous compilation.
+  33 of 2055 functions ( 1.6%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    7 functions had inline decision re-evaluated but remain unchanged
+    8 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
 glew32s.lib(glew.obj) : warning LNK4099: "vc120.pdb" PDB не найден с "glew32s.lib(glew.obj)" или на "C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Release\vc120.pdb"; компоновка объекта выполняется как при отсутствии отладочных данных
   ogl_reflections.vcxproj -> C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Release\ogl_reflections.exe
