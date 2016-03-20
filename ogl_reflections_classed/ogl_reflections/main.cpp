@@ -950,22 +950,22 @@ public:
 	}
 
 	void leftRight(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.x -= diff / 5000.0f;
-		vi.x -= diff / 5000.0f;
+		ca.x -= diff / 2000.0f;
+		vi.x -= diff / 2000.0f;
 	}
 	void topBottom(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.y += diff / 5000.0f;
-		vi.y += diff / 5000.0f;
+		ca.y += diff / 2000.0f;
+		vi.y += diff / 2000.0f;
 	}
 	void forwardBackward(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.z -= diff / 5000.0f;
-		vi.z -= diff / 5000.0f;
+		ca.z -= diff / 2000.0f;
+		vi.z -= diff / 2000.0f;
 	}
 	void rotateY(glm::vec3 &vi, float diff) {
-		vi = glm::rotateX(vi, -diff / float(height) / 5000.0f);
+		vi = glm::rotateX(vi, -diff / float(height) / 2000.0f);
 	}
 	void rotateX(glm::vec3 &vi, float diff) {
-		vi = glm::rotateY(vi, -diff / float(height) / 5000.0f);
+		vi = glm::rotateY(vi, -diff / float(height) / 2000.0f);
 	}
 };
 

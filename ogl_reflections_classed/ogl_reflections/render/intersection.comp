@@ -156,9 +156,95 @@ struct TResult {
     int materialID;
 };
 
-TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
-    float _bin_size = 1.0f;
+TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
+    Thash hash = thashes[vox.last];
+    bool needsSkip = false;
 
+    const uint globalTCount = 3000;
+    const uint triangleCount = globalTCount;
+
+    float d = INFINITY;
+    int materialID = -1;
+    uint lastT = LONGEST;
+    vec3 normal;
+    vec2 texcoord;
+    vec3 tangent;
+    for(uint i=0;i<=min(vox.count, triangleCount);i++){
+        if(!needsSkip){
+            uint tri = hash.triangle;
+
+            vec3 triverts[3];
+            uint ji[3];
+            for(uint x=0;x<3;x++){
+                uint j = indics[tri * 3 + x]; ji[x] = j;
+                triverts[x] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
+            }
+
+            vec2 uv;
+            float _d = intersect(orig, dir, triverts, uv);
+            if(_d >= 0.0f && _d < d) {
+                d = _d;
+                lastT = tri;
+
+                vec3 trinorms[3];
+                vec2 texcoords[3];
+                for(uint x=0;x<3;x++){
+                    uint j = ji[x];
+                    trinorms[x] = vec3(norms[j * 3 + 0], norms[j * 3 + 1], norms[j * 3 + 2]);
+                    texcoords[x] = vec2(texcs[j * 2 + 0], texcs[j * 2 + 1]);
+                }
+
+                normal = normalize(trinorms[1]) * uv.x;
+                normal += normalize(trinorms[2]) * uv.y;
+                normal += normalize(trinorms[0]) * (1.0f - uv.x - uv.y);
+                normal = normalize(normal);
+
+                texcoord = texcoords[1] * uv.x;
+                texcoord += texcoords[2] * uv.y;
+                texcoord += texcoords[0] * (1.0f - uv.x - uv.y);
+                texcoord.y = 1.0f - texcoord.y;
+
+                vec3 deltaPos;
+                if(abs(dot(triverts[0] - triverts[1], vec3(1.0f))) < 0.0001f) {
+                    deltaPos = triverts[2] - triverts[0];
+                } else {
+                    deltaPos = triverts[1] - triverts[0];
+                }
+                vec2 deltaUV1 = texcoords[1] - texcoords[0];
+                vec2 deltaUV2 = texcoords[2] - texcoords[0];
+                vec3 tan;
+                if(deltaUV1.s != 0.0f) {
+                    tan = deltaPos / deltaUV1.s;
+                } else {
+                    tan = deltaPos / 1.0f;
+                }
+                tan = normalize(tan - dot(normal,tan)*normal);
+
+                tangent = tan;
+                materialID = mats[tri];
+            }
+
+            uint previous = hash.previous;
+            if(previous != LONGEST){
+                hash = thashes[previous];
+            } else {
+                needsSkip = true;
+            }
+        }
+    }
+
+    TResult res;
+    res.dist = d;
+    res.triangle = lastT;
+    res.normal = normal;
+    res.texcoord = texcoord;
+    res.materialID = materialID;
+    res.tangent = tangent;
+    return res;
+}
+
+TResult voxel_traversal(in vec3 orig, in vec3 dir, in vec3 ray_start, in vec3 ray_end) {
+    float _bin_size = 1.0f;
     uint resX = uint(pow(2, maxDepth-1));
 
     vec3 p0 = ray_start / _bin_size;
@@ -170,140 +256,34 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
     vec3 test = floor(p0);
     vec3 mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
 
-    TResult res;
-    res.triangle = LONGEST;
-    res.dist = INFINITY;
-
-    float d = INFINITY;
-    uint lastT = LONGEST;
-    int materialID = -1;
-    vec3 normal;
-    vec2 texcoord;
-    vec3 tangent;
-
-    const uint globalTCount = 10000;
-    const uint triangleCount = globalTCount / resX + 1;
     const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 16;
     uint iteration = 0;
 
+    TResult lastRes;
+    lastRes.triangle = 0xFFFFFFFF;
+    lastRes.dist = INFINITY;
+
     do {
-        iteration++;
-
-
-
         uvec3 coord = uvec3(test);
         Voxel vox = loadVoxel(coord);
 
         if(vox.count > 0) {
-            vec3 cmn = test + 0.0;
-            vec3 cmx = test + 1.0;
-
-            vec2 cd = intersectCube(ray_start, ray, cmn, cmx);
-            float ncd = INFINITY;
-            if(cd.x >= 0.0 && cd.y >= 0.0){
-                ncd = min(cd.x, cd.y);
-            } else
-            if(cd.x >= 0.0 || cd.y >= 0.0){
-                ncd = max(cd.x, cd.y);
+            TResult lres = test_intersection(orig, dir, vox);
+            if(
+                lastRes.dist < lres.dist &&
+                lastRes.triangle != LONGEST &&
+                lastRes.dist >= 0.0f &&
+                lastRes.dist < INFINITY
+            ) {
+                return lastRes;
+            } else {
+                lastRes.dist = lres.dist;
+                lastRes.triangle = lres.triangle;
+                lastRes.normal = lres.normal;
+                lastRes.texcoord = lres.texcoord;
+                lastRes.materialID = lres.materialID;
+                lastRes.tangent = lres.tangent;
             }
-
-            if(ncd >= 0.0 && ncd < INFINITY){
-                Thash hash = thashes[vox.last];
-                bool needsSkip = false;
-
-                float dd = INFINITY;
-                int materialIDd = -1;
-                uint lastTd = LONGEST;
-                vec3 normald;
-                vec2 texcoordd;
-                vec3 tangentd;
-                for(uint i=0;i<=min(vox.count, triangleCount);i++){
-                    if(!needsSkip){
-                        uint tri = hash.triangle;
-
-                        vec3 triverts[3];
-                        uint ji[3];
-                        for(uint x=0;x<3;x++){
-                            uint j = indics[tri * 3 + x];
-                            ji[x] = j;
-                            triverts[x] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
-                        }
-
-                        vec2 uv;
-                        float _d = intersect(orig, dir, triverts, uv);
-                        if(_d >= 0.0f && _d < dd) {
-                            dd = _d;
-                            lastTd = tri;
-
-                            vec3 trinorms[3];
-                            vec2 texcoords[3];
-                            for(uint x=0;x<3;x++){
-                                uint j = ji[x];
-                                trinorms[x] = vec3(norms[j * 3 + 0], norms[j * 3 + 1], norms[j * 3 + 2]);
-                                texcoords[x] = vec2(texcs[j * 2 + 0], texcs[j * 2 + 1]);
-                            }
-
-                            normald = normalize(trinorms[1]) * uv.x;
-                            normald += normalize(trinorms[2]) * uv.y;
-                            normald += normalize(trinorms[0]) * (1.0f - uv.x - uv.y);
-                            //normald = cross(triverts[2] - triverts[0], triverts[1] - triverts[0]);
-                            normald = normalize(normald);
-
-                            texcoordd = texcoords[1] * uv.x;
-                            texcoordd += texcoords[2] * uv.y;
-                            texcoordd += texcoords[0] * (1.0f - uv.x - uv.y);
-                            texcoordd.y = 1.0f - texcoordd.y;
-
-                            //CALCULATE TANGETS!!!
-                            vec3 deltaPos;
-                            if(abs(dot(triverts[0] - triverts[1], vec3(1.0f))) < 0.0001f)
-                                deltaPos = triverts[2] - triverts[0];
-                            else
-                                deltaPos = triverts[1] - triverts[0];
-
-                            vec2 deltaUV1 = texcoords[1] - texcoords[0];
-                            vec2 deltaUV2 = texcoords[2] - texcoords[0];
-
-                            vec3 tan;
-                            if(deltaUV1.s != 0.0f)
-                                tan = deltaPos / deltaUV1.s;
-                            else
-                                tan = deltaPos / 1.0f;
-
-                            tan = normalize(tan - dot(normald,tan)*normald);
-
-                            tangentd = tan;
-                            materialIDd = mats[tri];
-                        }
-
-                        uint previous = hash.previous;
-                        if(previous != LONGEST){
-                            hash = thashes[previous];
-                        } else {
-                            needsSkip = true;
-                        }
-                    }
-                }
-
-                if(dd >= d && lastT != LONGEST && d >= 0.0f && d < INFINITY) {
-                    res.dist = d;
-                    res.triangle = lastT;
-                    res.normal = normal;
-                    res.texcoord = texcoord;
-                    res.materialID = materialID;
-                    res.tangent = tangent;
-                    return res;
-                } else {
-                    d = dd;
-                    lastT = lastTd;
-                    normal = normald;
-                    texcoord = texcoordd;
-                    materialID = materialIDd;
-                    tangent = tangentd;
-                }
-            }
-
-
         }
 
         if (mx.x < mx.y) {
@@ -324,8 +304,9 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
             }
         }
 
+        iteration++;
     } while(
-        iteration <= iterationCount &&
+        iteration < iterationCount &&
 
         test.x >= 0.0f &&
         test.y >= 0.0f &&
@@ -336,17 +317,7 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
         test.z < float(resX)
     );
 
-    if(lastT != LONGEST && d >= 0.0f && d < INFINITY) {
-        res.dist = d;
-        res.triangle = lastT;
-        res.normal = normal;
-        res.texcoord = texcoord;
-        res.materialID = materialID;
-        res.tangent = tangent;
-        return res;
-    }
-
-    return res;
+    return lastRes;
 }
 
 TResult traverse(vec3 orig, vec3 dir){
