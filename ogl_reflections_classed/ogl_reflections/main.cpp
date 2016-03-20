@@ -1074,7 +1074,7 @@ int main()
 
 	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
 	std::vector<TObject> teapot(1);
-	teapot[0].setDepth(256 * 256 * 64, 8);
+	teapot[0].setDepth(256 * 256 * 64, 6);
 	teapot[0].setMaterialID(msponza.size());
 	teapot[0].loadMesh(shapes);
 	teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -1116,11 +1116,11 @@ int main()
 
 		cam.work(c);
 
-		teapot[0].calcMinmax();
-		teapot[0].buildOctree();
+		//teapot[0].calcMinmax();
+		//teapot[0].buildOctree();
 
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 1;i++) {
+		for (int i = 0;i < 3;i++) {
 			rays.begin();
 			glm::mat4 trans;
 
@@ -1131,13 +1131,12 @@ int main()
 			for (int i = 0;i < teapot.size();i++) {
 				teapot[i].intersection(rays, trans);
 			}
-			
-			//for (int i = 0;i < sponza.size();i++) {
-			//	sponza[i].intersection(rays, glm::mat4());
-			//}
-			//for (int i = 0;i < msponza.size();i++) {
-			//	msponza[i].shade(rays, 0.5f);
-			//}
+			for (int i = 0;i < sponza.size();i++) {
+				sponza[i].intersection(rays, glm::mat4());
+			}
+			for (int i = 0;i < msponza.size();i++) {
+				msponza[i].shade(rays, 0.5f);
+			}
 			for (int i = 0;i < mteapot.size();i++) {
 				mteapot[i].shade(rays, 1.0f);
 			}
