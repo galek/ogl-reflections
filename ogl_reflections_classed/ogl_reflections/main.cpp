@@ -1058,7 +1058,7 @@ int main()
 	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 
 	std::vector<TObject> sponza(1);
-	sponza[0].setDepth(1024 * 1024 * 64, 9);
+	sponza[0].setDepth(1024 * 1024 * 64, 10);
 	sponza[0].setMaterialID(0);
 	sponza[0].loadMesh(shapes);
 	sponza[0].calcMinmax();
@@ -1120,7 +1120,7 @@ int main()
 		//teapot[0].buildOctree();
 
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 3;i++) {
+		for (int i = 0;i < 2;i++) {
 			rays.begin();
 			glm::mat4 trans;
 
@@ -1131,12 +1131,12 @@ int main()
 			for (int i = 0;i < teapot.size();i++) {
 				teapot[i].intersection(rays, trans);
 			}
-			//for (int i = 0;i < sponza.size();i++) {
-			//	sponza[i].intersection(rays, glm::mat4());
-			//}
-			//for (int i = 0;i < msponza.size();i++) {
-			//	msponza[i].shade(rays, 0.5f);
-			//}
+			for (int i = 0;i < sponza.size();i++) {
+				sponza[i].intersection(rays, glm::mat4());
+			}
+			for (int i = 0;i < msponza.size();i++) {
+				msponza[i].shade(rays, 0.5f);
+			}
 			for (int i = 0;i < mteapot.size();i++) {
 				mteapot[i].shade(rays, 1.0f);
 			}
