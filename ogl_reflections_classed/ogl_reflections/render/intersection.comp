@@ -97,9 +97,9 @@ uint searchVoxelIndex(uvec3 idx){
     return searchVoxelIndex(idx, maxDepth);
 }
 
-Voxel loadVoxel(in uvec3 coord){
+Voxel loadVoxel(in uvec3 coord, in uint depth){
     if(coord.x != LONGEST){
-        uint idx = searchVoxelIndex(coord);
+        uint idx = searchVoxelIndex(coord, depth+1);
         return voxels[idx];
     } else {
         Voxel voxel;
@@ -107,6 +107,10 @@ Voxel loadVoxel(in uvec3 coord){
         voxel.count = 0;
         return voxel;
     }
+}
+
+Voxel loadVoxel(in uvec3 coord){
+    return loadVoxel(coord, maxDepth-1);
 }
 
 vec2 intersectCube(vec3 origin, vec3 ray, vec3 cubeMin, vec3 cubeMax) {
@@ -293,7 +297,7 @@ TResult traverse(vec3 orig, vec3 dir){
 
         do {
             uvec3 coord = uvec3(test);
-            Voxel vox = loadVoxel(coord);
+            Voxel vox = loadVoxel(coord, currentDepth);
 
             vec3 mnc = test;
             vec3 mxc = mnc + 1.0f;
