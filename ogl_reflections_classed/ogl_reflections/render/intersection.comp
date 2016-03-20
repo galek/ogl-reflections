@@ -267,16 +267,13 @@ TResult traverse(vec3 orig, vec3 dir){
     vec2 d = intersectCube(torig, dir, vec3(0.0f), vec3(resX));
 
     if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
-        //currentDepth = maxDepth-1;
-        //resX = uint(pow(2, currentDepth));
-        //torig = projectVoxels(orig, currentDepth+1);
-        //d = intersectCube(torig, dir, vec3(0.0f), vec3(resX));
-
         vec3 ray_start = torig;
         vec3 ray_end = torig + INFINITY * dir;
 
-        if(d.x >= 0.0f) ray_start = (torig + dir * (d.x + 0.001f));
-        ray_end = (torig + dir * d.y);
+        if(d.x >= 0.0f) {
+            ray_start = (torig + dir * (d.x + 0.001f));
+        }
+        ray_end = (torig + dir * (d.y + 0.0001f));
         float _bin_size = 1.0f;
 
         vec3 p0 = ray_start / _bin_size;
