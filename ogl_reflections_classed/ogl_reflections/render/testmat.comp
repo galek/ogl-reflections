@@ -94,7 +94,7 @@ void main()
                     if(spc < 0.001f) newRay.actived = 0;
                 }
 
-                newRay.origin += normalize(normal * dot(newRay.direct, normal)) * 0.1f;
+                newRay.origin += normalize(normal * dot(newRay.direct, normal)) * 0.01f;
                 //newRay.final = prenormal * 0.5 + 0.5;
 
                 hit.params.x = 1.0f;
