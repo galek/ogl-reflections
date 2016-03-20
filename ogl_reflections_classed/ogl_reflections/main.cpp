@@ -346,8 +346,8 @@ public:
 
 class TObject {
 public:
-	TObject() { init(128 * 128 * 128, 6); }
-	TObject(GLuint count) {init(count, 6);}
+	TObject() { init(1024, 4); }
+	TObject(GLuint count) {init(count, 4);}
 	TObject(GLuint count, GLuint d) { init(count, d); }
 
 private:
@@ -390,6 +390,7 @@ private:
 	GLuint tsize_g = sizeof(Thash) * 1024 * 1024 * 64;
 	GLuint subgridc_g = sizeof(GLuint) * 256 * 256 * 256 * 8;
 
+public:
 	void setDepth(GLuint count, GLuint d) {
 		maxDepth = d;
 
@@ -399,29 +400,19 @@ private:
 		GLuint tsize = sizeof(Thash) * count;
 		GLuint subgridc = sizeof(GLuint) * size_r * size_r * 64 * 8;
 
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, tspace);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, tsize, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
-
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, vsize, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
-
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, subgridc, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
-
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
-		//glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, vsize_g, false);
+		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, vsize_g, false);
 		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, vsize, true);
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, tspace);
-		//glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, tsize_g, false);
+		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, tsize_g, false);
 		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, tsize, true);
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
-		//glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, subgridc_g, false);
+		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, subgridc_g, false);
 		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, subgridc, true);
 	}
 
-public:
 	void setMaterialID(GLuint id) {
 		materialID = id;
 	}
@@ -510,6 +501,15 @@ private:
 		glGenBuffers(1, &norm_triangle_ssbo);
 		glGenBuffers(1, &tex_triangle_ssbo);
 		glGenBuffers(1, &mat_triangle_ssbo);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, tspace);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, tsize_g, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, vsize_g, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, subgridc_g, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
 
 		setDepth(count, depth);
 
@@ -1057,15 +1057,12 @@ int main()
 	std::string err;
 	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 
-	std::vector<TObject> sponza;
-	//for (int i = 0;i < shapes.size();i++) {
-		//unsigned sizet = shapes[i].mesh.indices.size() / 3;
-		sponza.push_back(TObject(1024 * 1024 * 64, 10));
-		sponza[0].setMaterialID(0);
-		sponza[0].loadMesh(shapes);
-		sponza[0].calcMinmax();
-		sponza[0].buildOctree();
-	//}
+	std::vector<TObject> sponza(1);
+	sponza[0].setDepth(1024 * 1024 * 64, 9);
+	sponza[0].setMaterialID(0);
+	sponza[0].loadMesh(shapes);
+	sponza[0].calcMinmax();
+	sponza[0].buildOctree();
 
 	std::vector<TestMat> msponza(materials.size());
 	for (int i = 0;i < msponza.size();i++) {
@@ -1076,8 +1073,8 @@ int main()
 	}
 
 	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
-	std::vector<TObject> teapot;
-	teapot.push_back(TObject(256 * 256 * 64, 8));
+	std::vector<TObject> teapot(1);
+	teapot[0].setDepth(256 * 256, 6);
 	teapot[0].setMaterialID(msponza.size());
 	teapot[0].loadMesh(shapes);
 	teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -1119,6 +1116,9 @@ int main()
 
 		cam.work(c);
 
+		teapot[0].calcMinmax();
+		teapot[0].buildOctree();
+
 		rays.camera(cam.eye, cam.view);
 		for (int i = 0;i < 3;i++) {
 			rays.begin();
@@ -1127,16 +1127,17 @@ int main()
 			trans = glm::translate(trans, glm::vec3(0.0f, 100.0f, 0.0f));
 			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
 			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-
+			
 			for (int i = 0;i < teapot.size();i++) {
 				teapot[i].intersection(rays, trans);
 			}
+			/*
 			for (int i = 0;i < sponza.size();i++) {
 				sponza[i].intersection(rays, glm::mat4());
 			}
 			for (int i = 0;i < msponza.size();i++) {
 				msponza[i].shade(rays, 0.5f);
-			}
+			}*/
 			for (int i = 0;i < mteapot.size();i++) {
 				mteapot[i].shade(rays, 1.0f);
 			}

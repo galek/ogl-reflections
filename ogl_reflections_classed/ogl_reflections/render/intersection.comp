@@ -181,8 +181,8 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
     vec2 texcoord;
     vec3 tangent;
 
-    const uint globalTCount = 200000;
-    const uint triangleCount = globalTCount / resX + globalTCount % resX;
+    const uint globalTCount = 10000;
+    const uint triangleCount = globalTCount / resX + 1;
     const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 16;
     uint iteration = 0;
 
