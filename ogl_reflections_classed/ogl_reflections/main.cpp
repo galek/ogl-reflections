@@ -1,7 +1,7 @@
 ﻿// Link statically with GLEW
 #define GLEW_STATIC
-#define GLM_SWIZZLE 
-#define GLM_SWIZZLE_XYZW 
+#define GLM_SWIZZLE
+#define GLM_SWIZZLE_XYZW
 //#define GLM_GTC_matrix_transform
 
 // Headers
@@ -160,7 +160,7 @@ private:
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 		}
-		
+
 		{
 			glGenBuffers(1, &ebo);
 			GLuint elements[] = {
@@ -252,8 +252,8 @@ public:
 
 	void camera(glm::vec3 eye, glm::vec3 view) {
 		glUseProgram(cameraProgram);
-		
-		bind(); 
+
+		bind();
 
 		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "projInv"), 1, false, glm::value_ptr(glm::inverse(glm::perspective(3.14f / 3.0f, float(width) / float(height), 0.1f, 10000.0f))));
 		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "camInv"), 1, false, glm::value_ptr(glm::inverse(glm::lookAt(eye, view, glm::vec3(0.0, 1.0, 0.0)))));
@@ -385,7 +385,7 @@ private:
 
 	glm::vec3 offset;
 	glm::vec3 scale;
-	
+
 	GLuint vsize_g = sizeof(Voxel) * 256 * 256 * 256;
 	GLuint tsize_g = sizeof(Thash) * 1024 * 1024 * 64;
 	GLuint subgridc_g = sizeof(GLuint) * 256 * 256 * 256 * 8;
@@ -468,7 +468,7 @@ public:
 			}
 		}
 
-		
+
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vbo_triangle_ssbo);
 		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
@@ -851,11 +851,11 @@ public:
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glUniform1i(glGetUniformLocation(matProgram, "tex"), 0);
-		
+
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, btex);
 		glUniform1i(glGetUniformLocation(matProgram, "bump"), 1);
-		
+
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, stex);
 		glUniform1i(glGetUniformLocation(matProgram, "spec"), 2);
@@ -905,7 +905,7 @@ public:
 			this->rotateX(vi, diffX);
 			this->rotateY(vi, diffY);
 			raysp->clear();
-		} 
+		}
 
 		mposition = position;
 
@@ -1017,7 +1017,7 @@ GLuint loadWithDefault(std::string tex, glm::vec4 def) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
 	}
 	else {
-		
+
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1, 1, 0, GL_RGBA, GL_FLOAT, glm::value_ptr(def));
 	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -1074,7 +1074,7 @@ int main()
 
 	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
 	std::vector<TObject> teapot(1);
-	teapot[0].setDepth(256 * 256 * 64, 6);
+	teapot[0].setDepth(256 * 256 * 64, 7);
 	teapot[0].setMaterialID(msponza.size());
 	teapot[0].loadMesh(shapes);
 	teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -1086,9 +1086,9 @@ int main()
 	mteapot[0].setBump(loadBump(""));
 	mteapot[0].setSpecular(/*loadSpecular("")*/loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
 	mteapot[0].setTexture(loadDiffuse(""));
-	
 
-	
+
+
 
 	RObject rays;
 	rays.includeCubemap(cubeTex);
@@ -1127,7 +1127,7 @@ int main()
 			trans = glm::translate(trans, glm::vec3(0.0f, 100.0f, 0.0f));
 			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
 			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-			
+
 			for (int i = 0;i < teapot.size();i++) {
 				teapot[i].intersection(rays, trans);
 			}
