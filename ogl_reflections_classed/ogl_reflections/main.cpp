@@ -346,8 +346,9 @@ public:
 
 class TObject {
 public:
-	TObject() {init(4);}
-	TObject(GLuint d) { init(d); }
+	TObject() { init(128 * 128 * 128, 6); }
+	TObject(GLuint count) {init(count, 6);}
+	TObject(GLuint count, GLuint d) { init(count, d); }
 
 private:
 	std::vector<Voxel> dvoxels;
@@ -385,30 +386,70 @@ private:
 	glm::vec3 offset;
 	glm::vec3 scale;
 	
-	void setDepth(GLuint d) {
+	GLuint vsize_g = sizeof(Voxel) * 256 * 256 * 256;
+	GLuint tsize_g = sizeof(Thash) * 1024 * 1024 * 64;
+	GLuint subgridc_g = sizeof(GLuint) * 256 * 256 * 256 * 8;
+
+	void setDepth(GLuint count, GLuint d) {
 		maxDepth = d;
 
 		unsigned size_r = pow(2, maxDepth - 1);
 
 		GLuint vsize = sizeof(Voxel) * size_r * size_r * 64;
-		GLuint tsize = sizeof(Thash) * 1024 * 1024 * 64;
+		GLuint tsize = sizeof(Thash) * count;
 		GLuint subgridc = sizeof(GLuint) * size_r * size_r * 64 * 8;
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, tspace);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, tsize, nullptr, GL_DYNAMIC_STORAGE_BIT);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, tsize, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, vsize, nullptr, GL_DYNAMIC_STORAGE_BIT);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, vsize, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, subgridc, nullptr, GL_DYNAMIC_STORAGE_BIT);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, subgridc, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
+		//glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, vsize_g, false);
+		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, vsize, true);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, tspace);
+		//glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, tsize_g, false);
+		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, tsize, true);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
+		//glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, subgridc_g, false);
+		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, subgridc, true);
 	}
 
 public:
-	
-
 	void setMaterialID(GLuint id) {
 		materialID = id;
+	}
+
+	void loadMesh(tinyobj::shape_t &shape) {
+		std::vector<float> &vertices = shape.mesh.positions;
+		std::vector<unsigned> &indices = shape.mesh.indices;
+		std::vector<float> &normals = shape.mesh.normals;
+		std::vector<float> &texcoords = shape.mesh.texcoords;
+		std::vector<int> &material_ids = shape.mesh.material_ids;
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vbo_triangle_ssbo);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ebo_triangle_ssbo);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(unsigned) * indices.size(), indices.data(), GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, norm_triangle_ssbo);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * normals.size(), normals.data(), GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, tex_triangle_ssbo);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * texcoords.size(), texcoords.data(), GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, mat_triangle_ssbo);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(int) * material_ids.size(), material_ids.data(), GL_DYNAMIC_DRAW);
+
+		triangleCount = indices.size() / 3;
+		verticeCount = vertices.size();
 	}
 
 	void loadMesh(std::vector<tinyobj::shape_t>& shape) {
@@ -436,6 +477,8 @@ public:
 			}
 		}
 
+		
+
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vbo_triangle_ssbo);
 		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
 
@@ -456,7 +499,7 @@ public:
 	}
 
 private:
-	void init(GLuint depth) {
+	void init(GLuint count, GLuint depth) {
 		glGenBuffers(1, &vspace);
 		glGenBuffers(1, &tspace);
 		glGenBuffers(1, &subgrid);
@@ -468,7 +511,7 @@ private:
 		glGenBuffers(1, &tex_triangle_ssbo);
 		glGenBuffers(1, &mat_triangle_ssbo);
 
-		setDepth(depth);
+		setDepth(count, depth);
 
 		{
 			GLuint compShader = loadShader("./render/intersection.comp", GL_COMPUTE_SHADER);
@@ -919,10 +962,10 @@ public:
 		vi.z -= diff / 5000.0f;
 	}
 	void rotateY(glm::vec3 &vi, float diff) {
-		vi = glm::rotateX(vi, -diff / float(height) / 1000.0f);
+		vi = glm::rotateX(vi, -diff / float(height) / 5000.0f);
 	}
 	void rotateX(glm::vec3 &vi, float diff) {
-		vi = glm::rotateY(vi, -diff / float(height) / 1000.0f);
+		vi = glm::rotateY(vi, -diff / float(height) / 5000.0f);
 	}
 };
 
@@ -1009,20 +1052,21 @@ int main()
 
 	GLuint cubeTex = initCubeMap();
 
-	std::string inputfile = "models/teapot.obj";
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
 	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 
 	std::vector<TObject> sponza;
-	sponza.push_back(TObject(10));
-	sponza[0].setMaterialID(0);
-	sponza[0].loadMesh(shapes);
-	sponza[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
-	sponza[0].calcMinmax();
-	sponza[0].buildOctree();
-	
+	//for (int i = 0;i < shapes.size();i++) {
+		//unsigned sizet = shapes[i].mesh.indices.size() / 3;
+		sponza.push_back(TObject(1024 * 1024 * 64, 10));
+		sponza[0].setMaterialID(0);
+		sponza[0].loadMesh(shapes);
+		sponza[0].calcMinmax();
+		sponza[0].buildOctree();
+	//}
+
 	std::vector<TestMat> msponza(materials.size());
 	for (int i = 0;i < msponza.size();i++) {
 		msponza[i].setBump(loadBump(materials[i].bump_texname));
@@ -1033,7 +1077,7 @@ int main()
 
 	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
 	std::vector<TObject> teapot;
-	teapot.push_back(TObject(8));
+	teapot.push_back(TObject(256 * 256 * 64, 8));
 	teapot[0].setMaterialID(msponza.size());
 	teapot[0].loadMesh(shapes);
 	teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -1072,31 +1116,14 @@ int main()
 
 		clock_t tt = clock();
 		clock_t c = tt - t;
-		/*
-		glm::vec3 eye = glm::vec3(1.0, 100.0, 1.0);
-		glm::vec3 view = glm::vec3(0.0, 100.0, 0.0);
-		//glm::vec3 eye = glm::vec3(2.0, 0.0, 2.0);
-		//glm::vec3 view = glm::vec3(0.0, 0.0, 0.0);
-		eye -= view;
-		eye = rotate(eye, ((float)c) / 5000.0f, glm::vec3(0.0, 1.0, 0.0));
-		eye += view;
-		view = eye + normalize(view - eye);
-		*/
 
 		cam.work(c);
 
-		//teapot.move(glm::vec3(0.01f, 0.0f, 0.0f) * (float)c / 1000.0f);
-		//for (int i = 0;i < teapot.size();i++) {
-		//	teapot[i].calcMinmax();
-		//	teapot[i].buildOctree();
-		//}
 		rays.camera(cam.eye, cam.view);
 		for (int i = 0;i < 3;i++) {
 			rays.begin();
 			glm::mat4 trans;
 
-			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-			
 			trans = glm::translate(trans, glm::vec3(0.0f, 100.0f, 0.0f));
 			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
 			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));

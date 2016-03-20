@@ -183,11 +183,13 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
 
     const uint globalTCount = 200000;
     const uint triangleCount = globalTCount / resX + globalTCount % resX;
-    const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 4;
+    const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 16;
     uint iteration = 0;
 
     do {
         iteration++;
+
+
 
         uvec3 coord = uvec3(test);
         Voxel vox = loadVoxel(coord);
@@ -300,6 +302,8 @@ TResult voxel_traversal(vec3 orig, vec3 dir, vec3 ray_start, vec3 ray_end) {
                     tangent = tangentd;
                 }
             }
+
+
         }
 
         if (mx.x < mx.y) {
@@ -356,7 +360,7 @@ TResult traverse(vec3 orig, vec3 dir){
     vec3 start = torig;
     vec3 end = torig + INFINITY * dir;
     if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
-        if(d.x >= 0.0f) start = (torig + dir * d.x);
+        if(d.x >= 0.0f) start = (torig + dir * (d.x + 0.001f));
         end = (torig + dir * d.y);
         return voxel_traversal(orig, dir, start, end);
     }
