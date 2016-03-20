@@ -296,12 +296,11 @@ TResult traverse(vec3 orig, vec3 dir){
             uvec3 coord = uvec3(test);
             Voxel vox = loadVoxel(coord, currentDepth);
 
-            vec3 mnc = test;
-            vec3 mxc = mnc + 1.0f;
-
-            vec2 d = intersectCube(torig, dir, mnc, mxc);
-            if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
-                if(vox.count > 0 && vox.last != LONGEST) {
+            if(vox.count > 0 && vox.last != LONGEST) {
+                vec3 mnc = test;
+                vec3 mxc = mnc + 1.0f;
+                vec2 d = intersectCube(torig, dir, mnc, mxc);
+                if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
                     TResult lres = test_intersection(orig, dir, vox);
                     if(
                         lastRes.dist < lres.dist &&
