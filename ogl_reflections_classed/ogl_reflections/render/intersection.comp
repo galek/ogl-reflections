@@ -56,7 +56,7 @@ uint cnv_subgrid(uint sub, uvec3 idu){
     return sub * 8 + (idu.x + idu.y * 2 + idu.z * 4);
 }
 
-uint searchVoxelIndex(uvec3 idx){
+uint searchVoxelIndex(uvec3 idx, uint maxDepth){
     uint currentDepth = maxDepth-1;
     uvec3 id = uvec3(0);
     bool fail = false;
@@ -91,6 +91,10 @@ uint searchVoxelIndex(uvec3 idx){
         return sub;
     }
     return LONGEST;
+}
+
+uint searchVoxelIndex(uvec3 idx){
+    return searchVoxelIndex(idx, maxDepth);
 }
 
 Voxel loadVoxel(in uvec3 coord){
@@ -242,7 +246,6 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
     res.tangent = tangent;
     return res;
 }
-
 TResult voxel_traversal(in vec3 orig, in vec3 dir, in vec3 ray_start, in vec3 ray_end) {
     float _bin_size = 1.0f;
     uint resX = uint(pow(2, maxDepth-1));
@@ -267,7 +270,7 @@ TResult voxel_traversal(in vec3 orig, in vec3 dir, in vec3 ray_start, in vec3 ra
         uvec3 coord = uvec3(test);
         Voxel vox = loadVoxel(coord);
 
-        if(vox.count > 0) {
+        if(vox.count > 0 && vox.last != LONGEST) {
             TResult lres = test_intersection(orig, dir, vox);
             if(
                 lastRes.dist < lres.dist &&

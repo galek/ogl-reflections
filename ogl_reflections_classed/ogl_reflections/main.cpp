@@ -1074,7 +1074,7 @@ int main()
 
 	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
 	std::vector<TObject> teapot(1);
-	teapot[0].setDepth(256 * 256, 6);
+	teapot[0].setDepth(256 * 256 * 64, 5);
 	teapot[0].setMaterialID(msponza.size());
 	teapot[0].loadMesh(shapes);
 	teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -1087,7 +1087,7 @@ int main()
 	mteapot[0].setSpecular(/*loadSpecular("")*/loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
 	mteapot[0].setTexture(loadDiffuse(""));
 	
-	
+
 	
 
 	RObject rays;
@@ -1120,7 +1120,7 @@ int main()
 		teapot[0].buildOctree();
 
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 3;i++) {
+		for (int i = 0;i < 1;i++) {
 			rays.begin();
 			glm::mat4 trans;
 
