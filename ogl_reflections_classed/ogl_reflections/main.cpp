@@ -1134,7 +1134,7 @@ int main()
 
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
-		for (int j = 0;j < 2;j++) {
+		for (int j = 0;j < 3;j++) {
 			rays.begin();
 			glm::mat4 trans;
 

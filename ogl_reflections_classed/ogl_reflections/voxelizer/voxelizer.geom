@@ -16,14 +16,12 @@ uniform uint currentDepth;
 uniform vec3 offset;
 uniform vec3 scale;
 
-vec3 load3(in float a[3]){
-    return vec3(a[0], a[1], a[2]);
+float lengthFast(in vec3 v){
+    return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
-void store3(in vec3 a, inout float b[3]){
-    b[0] = a.x;
-    b[1] = a.y;
-    b[2] = a.z;
+vec3 normalizeFast(in vec3 v){
+    return v / lengthFast(v);
 }
 
 void main(){
@@ -43,7 +41,7 @@ void main(){
     vert1 = positions[1];
     vert2 = positions[2];
 
-    vec3 norm = abs(normalize(cross(positions[1] - positions[0], positions[2] - positions[0])));
+    vec3 norm = abs(normalizeFast(cross(positions[1] - positions[0], positions[2] - positions[0])));
 
     vec3 mn = min(positions[0], min(positions[1], positions[2]));
     vec3 mx = max(positions[0], max(positions[1], positions[2]));
@@ -61,7 +59,7 @@ void main(){
     for (int i = 0; i < 3; i++) {
         vec3 pos = positions[i];
         vec3 opos = pos;
-        //vec3 vect = normalize(opos - ce);
+        //vec3 vect = normalizeFast(opos - ce);
         //vec3 av = abs(vect);
         //vect /= max(min(av.x, min(av.y, av.z)), 0.001f);
 

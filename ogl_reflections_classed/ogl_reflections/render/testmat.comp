@@ -3,6 +3,14 @@
 const uint LONGEST = 0xFFFFFFFF;
 const float INFINITY = 1e10;
 
+float lengthFast(in vec3 v){
+    return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+vec3 normalizeFast(in vec3 v){
+    return v / lengthFast(v);
+}
+
 struct Ray {
     int actived;
     vec3 origin;
@@ -46,7 +54,7 @@ vec3 getNormalMapping(vec2 texcoordi){
     float valY = texture(bump, texcoord + vec2(0.0f, 1.0f / textures.y) * 1.0f).r;
     vec3 h = vec3(1.0f,0.0f,val - valX);
     vec3 v = vec3(0.0f,1.0f,val - valY);
-    return normalize(cross(h,v));
+    return normalizeFast(cross(h,v));
 }
 
 uniform vec3 light;
@@ -65,14 +73,14 @@ void main()
                 Ray newRay = ray;
                 newRay.origin += newRay.direct * hit.dist;
 
-                vec3 binormal = normalize(cross(hit.tangent, hit.normal));
+                vec3 binormal = normalizeFast(cross(hit.tangent, hit.normal));
                 mat3 tbn = transpose(mat3(hit.tangent, binormal, hit.normal));
 
                 vec3 prenormal = hit.normal;
-                prenormal = normalize(getNormalMapping(hit.texcoord) * tbn);
+                prenormal = normalizeFast(getNormalMapping(hit.texcoord) * tbn);
 
-                vec3 normal = -normalize(prenormal * dot(prenormal, newRay.direct));
-                float light = dot(normalize(light - newRay.origin), normal) * 0.75f + 0.25f;
+                vec3 normal = -normalizeFast(prenormal * dot(prenormal, newRay.direct));
+                float light = clamp(dot(normalizeFast(light - newRay.origin), normal), 0.0f, 1.0f);
 
 
 
@@ -86,13 +94,13 @@ void main()
                 float spc = texture(spec, hit.texcoord).r * reflectionRate;
                 if(tx.a > 0.999f){
                     newRay.final = mix(newRay.final, color, newRay.params.x);
-                    newRay.direct = normalize(reflect(newRay.direct, normal));
+                    newRay.direct = normalizeFast(reflect(newRay.direct, normal));
                     newRay.params.x *= spc;
                     newRay.params.y += 1.0f;
                     if(spc < 0.001f) newRay.actived = 0;
                 }
 
-                newRay.origin += normalize(normal * dot(newRay.direct, normal)) * 0.1f;
+                newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.1f;
                 //newRay.final = prenormal * 0.5 + 0.5;
 
                 hit.params.x = 1.0f;

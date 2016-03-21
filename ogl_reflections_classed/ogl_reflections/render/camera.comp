@@ -31,6 +31,13 @@ uniform vec2 sceneRes;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
+float lengthFast(in vec3 v){
+    return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+vec3 normalizeFast(in vec3 v){
+    return v / lengthFast(v);
+}
 
 
 uniform float time;
@@ -78,6 +85,7 @@ void main()
 
         vec2 coord = vec2(gl_GlobalInvocationID.xy);
         coord += vec2(random(), random());
+        //coord += 0.5f;
         coord /= sceneRes;
         coord = coord * 2.0f - 1.0f;
 
@@ -86,7 +94,7 @@ void main()
         vec4 ce = camInv * vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
         vec3 orig = ce.xyz;
-        vec3 dir = normalize(co.xyz - orig.xyz);
+        vec3 dir = normalizeFast(co.xyz - orig.xyz);
 
         Ray ray;
         ray.direct = dir;

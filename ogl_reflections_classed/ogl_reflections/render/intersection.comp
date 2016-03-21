@@ -52,6 +52,15 @@ uniform uint maxDepth;
 uniform vec3 offset;
 uniform vec3 scale;
 
+
+float lengthFast(in vec3 v){
+    return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+vec3 normalizeFast(in vec3 v){
+    return v / lengthFast(v);
+}
+
 uint cnv_subgrid(uint sub, uvec3 idu){
     return sub * 8 + (idu.x + idu.y * 2 + idu.z * 4);
 }
@@ -222,10 +231,10 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
                 }
 
                 //normal = cross(triverts[2] - triverts[0], triverts[1] - triverts[0]);
-                normal = normalize(trinorms[1]) * uv.x;
-                normal += normalize(trinorms[2]) * uv.y;
-                normal += normalize(trinorms[0]) * (1.0f - uv.x - uv.y);
-                normal = normalize(normal);
+                normal = normalizeFast(trinorms[1]) * uv.x;
+                normal += normalizeFast(trinorms[2]) * uv.y;
+                normal += normalizeFast(trinorms[0]) * (1.0f - uv.x - uv.y);
+                normal = normalizeFast(normal);
 
                 texcoord = texcoords[1] * uv.x;
                 texcoord += texcoords[2] * uv.y;
@@ -246,7 +255,7 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
                 } else {
                     tan = deltaPos / 1.0f;
                 }
-                tan = normalize(tan - dot(normal,tan)*normal);
+                tan = normalizeFast(tan - dot(normal,tan)*normal);
 
                 tangent = tan;
                 materialID = mats[tri];
@@ -333,6 +342,7 @@ TResult traverse(vec3 orig, vec3 dir){
                         lastRes.dist < INFINITY
                     ) {
                         return lastRes;
+                        break;
                     } else {
                         lastRes = lres;
                     }
@@ -343,6 +353,7 @@ TResult traverse(vec3 orig, vec3 dir){
                         lastRes.dist < INFINITY
                     ) {
                         return lastRes;
+                        break;
                     }
                 }
             } else {
@@ -352,6 +363,7 @@ TResult traverse(vec3 orig, vec3 dir){
                     lastRes.dist < INFINITY
                 ) {
                     return lastRes;
+                    break;
                 }
 
                 float coef = 1.0f;
@@ -403,9 +415,9 @@ TResult traverse(vec3 orig, vec3 dir){
             test.y >= 0.0f &&
             test.z >= 0.0f &&
 
-            test.x <= float(resX) &&
-            test.y <= float(resX) &&
-            test.z <= float(resX)
+            test.x < float(resX) &&
+            test.y < float(resX) &&
+            test.z < float(resX)
         );
 
 
@@ -444,7 +456,7 @@ void main()
 
             tray.origin = p0t;
             tray.direct = p1t - p0t;
-            float rate = length(tray.direct) / length(ray.direct);
+            float rate = lengthFast(tray.direct) / lengthFast(ray.direct);
             tray.direct /= rate;
 
             TResult res = traverse(tray.origin, tray.direct);
