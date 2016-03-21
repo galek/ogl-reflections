@@ -1120,7 +1120,7 @@ int main()
 		//teapot[0].buildOctree();
 
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 2;i++) {
+		for (int i = 0;i < 4;i++) {
 			rays.begin();
 			glm::mat4 trans;
 
