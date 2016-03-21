@@ -374,10 +374,12 @@ TResult traverse(vec3 orig, vec3 dir){
                         break;
                     } else {
                         vec2 d = intersectCube(torig, dir, mnc, mxc);
-                        found = true;
-                        vec3 p0 = (torig + dir * (d.y + 0.0001f)) / _bin_size;
-                        test = floor(p0);
-                        mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
+                        if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
+                            found = true;
+                            vec3 p0 = (torig + dir * (d.y + 0.0001f)) / _bin_size;
+                            test = floor(p0);
+                            mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
+                        }
                     }
                 }
             }
