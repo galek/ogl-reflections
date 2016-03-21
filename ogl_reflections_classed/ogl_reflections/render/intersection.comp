@@ -373,6 +373,10 @@ TResult traverse(vec3 orig, vec3 dir){
     vec3 torig = projectVoxels(orig, currentDepth+1);
     vec2 d = intersectCube(torig, dir, vec3(0.0f), vec3(resX));
 
+    TResult lastRes;
+    lastRes.triangle = 0xFFFFFFFF;
+    lastRes.dist = INFINITY;
+
     if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
         vec3 ray_start = torig;
         vec3 ray_end = torig + INFINITY * dir;
@@ -396,10 +400,6 @@ TResult traverse(vec3 orig, vec3 dir){
 
         const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 16;
         uint iteration = 0;
-
-        TResult lastRes;
-        lastRes.triangle = 0xFFFFFFFF;
-        lastRes.dist = INFINITY;
 
         do {
             iteration++;
@@ -485,13 +485,10 @@ TResult traverse(vec3 orig, vec3 dir){
             test.z <= float(resX)
         );
 
-        return lastRes;
+
     }
 
-    TResult res;
-    res.triangle = LONGEST;
-    res.dist = INFINITY;
-    return res;
+    return lastRes;
 }
 
 
