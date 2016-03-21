@@ -187,7 +187,7 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
     Thash hash = thashes[vox.last];
     bool needsSkip = false;
 
-    const uint globalTCount = 3000;
+    const uint globalTCount = 300;
     const uint triangleCount = globalTCount;
 
     float d = INFINITY;
@@ -278,113 +278,6 @@ vec3 projectVoxels(in vec3 orig, in uint maxDepth){
     torig *= resX;
     return torig;
 }
-/*
-TResult traverse(vec3 orig, vec3 dir){
-    uint currentDepth = maxDepth-1;
-    uint resX = uint(pow(2, currentDepth));
-    vec3 torig = projectVoxels(orig, currentDepth+1);
-    vec2 d = intersectCube(torig, dir, vec3(0.0f), vec3(resX));
-
-    if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
-        vec3 ray_start = torig;
-        vec3 ray_end = torig + INFINITY * dir;
-
-        if(d.x >= 0.0f) {
-            ray_start = (torig + dir * (d.x + 0.001f));
-        }
-        ray_end = (torig + dir * (d.y + 0.0001f));
-        float _bin_size = 1.0f;
-
-        vec3 p0 = ray_start / _bin_size;
-        vec3 p1 = ray_end / _bin_size;
-        vec3 ray = ray_end - ray_start;
-
-        vec3 step = sign(p1 - p0);
-        vec3 delta = _bin_size / abs(p1 - p0);
-        vec3 test = floor(p0);
-        vec3 mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
-
-        const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 16;
-        uint iteration = 0;
-
-        TResult lastRes;
-        lastRes.triangle = 0xFFFFFFFF;
-        lastRes.dist = INFINITY;
-
-        do {
-            uvec3 coord = uvec3(test);
-            Voxel vox = loadVoxel(coord, currentDepth);
-
-            if(vox.count > 0 && vox.last != LONGEST) {
-                vec3 mnc = test;
-                vec3 mxc = mnc + 1.0f;
-                vec2 d = intersectCube(torig, dir, mnc, mxc);
-                if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
-                    TResult lres = test_intersection(orig, dir, vox);
-                    if(
-                        lastRes.dist < lres.dist &&
-                        lastRes.triangle != LONGEST &&
-                        lastRes.dist >= 0.0f &&
-                        lastRes.dist < INFINITY
-                    ) {
-                        return lastRes;
-                    } else {
-                        lastRes.dist = lres.dist;
-                        lastRes.triangle = lres.triangle;
-                        lastRes.normal = lres.normal;
-                        lastRes.texcoord = lres.texcoord;
-                        lastRes.materialID = lres.materialID;
-                        lastRes.tangent = lres.tangent;
-                    }
-                }
-            }
-
-            if (mx.x < mx.y) {
-                if (mx.x < mx.z) {
-                    test.x += step.x;
-                    mx.x += delta.x;
-                } else {
-                    test.z += step.z;
-                    mx.z += delta.z;
-                }
-            } else {
-                if (mx.y < mx.z) {
-                    test.y += step.y;
-                    mx.y += delta.y;
-                } else {
-                    test.z += step.z;
-                    mx.z += delta.z;
-                }
-            }
-
-            iteration++;
-        } while(
-            iteration < iterationCount &&
-
-            test.x >= 0.0f &&
-            test.y >= 0.0f &&
-            test.z >= 0.0f &&
-
-            test.x < float(resX) &&
-            test.y < float(resX) &&
-            test.z < float(resX)
-        );
-
-        return lastRes;
-    }
-
-    TResult res;
-    res.triangle = LONGEST;
-    res.dist = INFINITY;
-    return res;
-}*/
-
-
-
-
-
-
-
 
 TResult traverse(vec3 orig, vec3 dir){
     uint currentDepth = maxDepth-1;
@@ -417,7 +310,7 @@ TResult traverse(vec3 orig, vec3 dir){
         vec3 test = floor(p0);
         vec3 mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
 
-        const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 16;
+        const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 2;
         uint iteration = 0;
 
         do {

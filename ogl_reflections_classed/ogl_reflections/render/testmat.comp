@@ -59,9 +59,7 @@ void main()
         if(hit.materialID == materialID){
             Ray ray = rays[t];
 
-
-
-            if(ray.actived > 0 && hit.params.x < 1.0f && ray.params.y < ray.params.z){
+            if(hit.dist < 10000.0f && ray.actived > 0 && hit.params.x < 1.0f && ray.params.y < ray.params.z){
                 vec4 tx = texture(tex, hit.texcoord);
 
                 Ray newRay = ray;
