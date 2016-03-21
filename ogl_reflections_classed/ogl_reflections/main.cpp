@@ -19,6 +19,7 @@
 #include <glm/gtx/component_wise.hpp>
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include <ctime>
+#include <chrono>
 
 std::string readFile(const char *filePath) {
 	std::string content;
@@ -950,22 +951,22 @@ public:
 	}
 
 	void leftRight(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.x -= diff / 2000.0f;
-		vi.x -= diff / 2000.0f;
+		ca.x -= diff / 10.0f;
+		vi.x -= diff / 10.0f;
 	}
 	void topBottom(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.y += diff / 2000.0f;
-		vi.y += diff / 2000.0f;
+		ca.y += diff / 10.0f;
+		vi.y += diff / 10.0f;
 	}
 	void forwardBackward(glm::vec3 &ca, glm::vec3 &vi, float diff) {
-		ca.z -= diff / 2000.0f;
-		vi.z -= diff / 2000.0f;
+		ca.z -= diff / 10.0f;
+		vi.z -= diff / 10.0f;
 	}
 	void rotateY(glm::vec3 &vi, float diff) {
-		vi = glm::rotateX(vi, -diff / float(height) / 2000.0f);
+		vi = glm::rotateX(vi, -diff / float(height) / 10.0f);
 	}
 	void rotateX(glm::vec3 &vi, float diff) {
-		vi = glm::rotateY(vi, -diff / float(height) / 2000.0f);
+		vi = glm::rotateY(vi, -diff / float(height) / 10.0f);
 	}
 };
 
@@ -1039,6 +1040,11 @@ GLuint loadSpecular(std::string tex) {
 	return loadWithDefault(tex, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
+double milliseconds() {
+	auto duration = std::chrono::high_resolution_clock::now();
+	double millis = std::chrono::duration_cast<std::chrono::nanoseconds>(duration.time_since_epoch()).count();
+	return millis / 10000000.0;
+}
 
 int main()
 {
@@ -1110,7 +1116,7 @@ int main()
 
 	RObject rays;
 	rays.includeCubemap(cubeTex);
-	double t = time(0) * 1000.0;
+	double t = milliseconds();//time(0) * 1000.0;
 
 	Camera cam;
 	cam.setRays(rays);
@@ -1129,8 +1135,9 @@ int main()
 			}
 		}
 
-		double tt = time(0) * 1000.0;
+		double tt = milliseconds();
 		double c = tt - t;
+		t = tt;
 
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
