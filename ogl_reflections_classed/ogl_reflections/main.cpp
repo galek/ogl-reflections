@@ -261,7 +261,7 @@ public:
 		glUniform2f(glGetUniformLocation(cameraProgram, "sceneRes"), width, height);
 		glUniform1f(glGetUniformLocation(cameraProgram, "time"), clock());
 
-		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -270,7 +270,7 @@ public:
 		bind();
 
 		glUniform2f(glGetUniformLocation(beginProgram, "sceneRes"), width, height);
-		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -280,7 +280,7 @@ public:
 
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, samples);
 		glUniform2f(glGetUniformLocation(samplerProgram, "sceneRes"), width, height);
-		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -290,7 +290,7 @@ public:
 
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, samples);
 		glUniform2f(glGetUniformLocation(clearProgram, "sceneRes"), width, height);
-		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -303,7 +303,7 @@ public:
 		glUniform1i(glGetUniformLocation(closeProgram, "cubeTex"), 0);
 
 		glUniform2f(glGetUniformLocation(closeProgram, "sceneRes"), width, height);
-		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -590,8 +590,8 @@ public:
 		glUniform1ui(glGetUniformLocation(moverProgram, "count"), verticeCount * 3);
 		glUniform3fv(glGetUniformLocation(moverProgram, "offset"), 1, glm::value_ptr(offset));
 
-		GLuint dsize = tiled(verticeCount, 256);
-		glDispatchCompute((dsize < 256 ? 256 : dsize) / 256, 1, 1);
+		GLuint dsize = tiled(verticeCount, 1024);
+		glDispatchCompute((dsize < 1024 ? 1024 : dsize) / 1024, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -642,8 +642,8 @@ public:
 			glUniform1ui(glGetUniformLocation(voxelizerMinmaxProgram, "from"), from);
 			glUniform1ui(glGetUniformLocation(voxelizerMinmaxProgram, "tcount"), trisize);
 
-			GLuint dsize = tiled(count, 256);
-			glDispatchCompute((dsize < 256 ? 256 : dsize) / 256, 1, 1);
+			GLuint dsize = tiled(count, 1024);
+			glDispatchCompute((dsize < 1024 ? 1024 : dsize) / 1024, 1, 1);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 		} while (count > 1);
 
@@ -685,7 +685,7 @@ public:
 		glUniformMatrix4fv(glGetUniformLocation(intersectionProgram, "transform"), 1, false, glm::value_ptr(trans));
 		glUniformMatrix4fv(glGetUniformLocation(intersectionProgram, "transformInv"), 1, false, glm::value_ptr(glm::inverse(trans)));
 
-		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -749,8 +749,8 @@ public:
 				glUniform3fv(glGetUniformLocation(voxelizerFixProgram, "offset"), 1, glm::value_ptr(offset));
 				glUniform3fv(glGetUniformLocation(voxelizerFixProgram, "scale"), 1, glm::value_ptr(scale));
 
-				GLuint tsize = tiled(size, 256);
-				glDispatchCompute((tsize < 256 ? 256 : tsize) / 256, 1, 1);
+				GLuint tsize = tiled(size, 1024);
+				glDispatchCompute((tsize < 1024 ? 1024 : tsize) / 1024, 1, 1);
 				glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 				GLuint osize = size;
@@ -867,7 +867,7 @@ public:
 		glUniform2f(glGetUniformLocation(matProgram, "sceneRes"), width, height);
 		glUniform3fv(glGetUniformLocation(matProgram, "light"), 1, glm::value_ptr(glm::vec3(9.0f, 200.0f, 9.0f)));
 
-		glDispatchCompute(tiled(width, 16) / 16, tiled(height, 16) / 16, 1);
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 };

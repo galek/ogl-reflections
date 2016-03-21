@@ -428,7 +428,7 @@ TResult traverse(vec3 orig, vec3 dir){
 
 uniform uint materialID;
 
-layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 uniform mat4 transform;
 uniform mat4 transformInv;

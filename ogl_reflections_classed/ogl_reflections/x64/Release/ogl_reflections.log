@@ -39,7 +39,7 @@ main.cpp(1110): warning C4267: аргумент: преобразование и
 main.cpp(1145): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
 LINK : warning LNK4098: библиотека по умолчанию "LIBCMT" противоречит использованию других библиотек; используйте параметр /NODEFAULTLIB:library
   Создание кода
-  37 of 2061 functions ( 1.8%) were compiled, the rest were copied from previous compilation.
+  36 of 2061 functions ( 1.7%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     7 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
