@@ -326,6 +326,7 @@ TResult traverse(vec3 orig, vec3 dir){
         do {
             iteration++;
 
+            bool overlap = false;
             bool found = false;
             uvec3 coord = uvec3(test);
             Voxel vox = loadVoxel(coord, currentDepth);
@@ -334,6 +335,7 @@ TResult traverse(vec3 orig, vec3 dir){
                 vec3 mxc = mnc + 1.0f + 0.0001f;
                 vec2 d = intersectCube(torig, dir, mnc, mxc);
                 if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
+                    overlap = true;
                     TResult lres = test_intersection(orig, dir, vox);
                     if(
                         lastRes.dist < lres.dist &&
@@ -346,17 +348,10 @@ TResult traverse(vec3 orig, vec3 dir){
                     } else {
                         lastRes = lres;
                     }
-                } else {
-                    if(
-                        lastRes.triangle != LONGEST &&
-                        lastRes.dist >= 0.0f &&
-                        lastRes.dist < INFINITY
-                    ) {
-                        return lastRes;
-                        break;
-                    }
                 }
-            } else {
+            }
+
+            if(!overlap){
                 if(
                     lastRes.triangle != LONGEST &&
                     lastRes.dist >= 0.0f &&
@@ -379,12 +374,10 @@ TResult traverse(vec3 orig, vec3 dir){
                         break;
                     } else {
                         vec2 d = intersectCube(torig, dir, mnc, mxc);
-                        if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
-                            found = true;
-                            vec3 p0 = (torig + dir * (d.y + 0.0001f)) / _bin_size;
-                            test = floor(p0);
-                            mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
-                        }
+                        found = true;
+                        vec3 p0 = (torig + dir * (d.y + 0.0001f)) / _bin_size;
+                        test = floor(p0);
+                        mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
                     }
                 }
             }
