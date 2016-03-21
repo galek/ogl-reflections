@@ -99,8 +99,8 @@ GLuint loadShader(std::string filename, GLuint type) {
 	return valid ? shader : -1;
 }
 
-const GLuint width = 1280;
-const GLuint height = 720;
+const GLuint width = 1024;
+const GLuint height = 768;
 const GLuint _zero = 0;
 
 struct Ray {
@@ -1064,7 +1064,7 @@ int main()
 	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 
 	std::vector<TObject> sponza(1);
-	sponza[0].setDepth(1024 * 1024 * 64, 10);
+	sponza[0].setDepth(1024 * 1024 * 64, 9);
 	sponza[0].setMaterialID(0);
 	sponza[0].loadMesh(shapes);
 	sponza[0].calcMinmax();
