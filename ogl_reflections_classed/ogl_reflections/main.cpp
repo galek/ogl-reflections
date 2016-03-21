@@ -1139,6 +1139,9 @@ int main()
 		double c = tt - t;
 		t = tt;
 
+		//teapot[0].calcMinmax();
+		//teapot[0].buildOctree();
+
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
 		for (int j = 0;j < 3;j++) {

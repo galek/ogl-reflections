@@ -178,70 +178,60 @@ void main(){
             uint d = loc / 4;
             uvec3 co = uvec3(w, h, d);
 
+            Voxel voxel = voxels[parent];
+            uvec3 parentSpace = uvec3(voxel.coordX, voxel.coordY, voxel.coordZ);
+            uvec3 globalSpace = parentSpace * 2 + co;
+
+            vec3 norm = vec3(globalSpace) + 0.5f;
+
+            uint triangleCount = 300000;
+            Thash hash = thashes[voxel.last];
+            bool needsSkip = false;
+            uint cnt = min(voxel.count, triangleCount);
+
             voxels_subgrid[parent * 8 + loc] = 0xFFFFFFFF;
+            for(uint i=0;i<cnt;i++){
+                if(!needsSkip){
+                    vec3 trivert[3];
 
-            //if(voxels_subgrid[parent * 8 + loc] == 0xFFFFFFFF){
-                Voxel voxel = voxels[parent];
-                uvec3 parentSpace = uvec3(voxel.coordX, voxel.coordY, voxel.coordZ);
-                uvec3 globalSpace = parentSpace * 2 + co;
-
-                vec3 norm = vec3(globalSpace) + 0.5;
-
-                uint triangleCount = 300000;
-                Thash hash = thashes[voxel.last];
-                bool needsSkip = false;
-                uint cnt = min(voxel.count, triangleCount);
-
-                for(uint i=0;i<cnt;i++){
-                    if(!needsSkip){
-                        vec3 trivert[3];
-
-                        uint tri = hash.triangle;
-                        uint j = 0;
-                        j = indics[tri * 3 + 0];
-                        trivert[0] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
-                        j = indics[tri * 3 + 1];
-                        trivert[1] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
-                        j = indics[tri * 3 + 2];
-                        trivert[2] = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
-
-                        for (int i = 0; i < 3; i++) {
-                            vec3 pos = trivert[i];
-                            pos -= offset;
-                            pos /= scale;
-                            pos *= resX;
-                            trivert[i] = pos;
-                        }
-
-                        if(triBoxOverlap(floor(norm) + 0.5f, vec3(0.5), trivert) == 1){
-                            Voxel newVoxel;
-                            newVoxel.coordX = globalSpace.x;
-                            newVoxel.coordY = globalSpace.y;
-                            newVoxel.coordZ = globalSpace.z;
-                            newVoxel.count = 0;
-                            newVoxel.last = LONGEST;
-
-                            uint vloc = atomicCounterIncrement(scounter);
-                            uint hloc = atomicCounterIncrement(lscounter_to);
-                            to_helper[hloc] = vloc;
-
-                            voxels[vloc] = newVoxel;
-                            voxels_subgrid[parent * 8 + loc] = vloc;
-
-                            needsSkip = true;
-                        }
-
-                        uint previous = hash.previous;
-                        if(previous != LONGEST){
-                            hash = thashes[previous];
-                        } else {
-                            needsSkip = true;
-                        }
-                    } else {
-                        break;
+                    uint tri = hash.triangle;
+                    for (int x = 0; x < 3; x++) {
+                        uint j = indics[tri * 3 + x];
+                        vec3 pos = vec3(verts[j * 3 + 0], verts[j * 3 + 1], verts[j * 3 + 2]);
+                        pos -= offset;
+                        pos /= scale;
+                        pos *= resX;
+                        trivert[x] = pos;
                     }
+
+                    if(triBoxOverlap(norm, vec3(0.5), trivert) == 1){
+                        Voxel newVoxel;
+                        newVoxel.coordX = globalSpace.x;
+                        newVoxel.coordY = globalSpace.y;
+                        newVoxel.coordZ = globalSpace.z;
+                        newVoxel.count = 0;
+                        newVoxel.last = LONGEST;
+
+                        uint vloc = atomicCounterIncrement(scounter);
+                        uint hloc = atomicCounterIncrement(lscounter_to);
+                        to_helper[hloc] = vloc;
+
+                        voxels[vloc] = newVoxel;
+                        voxels_subgrid[parent * 8 + loc] = vloc;
+
+                        needsSkip = true;
+                    }
+
+                    uint previous = hash.previous;
+                    if(previous != LONGEST){
+                        hash = thashes[previous];
+                    } else {
+                        needsSkip = true;
+                    }
+                } else {
+                    break;
                 }
-            //}
+            }
         }
     }
 }
