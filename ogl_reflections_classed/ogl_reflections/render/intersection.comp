@@ -187,7 +187,7 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
     Thash hash = thashes[vox.last];
     bool needsSkip = false;
 
-    const uint globalTCount = 600;
+    const uint globalTCount = 300;
     const uint triangleCount = globalTCount;
 
     float d = INFINITY;
@@ -221,6 +221,7 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
                     texcoords[x] = vec2(texcs[j * 2 + 0], texcs[j * 2 + 1]);
                 }
 
+                //normal = cross(triverts[2] - triverts[0], triverts[1] - triverts[0]);
                 normal = normalize(trinorms[1]) * uv.x;
                 normal += normalize(trinorms[2]) * uv.y;
                 normal += normalize(trinorms[0]) * (1.0f - uv.x - uv.y);

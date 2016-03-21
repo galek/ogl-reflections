@@ -96,7 +96,7 @@ void main()
         ray.final = vec3(0.0f);
         ray.params.x = 1.0f;
         ray.params.y = 0.0f;
-        ray.params.z = 3.0f;
+        ray.params.z = 2.0f;
         rays[t] = ray;
     }
 }

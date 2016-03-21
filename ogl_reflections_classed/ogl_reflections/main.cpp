@@ -1058,7 +1058,7 @@ int main()
 	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 
 	std::vector<TObject> sponza(1);
-	sponza[0].setDepth(1024 * 1024 * 64, 9);
+	sponza[0].setDepth(1024 * 1024 * 64, 10);
 	sponza[0].setMaterialID(0);
 	sponza[0].loadMesh(shapes);
 	sponza[0].calcMinmax();
@@ -1067,14 +1067,33 @@ int main()
 	std::vector<TestMat> msponza(materials.size());
 	for (int i = 0;i < msponza.size();i++) {
 		msponza[i].setBump(loadBump(materials[i].bump_texname));
-		msponza[i].setSpecular(loadSpecular(materials[i].specular_texname));
-		msponza[i].setTexture(loadDiffuse(materials[i].diffuse_texname));
+		msponza[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2], 1.0f)));
+		msponza[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2], 1.0f)));
 		msponza[i].setMaterialID(i);
 	}
 
+
+	/*
+	ret = tinyobj::LoadObj(shapes, materials, err, "cornell_box.obj");
+	std::vector<TObject> cornell(1);
+	cornell[0].setDepth(128 * 128 * 64, 5);
+	cornell[0].setMaterialID(msponza.size());
+	cornell[0].loadMesh(shapes);
+	cornell[0].calcMinmax();
+	cornell[0].buildOctree();
+
+	std::vector<TestMat> mcornell(materials.size());
+	for (int i = 0;i < mcornell.size();i++) {
+		mcornell[i].setBump(loadBump(""));
+		mcornell[i].setSpecular(loadWithDefault("", glm::vec4(glm::vec3(0.2f), 1.0f)));
+		mcornell[i].setTexture(loadWithDefault("", glm::vec4(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2], 1.0f)));
+		mcornell[i].setMaterialID(msponza.size() + i);
+	}
+	*/
+
 	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
 	std::vector<TObject> teapot(1);
-	teapot[0].setDepth(256 * 256 * 64, 6);
+	teapot[0].setDepth(256 * 256 * 64, 7);
 	teapot[0].setMaterialID(msponza.size());
 	teapot[0].loadMesh(shapes);
 	teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -1084,9 +1103,8 @@ int main()
 	std::vector<TestMat> mteapot(1);
 	mteapot[0].setMaterialID(msponza.size());
 	mteapot[0].setBump(loadBump(""));
-	mteapot[0].setSpecular(/*loadSpecular("")*/loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
+	mteapot[0].setSpecular(loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
 	mteapot[0].setTexture(loadDiffuse(""));
-
 
 
 
@@ -1115,12 +1133,8 @@ int main()
 		double c = tt - t;
 
 		cam.work(c);
-
-		//teapot[0].calcMinmax();
-		//teapot[0].buildOctree();
-
 		rays.camera(cam.eye, cam.view);
-		for (int i = 0;i < 4;i++) {
+		for (int i = 0;i < 2;i++) {
 			rays.begin();
 			glm::mat4 trans;
 
@@ -1128,15 +1142,17 @@ int main()
 			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
 			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
+			
+			for (int i = 0;i < sponza.size();i++) {
+				sponza[i].intersection(rays, glm::mat4());
+			}
 			for (int i = 0;i < teapot.size();i++) {
 				teapot[i].intersection(rays, trans);
 			}
-			//for (int i = 0;i < sponza.size();i++) {
-			//	sponza[i].intersection(rays, glm::mat4());
-			//}
-			//for (int i = 0;i < msponza.size();i++) {
-			//	msponza[i].shade(rays, 0.5f);
-			//}
+			
+			for (int i = 0;i < msponza.size();i++) {
+				msponza[i].shade(rays, 1.0f);
+			}
 			for (int i = 0;i < mteapot.size();i++) {
 				mteapot[i].shade(rays, 1.0f);
 			}
