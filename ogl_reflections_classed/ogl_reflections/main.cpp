@@ -1131,12 +1131,12 @@ int main()
 			for (int i = 0;i < teapot.size();i++) {
 				teapot[i].intersection(rays, trans);
 			}
-			for (int i = 0;i < sponza.size();i++) {
-				sponza[i].intersection(rays, glm::mat4());
-			}
-			for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shade(rays, 0.5f);
-			}
+			//for (int i = 0;i < sponza.size();i++) {
+			//	sponza[i].intersection(rays, glm::mat4());
+			//}
+			//for (int i = 0;i < msponza.size();i++) {
+			//	msponza[i].shade(rays, 0.5f);
+			//}
 			for (int i = 0;i < mteapot.size();i++) {
 				mteapot[i].shade(rays, 1.0f);
 			}
