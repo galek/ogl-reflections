@@ -1043,7 +1043,7 @@ GLuint loadSpecular(std::string tex) {
 double milliseconds() {
 	auto duration = std::chrono::high_resolution_clock::now();
 	double millis = std::chrono::duration_cast<std::chrono::nanoseconds>(duration.time_since_epoch()).count();
-	return millis / 10000000.0;
+	return millis / 1000000.0;
 }
 
 int main()
@@ -1150,16 +1150,16 @@ int main()
 			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
 			
-			for (int i = 0;i < sponza.size();i++) {
-				sponza[i].intersection(rays, glm::mat4());
-			}
+			//for (int i = 0;i < sponza.size();i++) {
+			//	sponza[i].intersection(rays, glm::mat4());
+			//}
 			for (int i = 0;i < teapot.size();i++) {
 				teapot[i].intersection(rays, trans);
 			}
 			
-			for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shade(rays, 1.0f);
-			}
+			//for (int i = 0;i < msponza.size();i++) {
+			//	msponza[i].shade(rays, 1.0f);
+			//}
 			for (int i = 0;i < mteapot.size();i++) {
 				mteapot[i].shade(rays, 1.0f);
 			}
