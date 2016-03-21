@@ -187,7 +187,7 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
     Thash hash = thashes[vox.last];
     bool needsSkip = false;
 
-    const uint globalTCount = 300;
+    const uint globalTCount = 600;
     const uint triangleCount = globalTCount;
 
     float d = INFINITY;
