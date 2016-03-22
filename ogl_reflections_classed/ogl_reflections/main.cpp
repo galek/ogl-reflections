@@ -1139,8 +1139,8 @@ int main()
 		double c = tt - t;
 		t = tt;
 
-		teapot[0].calcMinmax();
-		teapot[0].buildOctree();
+		//teapot[0].calcMinmax();
+		//teapot[0].buildOctree();
 		//sponza[0].calcMinmax();
 		//sponza[0].buildOctree();
 
