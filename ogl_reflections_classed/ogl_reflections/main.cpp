@@ -1139,8 +1139,10 @@ int main()
 		double c = tt - t;
 		t = tt;
 
-		//teapot[0].calcMinmax();
-		//teapot[0].buildOctree();
+		teapot[0].calcMinmax();
+		teapot[0].buildOctree();
+		//sponza[0].calcMinmax();
+		//sponza[0].buildOctree();
 
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
@@ -1153,16 +1155,16 @@ int main()
 			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
 
-			for (int i = 0;i < sponza.size();i++) {
-				sponza[i].intersection(rays, glm::mat4());
-			}
+			//for (int i = 0;i < sponza.size();i++) {
+			//	sponza[i].intersection(rays, glm::mat4());
+			//}
 			for (int i = 0;i < teapot.size();i++) {
 				teapot[i].intersection(rays, trans);
 			}
 
-			for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shade(rays, 1.0f);
-			}
+			//for (int i = 0;i < msponza.size();i++) {
+			//	msponza[i].shade(rays, 1.0f);
+			//}
 			for (int i = 0;i < mteapot.size();i++) {
 				mteapot[i].shade(rays, 1.0f);
 			}

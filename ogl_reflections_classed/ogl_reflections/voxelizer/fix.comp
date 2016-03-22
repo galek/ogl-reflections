@@ -190,6 +190,7 @@ void main(){
             uint cnt = min(voxel.count, triangleCount);
 
             voxels_subgrid[parent * 8 + loc] = 0xFFFFFFFF;
+            /*
             for(uint i=0;i<cnt;i++){
                 if(!needsSkip){
                     vec3 trivert[3];
@@ -204,7 +205,8 @@ void main(){
                         trivert[x] = pos;
                     }
 
-                    if(triBoxOverlap(norm, vec3(0.5), trivert) == 1){
+                    if(triBoxOverlap(norm, vec3(0.5), trivert) == 1){*/
+                    if(voxel.count > 0){
                         Voxel newVoxel;
                         newVoxel.coordX = globalSpace.x;
                         newVoxel.coordY = globalSpace.y;
@@ -221,7 +223,7 @@ void main(){
 
                         needsSkip = true;
                     }
-
+                    /*
                     uint previous = hash.previous;
                     if(previous != LONGEST){
                         hash = thashes[previous];
@@ -231,7 +233,7 @@ void main(){
                 } else {
                     break;
                 }
-            }
+            }*/
         }
     }
 }
