@@ -212,8 +212,6 @@ void main(){
     triverts[1] = vert1;
     triverts[2] = vert2;
 
-    bool overlap[BIAS];
-    vec3 norms[BIAS];
     for(int x=0;x<BIAS;x++){
         vec3 norm = vec3(coord.xy, z[x]);
         if(shortest == 1) {
@@ -223,35 +221,12 @@ void main(){
             norm.xyz = norm.zyx;
         }
 
-        overlap[x] =
+        if(
             norm.x >= 0.0f && norm.x < float(resX) &&
             norm.y >= 0.0f && norm.y < float(resX) &&
             norm.z >= 0.0f && norm.z < float(resX) &&
-            triBoxOverlap(floor(norm) + 0.5f, vec3(0.5f), triverts) == 1;
-        norms[x] = norm;
-    }
-/*
-    beginInvocationInterlockNV();
-    for(int x=0;x<BIAS;x++){
-        if(overlap[x]){
-            vec3 norm = norms[x];
-            uvec2 t = searchVoxelIndex(uvec3(floor(norm)));
-            if(t.x == LONGEST){
-                uint i = atomicCounterIncrement(scounter);
-                voxels_subgrid[t.y] = i;
-                Voxel vox;
-                vox.last = LONGEST;
-                vox.count = 0;
-                voxels[i] = vox;
-            }
-        }
-    }
-    endInvocationInterlockNV();
-    memoryBarrier();
-*/
-    for(int x=0;x<BIAS;x++){
-        if(overlap[x]){
-            vec3 norm = norms[x];
+            triBoxOverlap(floor(norm) + 0.5f, vec3(0.5f), triverts) == 1
+        ){
             uvec2 t = searchVoxelIndex(uvec3(floor(norm)));
             atomicAdd(voxels[t.x].count, 1);
             uint i = atomicCounterIncrement(vcounter);
