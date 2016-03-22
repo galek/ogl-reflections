@@ -64,13 +64,13 @@ void main()
     if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
         Hit hit = hits[t];
-        if(hit.materialID == materialID){
+        if(hit.materialID == materialID && hit.dist < 10000.0f){
             Ray ray = rays[t];
-
-            if(hit.dist < 10000.0f && ray.actived > 0 && hit.params.x < 1.0f && ray.params.y < ray.params.z){
+            if(ray.actived > 0 && ray.params.w < 1.0f && ray.params.y < ray.params.z){
                 vec4 tx = texture(tex, hit.texcoord);
 
                 Ray newRay = ray;
+                newRay.params.w = 1.0f;
                 newRay.origin += newRay.direct * hit.dist;
 
                 vec3 binormal = normalizeFast(cross(hit.tangent, hit.normal));
@@ -80,16 +80,9 @@ void main()
                 prenormal = normalizeFast(getNormalMapping(hit.texcoord) * tbn);
 
                 vec3 normal = -normalizeFast(prenormal * dot(prenormal, newRay.direct));
+
                 float light = clamp(dot(normalizeFast(light - newRay.origin), normal), 0.0f, 1.0f);
-
-
-
-                vec3 color =
-                //vec3(texture(bump, hit.texcoord).r) *
-                tx.rgb *
-                //vec3(hit.texcoord, 0.0f)*
-                light;
-
+                vec3 color = tx.rgb * light;
 
                 float spc = texture(spec, hit.texcoord).r * reflectionRate;
                 if(tx.a > 0.999f){
@@ -97,14 +90,12 @@ void main()
                     newRay.direct = normalizeFast(reflect(newRay.direct, normal));
                     newRay.params.x *= spc;
                     newRay.params.y += 1.0f;
-                    if(spc < 0.001f) newRay.actived = 0;
+                    if(spc < 0.001f) {
+                        newRay.actived = 0;
+                    }
                 }
 
                 newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.1f;
-                //newRay.final = prenormal * 0.5 + 0.5;
-
-                hit.params.x = 1.0f;
-                hits[t] = hit;
                 rays[t] = newRay;
             }
         }

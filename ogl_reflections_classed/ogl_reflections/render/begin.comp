@@ -41,7 +41,6 @@ void main()
         hit.triangle = LONGEST;
         hit.materialID = LONGEST;
         hit.normal = vec3(0.0f);
-        hit.params.x = 0.0f;
         hits[t] = hit;
     }
 }

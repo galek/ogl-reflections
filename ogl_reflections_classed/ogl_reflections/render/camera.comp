@@ -105,6 +105,7 @@ void main()
         ray.params.x = 1.0f;
         ray.params.y = 0.0f;
         ray.params.z = 3.0f;
+        ray.params.w = 0.0f;
         rays[t] = ray;
     }
 }
