@@ -184,6 +184,7 @@ void main(){
                 uvec3 parentSpace = uvec3(voxel.coordX, voxel.coordY, voxel.coordZ);
                 uvec3 globalSpace = parentSpace * 2 + co;
 
+                /*
                 vec3 norm = vec3(globalSpace) + 0.5f;
 
                 uint triangleCount = 300000;
@@ -191,7 +192,6 @@ void main(){
                 bool needsSkip = false;
                 uint cnt = min(voxel.count, triangleCount);
 
-                /*
                 for(uint i=0;i<cnt;i++){
                     if(!needsSkip){
                         vec3 trivert[3];
@@ -221,8 +221,8 @@ void main(){
                             voxels[vloc] = newVoxel;
                             voxels_subgrid[parent * 8 + loc] = vloc;
 
+                            /*
                             needsSkip = true;
-                        /*
                         }
                         uint previous = hash.previous;
                         if(previous != LONGEST){
