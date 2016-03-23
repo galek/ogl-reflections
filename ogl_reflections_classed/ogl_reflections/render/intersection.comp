@@ -360,10 +360,11 @@ TResult traverse(vec3 orig, vec3 dir){
                 }
 
                 float coef = 1.0f;
-                vec3 coordf = test;
+                vec3 tst = test;
+                vec3 coordf = tst;
                 for(int i=int(currentDepth)-1;i>=0;i--){
                     float dX = pow(2, currentDepth - i);
-                    coordf = floor(test / dX);
+                    coordf = floor(tst / dX);
 
                     vec3 mnc = coordf * dX - 0.001f;
                     vec3 mxc = (coordf + 1.0f) * dX + 0.001f;
