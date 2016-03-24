@@ -24,25 +24,25 @@ main.cpp(839): warning C4244: аргумент: преобразование "co
 main.cpp(840): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
 main.cpp(852): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
 main.cpp(853): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(880): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-main.cpp(898): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-main.cpp(907): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(965): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-main.cpp(968): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(1082): warning C4101: height: неиспользованная локальная переменная
-main.cpp(1082): warning C4101: width: неиспользованная локальная переменная
-main.cpp(1081): warning C4101: eFormat: неиспользованная локальная переменная
-main.cpp(1080): warning C4101: pBytes: неиспользованная локальная переменная
-main.cpp(1081): warning C4101: iComponents: неиспользованная локальная переменная
-main.cpp(1141): warning C4244: инициализация: преобразование "__int64" в "double", возможна потеря данных
-main.cpp(1197): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(1204): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(1241): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
+main.cpp(879): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
+main.cpp(897): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
+main.cpp(906): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+main.cpp(964): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
+main.cpp(967): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+main.cpp(1081): warning C4101: height: неиспользованная локальная переменная
+main.cpp(1081): warning C4101: width: неиспользованная локальная переменная
+main.cpp(1080): warning C4101: eFormat: неиспользованная локальная переменная
+main.cpp(1079): warning C4101: pBytes: неиспользованная локальная переменная
+main.cpp(1080): warning C4101: iComponents: неиспользованная локальная переменная
+main.cpp(1140): warning C4244: инициализация: преобразование "__int64" в "double", возможна потеря данных
+main.cpp(1196): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+main.cpp(1203): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+main.cpp(1240): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
 LINK : warning LNK4098: библиотека по умолчанию "LIBCMT" противоречит использованию других библиотек; используйте параметр /NODEFAULTLIB:library
   Создание кода
-  41 of 2057 functions ( 2.0%) were compiled, the rest were copied from previous compilation.
+  35 of 2057 functions ( 1.7%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    8 functions had inline decision re-evaluated but remain unchanged
+    7 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
 glew32s.lib(glew.obj) : warning LNK4099: "vc120.pdb" PDB не найден с "glew32s.lib(glew.obj)" или на "C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Release\vc120.pdb"; компоновка объекта выполняется как при отсутствии отладочных данных
   ogl_reflections.vcxproj -> C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Release\ogl_reflections.exe

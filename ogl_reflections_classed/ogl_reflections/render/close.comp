@@ -8,6 +8,7 @@ const float INFINITY = 1e10;
 struct Ray {
     uint previous;
     uint hit;
+    uint shadow;
     int actived;
     vec3 origin;
     vec3 direct;
@@ -70,6 +71,7 @@ void storeRay(in uint rayIndex, in Ray ray){
     rays[rayIndex].final = ray.final;
     rays[rayIndex].params = ray.params;
     rays[rayIndex].params0 = ray.params0;
+    rays[rayIndex].shadow = ray.shadow;
 }
 
 void storeHit(in Ray ray, in Hit hit){
@@ -105,15 +107,19 @@ void main()
     if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
 
-        Hit hit = hits[t];
-        Ray ray = rays[t];
-        if(hit.dist >= 10000.0f || ray.params.w < 1.0f || ray.params.y >= ray.params.z){
-            ray.actived = 0;
-            if(ray.params.y < ray.params.z && hit.dist >= 10000.0f) {
-                ray.final = mix(ray.final, vec3(texture(cubeTex, ray.direct).xyz), ray.params.x);
+        uint count = texelInfo[t].count;
+        uint last = texelInfo[t].last;
+        for(uint i=0;i<count;i++){
+            Ray ray = rays[last];
+            Hit hit = hits[ray.hit];
+            if(hit.dist >= 10000.0f || ray.params.w < 1.0f || ray.params.y >= ray.params.z){
+                ray.actived = 0;
+                if(ray.params0.x > 0.0f && ray.params.y < ray.params.z && hit.dist >= 10000.0f) {
+                    ray.final = mix(ray.final, vec3(texture(cubeTex, ray.direct).xyz), ray.params.x);
+                }
             }
+            storeRay(last, ray);
+            last = ray.previous;
         }
-        ray.params.w = 0.0f;
-        rays[t] = ray;
     }
 }

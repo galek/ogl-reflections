@@ -16,6 +16,7 @@ vec3 normalizeFast(in vec3 v){
 struct Ray {
     uint previous;
     uint hit;
+    uint shadow;
     int actived;
     vec3 origin;
     vec3 direct;
@@ -52,7 +53,7 @@ uint createRay(in Ray original){
     Ray ray = original;
     ray.hit = hidx;
     Hit hit;
-    hit.dist = 10000.0f;
+    hit.dist = 100000.0f;
     hit.triangle = LONGEST;
     hit.materialID = LONGEST;
     hits[hidx] = hit;
@@ -78,6 +79,7 @@ void storeRay(in uint rayIndex, in Ray ray){
     rays[rayIndex].final = ray.final;
     rays[rayIndex].params = ray.params;
     rays[rayIndex].params0 = ray.params0;
+    rays[rayIndex].shadow = ray.shadow;
 }
 
 void storeHit(in Ray ray, in Hit hit){
@@ -165,41 +167,54 @@ void main()
 {
     if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
-        Hit hit = hits[t];
-        if(hit.materialID == materialID && hit.dist < 10000.0f){
-            Ray ray = rays[t];
+        uint count = texelInfo[t].count;
+        uint last = texelInfo[t].last;
+        for(uint i=0;i<count;i++){
+            Ray ray = rays[last];
             if(ray.actived > 0 && ray.params.w < 1.0f && ray.params.y < ray.params.z){
-                vec4 tx = texture(tex, hit.texcoord);
+                Hit hit = hits[ray.hit];
+                if(hit.materialID == materialID && hit.dist < 10000.0f){
+                    vec4 tx = texture(tex, hit.texcoord);
 
-                Ray newRay = ray;
-                newRay.params.w = 1.0f;
-                newRay.origin += newRay.direct * hit.dist;
+                    Ray newRay = ray;
+                    newRay.actived = 1;
+                    newRay.params.w = 1.0f;
+                    newRay.origin += newRay.direct * hit.dist;
 
-                vec3 binormal = normalizeFast(cross(hit.tangent, hit.normal));
-                mat3 tbn = transpose(mat3(hit.tangent, binormal, hit.normal));
+                    vec3 binormal = normalizeFast(cross(hit.tangent, hit.normal));
+                    mat3 tbn = transpose(mat3(hit.tangent, binormal, hit.normal));
 
-                vec3 prenormal = hit.normal;
-                prenormal = normalizeFast(getNormalMapping(hit.texcoord) * tbn);
+                    vec3 prenormal = hit.normal;
+                    prenormal = normalizeFast(getNormalMapping(hit.texcoord) * tbn);
 
-                vec3 normal = -normalizeFast(prenormal * dot(prenormal, newRay.direct));
+                    vec3 normal = -normalizeFast(prenormal * dot(prenormal, newRay.direct));
 
-                float light = clamp(dot(normalizeFast(light - newRay.origin), normal), 0.0f, 1.0f);
-                vec3 color = tx.rgb * light;
+                    float light = clamp(dot(normalizeFast(light - newRay.origin), normal), 0.0f, 1.0f);
+                    vec3 color = tx.rgb * light;
 
-                float spc = texture(spec, hit.texcoord).r * reflectionRate;
-                if(tx.a > 0.999f){
-                    newRay.final = mix(newRay.final, color, newRay.params.x);
-                    newRay.direct = normalizeFast(reflect(newRay.direct, normal));
-                    newRay.params.x *= spc;
-                    newRay.params.y += 1.0f;
-                    if(spc < 0.001f) {
-                        newRay.actived = 0;
+                    float spc = texture(spec, hit.texcoord).r * reflectionRate;
+                    if(tx.a > 0.999f){
+                        newRay.final = mix(newRay.final, color, newRay.params.x);
+                        newRay.direct = normalizeFast(reflect(newRay.direct, normal));
+                        newRay.params.x *= spc;
+                        newRay.params.y += 1.0f;
+                        if(spc < 0.001f) {
+                            newRay.actived = 0;
+                        }
                     }
-                }
 
-                newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.1f;
-                rays[t] = newRay;
+                    newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.1f;
+
+                    uint ridx = createRay(newRay);
+                    storeTexel(t, ridx);
+                    storeHit(rays[ridx], hit);
+
+                    ray.params0.x = 0.0f;
+                    ray.actived = 0;
+                    storeRay(last, ray);
+                }
             }
+            last = ray.previous;
         }
     }
 }

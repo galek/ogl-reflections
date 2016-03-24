@@ -8,6 +8,7 @@ const float INFINITY = 1e10;
 struct Ray {
     uint previous;
     uint hit;
+    uint shadow;
     int actived;
     vec3 origin;
     vec3 direct;
@@ -102,7 +103,15 @@ void main()
 {
     if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
-        samples[t].xyz += rays[t].final;
-        samples[t].w += 1.0f;
+
+        Ray ray = fetchFirstRay(t);
+        uint count = texelInfo[t].count;
+        for(uint i=0;i<count;i++){
+            if(ray.params0.x > 0.0f){
+                samples[t].xyz += ray.final;
+                samples[t].w += 1.0f;
+            }
+            ray = fetchNextRay(ray);
+        }
     }
 }

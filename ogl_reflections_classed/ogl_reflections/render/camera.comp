@@ -8,6 +8,7 @@ const float INFINITY = 1e10;
 struct Ray {
     uint previous;
     uint hit;
+    uint shadow;
     int actived;
     vec3 origin;
     vec3 direct;
@@ -43,8 +44,9 @@ uint createRay(in Ray original){
     uint ridx = atomicCounterIncrement(rcounter);
     Ray ray = original;
     ray.hit = hidx;
+    ray.previous = LONGEST;
     Hit hit;
-    hit.dist = 10000.0f;
+    hit.dist = 100000.0f;
     hit.triangle = LONGEST;
     hit.materialID = LONGEST;
     hits[hidx] = hit;
@@ -70,6 +72,7 @@ void storeRay(in uint rayIndex, in Ray ray){
     rays[rayIndex].final = ray.final;
     rays[rayIndex].params = ray.params;
     rays[rayIndex].params0 = ray.params0;
+    rays[rayIndex].shadow = ray.shadow;
 }
 
 void storeHit(in Ray ray, in Hit hit){
@@ -149,6 +152,8 @@ void main()
 {
     if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
         uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
+        texelInfo[t].count = 0;
+        texelInfo[t].last = LONGEST;
 
         vec2 coord = vec2(gl_GlobalInvocationID.xy);
         coord += vec2(random(), random());
@@ -163,6 +168,8 @@ void main()
         vec3 orig = ce.xyz;
         vec3 dir = normalizeFast(co.xyz - orig.xyz);
 
+        //Ray ray;
+
         Ray ray;
         ray.direct = dir;
         ray.origin = orig;
@@ -173,6 +180,9 @@ void main()
         ray.params.y = 0.0f;
         ray.params.z = 3.0f;
         ray.params.w = 0.0f;
-        rays[t] = ray;
+        ray.shadow = LONGEST;
+        ray.params0.x = 1.0f;
+        //ray.final = vec3(1.0f, 0.0f, 0.0f);
+        storeTexel(t, createRay(ray));
     }
 }

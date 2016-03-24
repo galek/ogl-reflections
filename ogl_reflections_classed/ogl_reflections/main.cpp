@@ -825,7 +825,7 @@ public:
 		glUseProgram(samplerProgram);
 		bind();
 
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, samples);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, samples);
 		glUniform2f(glGetUniformLocation(samplerProgram, "sceneRes"), width, height);
 		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -873,7 +873,6 @@ public:
 		glCullFace(GL_FRONT_AND_BACK);
 		glUseProgram(renderProgram);
 
-		bind();
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, samples);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -1233,10 +1232,10 @@ int main()
 		double c = tt - t;
 		t = tt;
 
-		//teapot[0].calcMinmax();
-		//teapot[0].buildOctree();
-		sponza[0].calcMinmax();
-		sponza[0].buildOctree();
+		teapot[0].calcMinmax();
+		teapot[0].buildOctree();
+		//sponza[0].calcMinmax();
+		//sponza[0].buildOctree();
 
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
@@ -1249,20 +1248,20 @@ int main()
 			// = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 
-			for (int i = 0;i < sponza.size();i++) {
-				rays.intersection(sponza[i], glm::mat4());
+			//for (int i = 0;i < sponza.size();i++) {
+			//	rays.intersection(sponza[i], glm::mat4());
 				//sponza[i].intersection(rays, trans);
-			}
-			//for (int i = 0;i < teapot.size();i++) {
-			//	teapot[i].intersection(rays, trans);
 			//}
+			for (int i = 0;i < teapot.size();i++) {
+				rays.intersection(teapot[i], trans);
+			}
 
-			for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shade(rays, 0.1f);
-			}
-			//for (int i = 0;i < mteapot.size();i++) {
-			//	mteapot[i].shade(rays, 1.0f);
+			//for (int i = 0;i < msponza.size();i++) {
+			//	msponza[i].shade(rays, 0.0f);
 			//}
+			for (int i = 0;i < mteapot.size();i++) {
+				mteapot[i].shade(rays, 1.0f);
+			}
 			rays.close();
 		}
 
