@@ -1117,7 +1117,7 @@ int main()
 	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 
 	std::vector<TObject> sponza(1);
-	sponza[0].setDepth(1024 * 1024 * 64, 10);
+	sponza[0].setDepth(1024 * 1024 * 64, 9);
 	sponza[0].setMaterialID(0);
 	sponza[0].loadMesh(shapes);
 	sponza[0].calcMinmax();
