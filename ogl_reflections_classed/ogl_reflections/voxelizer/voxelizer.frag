@@ -32,55 +32,15 @@ struct Voxel {
     //f16vec4 normal;
 };
 
-layout(std430, binding=0) coherent buffer s_voxels {Voxel voxels[];};
-layout(std430, binding=1) coherent buffer s_voxels_sub {uint voxels_subgrid[];};
-layout(std430, binding=2) coherent buffer s_thashes {Thash thashes[];};
-layout (binding=0) uniform atomic_uint vcounter;
-layout (binding=1) uniform atomic_uint scounter;
+struct VoxelRaw {
+    uint coordX;
+    uint coordY;
+    uint coordZ;
+    uint triangle;
+};
 
-uniform uint currentDepth;
-
-
-
-uint cnv_subgrid(uint sub, uvec3 idu){
-    return sub * 8 + idu.x + idu.y * 2 + idu.z * 4;
-}
-
-uvec2 searchVoxelIndex(uvec3 idx){
-    uvec3 id = uvec3(0);
-    bool fail = false;
-    uint sub = 0;
-    Voxel hash = voxels[sub];
-    uvec3 idu = uvec3(0);
-    uint grid = 0;
-
-    int strt = int(currentDepth);
-    for(int i=strt;i>=0;i--){
-        if(!fail){
-            id = uvec3(idx / uint(pow(2, i)));
-            idu = id % uvec3(2);
-            if(i == strt){
-                grid = 0;
-                sub = 0;
-            } else {
-                grid = cnv_subgrid(sub, idu);
-                sub = voxels_subgrid[grid];
-            }
-            if(i > 0 && sub == LONGEST) {
-                fail = true;
-            } else {
-                hash = voxels[sub];
-            }
-        } else {
-            break;
-        }
-    }
-
-    if(!fail){
-        return uvec2(sub, grid);
-    }
-    return uvec2(LONGEST);
-}
+layout(std430, binding=8) coherent buffer s_voxels_raw {VoxelRaw voxels_raw[];};
+layout (binding=0) uniform atomic_uint dcounter;
 
 #define FINDMINMAX(x0,x1,x2,min,max) \
   min = max = x0;   \
@@ -200,6 +160,8 @@ int triBoxOverlap(in vec3 boxcenter, in vec3 boxhalfsize, in vec3 triverts[3]){
 
 #define BIAS 4
 
+uniform uint currentDepth;
+
 void main(){
     vec3 coord = gl_FragCoord.xyz;
     uint resX = uint(pow(2, currentDepth));
@@ -232,16 +194,14 @@ void main(){
             norm.z >= 0.0f && norm.z < float(resX) &&
             triBoxOverlap(floor(norm) + 0.5f, vec3(0.5f), triverts) == 1
         ){
-            uvec2 t = searchVoxelIndex(uvec3(floor(norm)));
-            atomicAdd(voxels[t.x].count, 1);
-            //atomicAdd(voxels[t.x].normal, f16vec4(normal, 1.0f));
-            uint i = atomicCounterIncrement(vcounter);
-            Thash thash;
-            thash.triangle = gl_PrimitiveID;
-            thash.previous = atomicExchange(voxels[t.x].last, i);
-            thashes[i] = thash;
+            uint idx = atomicCounterIncrement(dcounter);
+            uvec3 co = uvec3(floor(norm.xyz));
+            VoxelRaw vox;
+            vox.coordX = co.x;
+            vox.coordY = co.y;
+            vox.coordZ = co.z;
+            vox.triangle = gl_PrimitiveID;
+            voxels_raw[idx] = vox;
         }
     }
-
-    outColor = vec4(vec3(0.0f), 1.0);
 }

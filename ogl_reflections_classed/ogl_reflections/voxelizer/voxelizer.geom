@@ -38,12 +38,13 @@ void main(){
         positions[i] = pos;
     }
 
-    vec3 norm = abs(normalizeFast(cross(verts[2] - verts[0], verts[1] - verts[0])));
+    vec3 normals = normalizeFast(cross(positions[2] - positions[0], positions[1] - positions[0]));
+    vec3 norm = abs(normals);
 
     vert0 = positions[0];
     vert1 = positions[1];
     vert2 = positions[2];
-    normal = norm;
+    normal = normals;
 
     vec3 mn = min(positions[0], min(positions[1], positions[2]));
     vec3 mx = max(positions[0], max(positions[1], positions[2]));

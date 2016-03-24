@@ -52,7 +52,7 @@ struct Voxel {
 	GLuint coordX = 0;
 	GLuint coordY = 0;
 	GLuint coordZ = 0;
-	glm::vec4 _space0;
+	//glm::vec4 _space0;
 };
 
 struct Minmax {
@@ -344,7 +344,12 @@ public:
 
 
 
-
+struct VoxelRaw {
+	GLuint coordX;
+	GLuint coordY;
+	GLuint coordZ;
+	GLuint triangle;
+};
 
 
 class TObject {
@@ -365,14 +370,17 @@ private:
 	GLuint mat_triangle_ssbo;
 	GLuint voxelizerFixProgram;
 	GLuint voxelizerMinmaxProgram;
+	GLuint voxelizerFillerProgram;
 	GLuint voxelizerProgram;
 	GLuint moverProgram;
 
+	GLuint vrspace;
 	GLuint vspace;
 	GLuint tspace;
 	GLuint subgrid;
 	GLuint vcounter;
 	GLuint scounter;
+	GLuint dcounter;
 
 	GLuint frameBuffer;
 	GLuint tempBuffer;
@@ -389,6 +397,7 @@ private:
 	glm::vec3 scale;
 
 	GLuint vsize_g = sizeof(Voxel) * 256 * 256 * 256;
+	GLuint vrsize_g = sizeof(VoxelRaw) * 1024 * 1024 * 32;
 	GLuint tsize_g = sizeof(Thash) * 1024 * 1024 * 64;
 	GLuint subgridc_g = sizeof(GLuint) * 256 * 256 * 256 * 8;
 
@@ -400,6 +409,7 @@ public:
 
 		unsigned size_r = pow(2, maxDepth - 1);
 
+		GLuint vrsize = sizeof(VoxelRaw) * count / 2;
 		GLuint vsize = sizeof(Voxel) * size_r * size_r * 64;
 		GLuint tsize = sizeof(Thash) * count;
 		GLuint subgridc = sizeof(GLuint) * size_r * size_r * 64 * 8;
@@ -407,6 +417,10 @@ public:
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
 		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, vsize_g, false);
 		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, vsize, true);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vrspace);
+		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, vrsize_g, false);
+		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, vrsize, true);
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, tspace);
 		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, tsize_g, false);
@@ -496,10 +510,12 @@ public:
 private:
 	void init(GLuint count, GLuint depth) {
 		glGenBuffers(1, &vspace);
+		glGenBuffers(1, &vrspace);
 		glGenBuffers(1, &tspace);
 		glGenBuffers(1, &subgrid);
 		glGenBuffers(1, &vcounter);
 		glGenBuffers(1, &scounter);
+		glGenBuffers(1, &dcounter);
 		glGenBuffers(1, &vbo_triangle_ssbo);
 		glGenBuffers(1, &ebo_triangle_ssbo);
 		glGenBuffers(1, &norm_triangle_ssbo);
@@ -511,6 +527,9 @@ private:
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
 		glBufferStorage(GL_SHADER_STORAGE_BUFFER, vsize_g, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
+
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vrspace);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, vrsize_g, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, subgrid);
 		glBufferStorage(GL_SHADER_STORAGE_BUFFER, subgridc_g, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
@@ -535,6 +554,14 @@ private:
 			glUseProgram(voxelizerFixProgram);
 		}
 
+		{
+			GLuint compShader = loadShader("./voxelizer/filler.comp", GL_COMPUTE_SHADER);
+			voxelizerFillerProgram = glCreateProgram();
+			glAttachShader(voxelizerFillerProgram, compShader);
+			glBindFragDataLocation(voxelizerFillerProgram, 0, "outColor");
+			glLinkProgram(voxelizerFillerProgram);
+			glUseProgram(voxelizerFillerProgram);
+		}
 
 		{
 			GLuint compShader = loadShader("./voxelizer/minmax.comp", GL_COMPUTE_SHADER);
@@ -669,6 +696,7 @@ public:
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vspace);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, subgrid);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, tspace);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, vrspace);
 	}
 
 	void intersection(RObject &rays, glm::mat4 trans) {
@@ -698,6 +726,8 @@ public:
 		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, scounter);
 		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, dcounter);
+		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -719,6 +749,55 @@ public:
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, helper);
 			glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint), nullptr, GL_DYNAMIC_STORAGE_BIT);
 		}
+
+
+		GLuint dsize = 0;
+		{
+			unsigned size_r = pow(2, maxDepth-1);
+
+			glBindRenderbuffer(GL_RENDERBUFFER, rboDepthStencil);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size_r, size_r);
+			glBindTexture(GL_TEXTURE_2D, tempBuffer);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size_r, size_r, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+			glDisable(GL_BLEND);
+			glDisable(GL_DEPTH_TEST);
+			glSubpixelPrecisionBiasNV(GL_SUBPIXEL_PRECISION_BIAS_X_BITS_NV, GL_SUBPIXEL_PRECISION_BIAS_Y_BITS_NV);
+			glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
+			glCullFace(GL_FRONT_AND_BACK);
+
+			glUseProgram(voxelizerProgram);
+			glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+			glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, dcounter);
+
+			bindOctree();
+			bind();
+
+			glUniform1ui(glGetUniformLocation(voxelizerProgram, "maxDepth"), maxDepth);
+			glUniform1ui(glGetUniformLocation(voxelizerProgram, "currentDepth"), maxDepth-1);
+			glUniform3fv(glGetUniformLocation(voxelizerProgram, "offset"), 1, glm::value_ptr(offset));
+			glUniform3fv(glGetUniformLocation(voxelizerProgram, "scale"), 1, glm::value_ptr(scale));
+
+			glViewport(0, 0, size_r, size_r);
+			glDrawArrays(GL_TRIANGLES, 0, triangleCount * 3);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+			GLuint tsz = 0;
+			glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, vcounter);
+			glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &tsz);
+
+			GLuint vsz = 0;
+			glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, scounter);
+			glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &vsz);
+
+			glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, dcounter);
+			glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &dsize);
+		}
+
+		
+
 
 		GLuint size = 1;
 		for (int i = 0;i < maxDepth;i++) {
@@ -742,8 +821,7 @@ public:
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, helper_to);
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, helper);
 
-				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, vcounter);
-				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 1, scounter);
+				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, scounter);
 				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 2, lscounter_to);
 				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 3, lscounter);
 
@@ -763,46 +841,20 @@ public:
 			}
 
 			{
-				unsigned size_r = pow(2, i);
-
-				glBindRenderbuffer(GL_RENDERBUFFER, rboDepthStencil);
-				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size_r, size_r);
-				glBindTexture(GL_TEXTURE_2D, tempBuffer);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size_r, size_r, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-				glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-				glClear(GL_COLOR_BUFFER_BIT);
-				glDisable(GL_BLEND);
-				glDisable(GL_DEPTH_TEST);
-				glSubpixelPrecisionBiasNV(GL_SUBPIXEL_PRECISION_BIAS_X_BITS_NV, GL_SUBPIXEL_PRECISION_BIAS_Y_BITS_NV);
-				glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
-				glCullFace(GL_FRONT_AND_BACK);
-
-				glUseProgram(voxelizerProgram);
-				glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-
-				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, vcounter);
-				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 1, scounter);
+				glUseProgram(voxelizerFillerProgram);
 
 				bindOctree();
 				bind();
 
-				glUniform1ui(glGetUniformLocation(voxelizerProgram, "maxDepth"), maxDepth);
-				glUniform1ui(glGetUniformLocation(voxelizerProgram, "currentDepth"), i);
-				glUniform3fv(glGetUniformLocation(voxelizerProgram, "offset"), 1, glm::value_ptr(offset));
-				glUniform3fv(glGetUniformLocation(voxelizerProgram, "scale"), 1, glm::value_ptr(scale));
+				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, vcounter);
+				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 1, dcounter);
 
-				glViewport(0, 0, size_r, size_r);
-				glDrawArrays(GL_TRIANGLES, 0, triangleCount * 3);
+				glUniform1ui(glGetUniformLocation(voxelizerFillerProgram, "maxDepth"), maxDepth);
+				glUniform1ui(glGetUniformLocation(voxelizerFillerProgram, "currentDepth"), i);
+
+				GLuint tsize = tiled(dsize, 1024);
+				glDispatchCompute((tsize < 1024 ? 1024 : tsize) / 1024, 1, 1);
 				glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-				GLuint tsz = 0;
-				glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, vcounter);
-				glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &tsz);
-
-				GLuint vsz = 0;
-				glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, scounter);
-				glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &vsz);
 			}
 
 			glDeleteBuffers(1, &lscounter);
@@ -1062,10 +1114,10 @@ int main()
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
-	bool ret = tinyobj::LoadObj(shapes, materials, err, "chessboard.obj");
+	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 
 	std::vector<TObject> sponza(1);
-	sponza[0].setDepth(1024 * 1024 * 64, 8);
+	sponza[0].setDepth(1024 * 1024 * 64, 10);
 	sponza[0].setMaterialID(0);
 	sponza[0].loadMesh(shapes);
 	sponza[0].calcMinmax();
@@ -1078,7 +1130,6 @@ int main()
 		msponza[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2], 1.0f)));
 		msponza[i].setMaterialID(i);
 	}
-
 
 	/*
 	ret = tinyobj::LoadObj(shapes, materials, err, "cornell_box.obj");
@@ -1095,12 +1146,11 @@ int main()
 		mcornell[i].setSpecular(loadWithDefault("", glm::vec4(glm::vec3(0.2f), 1.0f)));
 		mcornell[i].setTexture(loadWithDefault("", glm::vec4(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2], 1.0f)));
 		mcornell[i].setMaterialID(msponza.size() + i);
-	}
-	*/
-	/*
+	}*/
+	
 	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
 	std::vector<TObject> teapot(1);
-	teapot[0].setDepth(256 * 256 * 64, 6);
+	teapot[0].setDepth(256 * 256 * 128, 8);
 	teapot[0].setMaterialID(msponza.size());
 	teapot[0].loadMesh(shapes);
 	teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -1112,7 +1162,7 @@ int main()
 	mteapot[0].setBump(loadBump(""));
 	mteapot[0].setSpecular(loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
 	mteapot[0].setTexture(loadDiffuse(""));
-	*/
+	
 
 
 	RObject rays;
@@ -1140,10 +1190,10 @@ int main()
 		double c = tt - t;
 		t = tt;
 
-		//teapot[0].calcMinmax();
-		//teapot[0].buildOctree();
-		//sponza[0].calcMinmax();
-		//sponza[0].buildOctree();
+		teapot[0].calcMinmax();
+		teapot[0].buildOctree();
+		sponza[0].calcMinmax();
+		sponza[0].buildOctree();
 
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
@@ -1152,23 +1202,23 @@ int main()
 			glm::mat4 trans;
 
 			trans = glm::translate(trans, glm::vec3(0.0f, 0.0f, 0.0f));
-			trans = glm::scale(trans, glm::vec3(100.0f, 100.0f, 100.0f));
-			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
+			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
+			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 
 			for (int i = 0;i < sponza.size();i++) {
-				sponza[i].intersection(rays, trans);
+				sponza[i].intersection(rays, glm::mat4());
 			}
-			//for (int i = 0;i < teapot.size();i++) {
-			//	teapot[i].intersection(rays, trans);
-			//}
+			for (int i = 0;i < teapot.size();i++) {
+				teapot[i].intersection(rays, trans);
+			}
 
 			for (int i = 0;i < msponza.size();i++) {
 				msponza[i].shade(rays, 0.1f);
 			}
-			//for (int i = 0;i < mteapot.size();i++) {
-			//	mteapot[i].shade(rays, 1.0f);
-			//}
+			for (int i = 0;i < mteapot.size();i++) {
+				mteapot[i].shade(rays, 1.0f);
+			}
 			rays.close();
 		}
 
