@@ -101,8 +101,8 @@ GLuint loadShader(std::string filename, GLuint type) {
 	return valid ? shader : -1;
 }
 
-const GLuint width = 1024;
-const GLuint height = 768;
+const GLuint width = 800;
+const GLuint height = 600;
 const GLuint _zero = 0;
 
 struct Ray {
@@ -1117,7 +1117,7 @@ int main()
 	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 
 	std::vector<TObject> sponza(1);
-	sponza[0].setDepth(1024 * 1024 * 64, 10);
+	sponza[0].setDepth(1024 * 1024 * 64, 9);
 	sponza[0].setMaterialID(0);
 	sponza[0].loadMesh(shapes);
 	sponza[0].calcMinmax();
@@ -1190,10 +1190,10 @@ int main()
 		double c = tt - t;
 		t = tt;
 
-		teapot[0].calcMinmax();
-		teapot[0].buildOctree();
-		//sponza[0].calcMinmax();
-		//sponza[0].buildOctree();
+		//teapot[0].calcMinmax();
+		//teapot[0].buildOctree();
+		sponza[0].calcMinmax();
+		sponza[0].buildOctree();
 
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
@@ -1206,20 +1206,20 @@ int main()
 			// = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 
-			//for (int i = 0;i < sponza.size();i++) {
-			//	sponza[i].intersection(rays, glm::mat4());
+			for (int i = 0;i < sponza.size();i++) {
+				sponza[i].intersection(rays, glm::mat4());
 				//sponza[i].intersection(rays, trans);
-			//}
-			for (int i = 0;i < teapot.size();i++) {
-				teapot[i].intersection(rays, trans);
 			}
+			//for (int i = 0;i < teapot.size();i++) {
+			//	teapot[i].intersection(rays, trans);
+			//}
 
-			//for (int i = 0;i < msponza.size();i++) {
-			//	msponza[i].shade(rays, 0.1f);
-			//}
-			for (int i = 0;i < mteapot.size();i++) {
-				mteapot[i].shade(rays, 1.0f);
+			for (int i = 0;i < msponza.size();i++) {
+				msponza[i].shade(rays, 0.1f);
 			}
+			//for (int i = 0;i < mteapot.size();i++) {
+			//	mteapot[i].shade(rays, 1.0f);
+			//}
 			rays.close();
 		}
 
