@@ -8,6 +8,7 @@ in vec3 verts[];
 flat out vec3 vert0;
 flat out vec3 vert1;
 flat out vec3 vert2;
+flat out vec3 normal;
 flat out int shortest;
 in int gl_PrimitiveIDIn;
 out int gl_PrimitiveID;
@@ -37,11 +38,12 @@ void main(){
         positions[i] = pos;
     }
 
+    vec3 norm = abs(normalizeFast(cross(verts[2] - verts[0], verts[1] - verts[0])));
+
     vert0 = positions[0];
     vert1 = positions[1];
     vert2 = positions[2];
-
-    vec3 norm = abs(normalizeFast(cross(positions[1] - positions[0], positions[2] - positions[0])));
+    normal = norm;
 
     vec3 mn = min(positions[0], min(positions[1], positions[2]));
     vec3 mx = max(positions[0], max(positions[1], positions[2]));

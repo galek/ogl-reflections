@@ -1,4 +1,5 @@
 #version 450 core
+#extension GL_NV_gpu_shader5 : enable
 
 const uint LONGEST = 0xFFFFFFFF;
 const float INFINITY = 1e10;
@@ -14,6 +15,8 @@ struct Voxel {
     uint coordX;
 	uint coordY;
 	uint coordZ;
+    //f16vec4 color;
+    //f16vec4 normal;
 };
 
 layout(std430, binding=0) buffer s_voxels {Voxel voxels[];};

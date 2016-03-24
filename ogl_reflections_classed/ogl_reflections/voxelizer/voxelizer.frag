@@ -1,7 +1,9 @@
 #version 450 core
-#extension GL_NV_fragment_shader_interlock : enable
+//#extension GL_NV_fragment_shader_interlock : enable
+#extension GL_NV_gpu_shader5 : enable
+#extension GL_NV_shader_atomic_fp16_vector : enable
 
-layout(sample_interlock_unordered) in;
+//layout(sample_interlock_unordered) in;
 
 const uint LONGEST = 0xFFFFFFFF;
 
@@ -12,6 +14,7 @@ in vec3 fragPosition;
 flat in vec3 vert0;
 flat in vec3 vert1;
 flat in vec3 vert2;
+flat in vec3 normal;
 in int gl_PrimitiveID;
 
 struct Thash {
@@ -25,6 +28,8 @@ struct Voxel {
     uint coordX;
     uint coordY;
     uint coordZ;
+    //f16vec4 color;
+    //f16vec4 normal;
 };
 
 layout(std430, binding=0) coherent buffer s_voxels {Voxel voxels[];};
@@ -229,6 +234,7 @@ void main(){
         ){
             uvec2 t = searchVoxelIndex(uvec3(floor(norm)));
             atomicAdd(voxels[t.x].count, 1);
+            //atomicAdd(voxels[t.x].normal, f16vec4(normal, 1.0f));
             uint i = atomicCounterIncrement(vcounter);
             Thash thash;
             thash.triangle = gl_PrimitiveID;

@@ -52,6 +52,7 @@ struct Voxel {
 	GLuint coordX = 0;
 	GLuint coordY = 0;
 	GLuint coordZ = 0;
+	glm::vec4 _space0;
 };
 
 struct Minmax {
