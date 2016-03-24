@@ -106,12 +106,15 @@ const GLuint height = 600;
 const GLuint _zero = 0;
 
 struct Ray {
-	GLint active;
+	GLuint previous;
+	GLuint hit;
+	GLint actived;
 	glm::vec4 origin;
 	glm::vec4 direct;
 	glm::vec4 color;
 	glm::vec4 final;
 	glm::vec4 params;
+	glm::vec4 params0;
 };
 
 struct Hit {
@@ -124,221 +127,14 @@ struct Hit {
 	glm::vec4 params;
 };
 
-
-
-
-class RObject {
-private:
-	GLuint beginProgram;
-	GLuint cameraProgram;
-	GLuint renderProgram;
-	GLuint closeProgram;
-	GLuint clearProgram;
-	GLuint samplerProgram;
-
-	GLuint rays;
-	GLuint hits;
-	GLuint samples;
-
-	GLuint vbo;
-	GLuint ebo;
-
-	GLuint cubeTex;
-
-public:
-	RObject() {
-		init();
-	}
-
-private:
-	void init() {
-		{
-			glGenBuffers(1, &vbo);
-			GLfloat vertices[] = {
-				-1.0f, -1.0f,
-				-1.0f,  1.0f,
-				1.0f,  1.0f,
-				1.0f, -1.0f
-			};
-			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		}
-
-		{
-			glGenBuffers(1, &ebo);
-			GLuint elements[] = {
-				0, 1, 2,
-				2, 3, 0
-			};
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
-		}
-
-		GLuint rsize = width * height * 2;
-
-		glGenBuffers(1, &rays);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, rays);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, rsize * sizeof(Ray), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-		glGenBuffers(1, &hits);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, hits);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, rsize * sizeof(Hit), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-		glGenBuffers(1, &samples);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, samples);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, rsize * sizeof(glm::vec4), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-		{
-			GLuint compShader = loadShader("./render/begin.comp", GL_COMPUTE_SHADER);
-			beginProgram = glCreateProgram();
-			glAttachShader(beginProgram, compShader);
-			glBindFragDataLocation(beginProgram, 0, "outColor");
-			glLinkProgram(beginProgram);
-			glUseProgram(beginProgram);
-		}
-
-		{
-			GLuint compShader = loadShader("./render/close.comp", GL_COMPUTE_SHADER);
-			closeProgram = glCreateProgram();
-			glAttachShader(closeProgram, compShader);
-			glBindFragDataLocation(closeProgram, 0, "outColor");
-			glLinkProgram(closeProgram);
-			glUseProgram(closeProgram);
-		}
-
-		{
-			GLuint compShader = loadShader("./render/camera.comp", GL_COMPUTE_SHADER);
-			cameraProgram = glCreateProgram();
-			glAttachShader(cameraProgram, compShader);
-			glBindFragDataLocation(cameraProgram, 0, "outColor");
-			glLinkProgram(cameraProgram);
-			glUseProgram(cameraProgram);
-		}
-
-		{
-			GLuint compShader = loadShader("./render/clear.comp", GL_COMPUTE_SHADER);
-			clearProgram = glCreateProgram();
-			glAttachShader(clearProgram, compShader);
-			glBindFragDataLocation(clearProgram, 0, "outColor");
-			glLinkProgram(clearProgram);
-			glUseProgram(clearProgram);
-		}
-
-		{
-			GLuint compShader = loadShader("./render/sampler.comp", GL_COMPUTE_SHADER);
-			samplerProgram = glCreateProgram();
-			glAttachShader(samplerProgram, compShader);
-			glBindFragDataLocation(samplerProgram, 0, "outColor");
-			glLinkProgram(samplerProgram);
-			glUseProgram(samplerProgram);
-		}
-
-		{
-			GLuint vertexShader = loadShader("./render/render.vert", GL_VERTEX_SHADER);
-			GLuint fragmentShader = loadShader("./render/render.frag", GL_FRAGMENT_SHADER);
-			renderProgram = glCreateProgram();
-			glAttachShader(renderProgram, vertexShader);
-			glAttachShader(renderProgram, fragmentShader);
-			glBindFragDataLocation(renderProgram, 0, "outColor");
-			glLinkProgram(renderProgram);
-			glUseProgram(renderProgram);
-		}
-
-		glUseProgram(renderProgram);
-		glEnableVertexAttribArray(glGetAttribLocation(renderProgram, "position"));
-	}
-
-public:
-	void includeCubemap(GLuint cube) {
-		cubeTex = cube;
-	}
-
-	void camera(glm::vec3 eye, glm::vec3 view) {
-		glUseProgram(cameraProgram);
-
-		bind();
-
-		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "projInv"), 1, false, glm::value_ptr(glm::inverse(glm::perspective(3.14f / 3.0f, float(width) / float(height), 0.1f, 10000.0f))));
-		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "camInv"), 1, false, glm::value_ptr(glm::inverse(glm::lookAt(eye, view, glm::vec3(0.0, 1.0, 0.0)))));
-		glUniform2f(glGetUniformLocation(cameraProgram, "sceneRes"), width, height);
-		glUniform1f(glGetUniformLocation(cameraProgram, "time"), clock());
-
-		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	}
-
-	void begin() {
-		glUseProgram(beginProgram);
-		bind();
-
-		glUniform2f(glGetUniformLocation(beginProgram, "sceneRes"), width, height);
-		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	}
-
-	void sample() {
-		glUseProgram(samplerProgram);
-		bind();
-
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, samples);
-		glUniform2f(glGetUniformLocation(samplerProgram, "sceneRes"), width, height);
-		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	}
-
-	void clear() {
-		glUseProgram(clearProgram);
-		bind();
-
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, samples);
-		glUniform2f(glGetUniformLocation(clearProgram, "sceneRes"), width, height);
-		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	}
-
-	void close() {
-		glUseProgram(closeProgram);
-		bind();
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, cubeTex);
-		glUniform1i(glGetUniformLocation(closeProgram, "cubeTex"), 0);
-
-		glUniform2f(glGetUniformLocation(closeProgram, "sceneRes"), width, height);
-		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	}
-
-	void bind() {
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, rays);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, hits);
-	}
-
-	void render() {
-		glUseProgram(0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDisable(GL_BLEND);
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
-		glCullFace(GL_FRONT_AND_BACK);
-		glUseProgram(renderProgram);
-
-		bind();
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, samples);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glUniform2f(glGetUniformLocation(renderProgram, "sceneRes"), width, height);
-		glVertexAttribPointer(glGetAttribLocation(renderProgram, "position"), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-		glViewport(0, 0, width, height);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	}
+struct Texel {
+	GLuint last;
+	GLuint count;
 };
+
+
+
+
 
 
 
@@ -388,13 +184,12 @@ private:
 
 	Minmax bound;
 	GLuint verticeCount = 0;
-	GLuint materialID = 0;
+	
 
 	GLuint intersectionProgram;
-	GLuint maxDepth = 4;
+	
 
-	glm::vec3 offset;
-	glm::vec3 scale;
+	
 
 	GLuint vsize_g = sizeof(Voxel) * 256 * 256 * 256;
 	GLuint vrsize_g = sizeof(VoxelRaw) * 1024 * 1024 * 32;
@@ -402,6 +197,12 @@ private:
 	GLuint subgridc_g = sizeof(GLuint) * 256 * 256 * 256 * 8;
 
 public:
+
+	GLuint materialID = 0;
+	glm::vec3 offset;
+	glm::vec3 scale;
+	GLuint maxDepth = 4;
+
 	GLuint triangleCount = 0;
 
 	void setDepth(GLuint count, GLuint d) {
@@ -535,15 +336,6 @@ private:
 		glBufferStorage(GL_SHADER_STORAGE_BUFFER, subgridc_g, nullptr, GL_SPARSE_STORAGE_BIT_ARB);
 
 		setDepth(count, depth);
-
-		{
-			GLuint compShader = loadShader("./render/intersection.comp", GL_COMPUTE_SHADER);
-			intersectionProgram = glCreateProgram();
-			glAttachShader(intersectionProgram, compShader);
-			glBindFragDataLocation(intersectionProgram, 0, "outColor");
-			glLinkProgram(intersectionProgram);
-			glUseProgram(intersectionProgram);
-		}
 
 		{
 			GLuint compShader = loadShader("./voxelizer/fix.comp", GL_COMPUTE_SHADER);
@@ -699,27 +491,6 @@ public:
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, vrspace);
 	}
 
-	void intersection(RObject &rays, glm::mat4 trans) {
-		glUseProgram(intersectionProgram);
-
-		bindOctree();
-		bind();
-
-		rays.bind();
-
-		glUniform2f(glGetUniformLocation(intersectionProgram, "sceneRes"), width, height);
-		glUniform1ui(glGetUniformLocation(intersectionProgram, "maxDepth"), maxDepth);
-		glUniform3fv(glGetUniformLocation(intersectionProgram, "offset"), 1, glm::value_ptr(offset));
-		glUniform3fv(glGetUniformLocation(intersectionProgram, "scale"), 1, glm::value_ptr(scale));
-		glUniform1ui(glGetUniformLocation(intersectionProgram, "materialID"), materialID);
-
-		glUniformMatrix4fv(glGetUniformLocation(intersectionProgram, "transform"), 1, false, glm::value_ptr(trans));
-		glUniformMatrix4fv(glGetUniformLocation(intersectionProgram, "transformInv"), 1, false, glm::value_ptr(glm::inverse(trans)));
-
-		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	}
-
 	void clearOctree() {
 		glUseProgram(0);
 		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, vcounter);
@@ -867,6 +638,278 @@ public:
 		glDeleteBuffers(1, &helper);
 	}
 };
+
+
+
+
+class RObject {
+private:
+	GLuint beginProgram;
+	GLuint cameraProgram;
+	GLuint renderProgram;
+	GLuint closeProgram;
+	GLuint clearProgram;
+	GLuint samplerProgram;
+	GLuint intersectionProgram;
+	GLuint intersectionShadowProgram;
+
+	GLuint rays;
+	GLuint hits;
+	GLuint samples;
+	GLuint texels;
+
+	GLuint vbo;
+	GLuint ebo;
+
+	GLuint cubeTex;
+
+	GLuint hcounter;
+	GLuint rcounter;
+
+public:
+	RObject() {
+		init();
+	}
+
+private:
+	void init() {
+		{
+			glGenBuffers(1, &vbo);
+			GLfloat vertices[] = {
+				-1.0f, -1.0f,
+				-1.0f,  1.0f,
+				1.0f,  1.0f,
+				1.0f, -1.0f
+			};
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		}
+
+		{
+			glGenBuffers(1, &ebo);
+			GLuint elements[] = {
+				0, 1, 2,
+				2, 3, 0
+			};
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+		}
+
+		GLuint rsize = width * height * 2;
+
+		glGenBuffers(1, &texels);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, texels);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, rsize * sizeof(Texel), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+		glGenBuffers(1, &rays);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, rays);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, 1024 * 1024 * 4 * sizeof(Ray), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+		glGenBuffers(1, &hits);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, hits);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, 1024 * 1024 * 4 * sizeof(Hit), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+		glGenBuffers(1, &rcounter);
+		glGenBuffers(1, &hcounter);
+
+		glGenBuffers(1, &samples);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, samples);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, rsize * sizeof(glm::vec4), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+		{
+			GLuint compShader = loadShader("./render/intersection.comp", GL_COMPUTE_SHADER);
+			intersectionProgram = glCreateProgram();
+			glAttachShader(intersectionProgram, compShader);
+			glLinkProgram(intersectionProgram);
+			glUseProgram(intersectionProgram);
+		}
+
+		{
+			GLuint compShader = loadShader("./render/shadow_intersection.comp", GL_COMPUTE_SHADER);
+			intersectionShadowProgram = glCreateProgram();
+			glAttachShader(intersectionShadowProgram, compShader);
+			glLinkProgram(intersectionShadowProgram);
+			glUseProgram(intersectionShadowProgram);
+		}
+
+		{
+			GLuint compShader = loadShader("./render/begin.comp", GL_COMPUTE_SHADER);
+			beginProgram = glCreateProgram();
+			glAttachShader(beginProgram, compShader);
+			glLinkProgram(beginProgram);
+			glUseProgram(beginProgram);
+		}
+
+		{
+			GLuint compShader = loadShader("./render/close.comp", GL_COMPUTE_SHADER);
+			closeProgram = glCreateProgram();
+			glAttachShader(closeProgram, compShader);
+			glLinkProgram(closeProgram);
+			glUseProgram(closeProgram);
+		}
+
+		{
+			GLuint compShader = loadShader("./render/camera.comp", GL_COMPUTE_SHADER);
+			cameraProgram = glCreateProgram();
+			glAttachShader(cameraProgram, compShader);
+			glLinkProgram(cameraProgram);
+			glUseProgram(cameraProgram);
+		}
+
+		{
+			GLuint compShader = loadShader("./render/clear.comp", GL_COMPUTE_SHADER);
+			clearProgram = glCreateProgram();
+			glAttachShader(clearProgram, compShader);
+			glLinkProgram(clearProgram);
+			glUseProgram(clearProgram);
+		}
+
+		{
+			GLuint compShader = loadShader("./render/sampler.comp", GL_COMPUTE_SHADER);
+			samplerProgram = glCreateProgram();
+			glAttachShader(samplerProgram, compShader);
+			glLinkProgram(samplerProgram);
+			glUseProgram(samplerProgram);
+		}
+
+		{
+			GLuint vertexShader = loadShader("./render/render.vert", GL_VERTEX_SHADER);
+			GLuint fragmentShader = loadShader("./render/render.frag", GL_FRAGMENT_SHADER);
+			renderProgram = glCreateProgram();
+			glAttachShader(renderProgram, vertexShader);
+			glAttachShader(renderProgram, fragmentShader);
+			glBindFragDataLocation(renderProgram, 0, "outColor");
+			glLinkProgram(renderProgram);
+			glUseProgram(renderProgram);
+		}
+
+		glUseProgram(renderProgram);
+		glEnableVertexAttribArray(glGetAttribLocation(renderProgram, "position"));
+	}
+
+public:
+	void includeCubemap(GLuint cube) {
+		cubeTex = cube;
+	}
+
+	void camera(glm::vec3 eye, glm::vec3 view) {
+		glUseProgram(cameraProgram);
+
+		GLuint _zero = 0;
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, rcounter);
+		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, hcounter);
+		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
+
+		bind();
+
+		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "projInv"), 1, false, glm::value_ptr(glm::inverse(glm::perspective(3.14f / 3.0f, float(width) / float(height), 0.1f, 10000.0f))));
+		glUniformMatrix4fv(glGetUniformLocation(cameraProgram, "camInv"), 1, false, glm::value_ptr(glm::inverse(glm::lookAt(eye, view, glm::vec3(0.0, 1.0, 0.0)))));
+		glUniform2f(glGetUniformLocation(cameraProgram, "sceneRes"), width, height);
+		glUniform1f(glGetUniformLocation(cameraProgram, "time"), clock());
+
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+
+	void begin() {
+		glUseProgram(beginProgram);
+		bind();
+
+		glUniform2f(glGetUniformLocation(beginProgram, "sceneRes"), width, height);
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+
+	void sample() {
+		glUseProgram(samplerProgram);
+		bind();
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, samples);
+		glUniform2f(glGetUniformLocation(samplerProgram, "sceneRes"), width, height);
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+
+	void clear() {
+		glUseProgram(clearProgram);
+		bind();
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, samples);
+		glUniform2f(glGetUniformLocation(clearProgram, "sceneRes"), width, height);
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+
+	void close() {
+		glUseProgram(closeProgram);
+		bind();
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, cubeTex);
+		glUniform1i(glGetUniformLocation(closeProgram, "cubeTex"), 0);
+
+		glUniform2f(glGetUniformLocation(closeProgram, "sceneRes"), width, height);
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+
+	void bind() {
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, rays);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, hits);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, texels);
+		glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, rcounter);
+		glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 1, hcounter);
+	}
+
+	void render() {
+		glUseProgram(0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
+		glCullFace(GL_FRONT_AND_BACK);
+		glUseProgram(renderProgram);
+
+		bind();
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, samples);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glUniform2f(glGetUniformLocation(renderProgram, "sceneRes"), width, height);
+		glVertexAttribPointer(glGetAttribLocation(renderProgram, "position"), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glViewport(0, 0, width, height);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+
+	void intersection(TObject &obj, glm::mat4 trans) {
+		glUseProgram(intersectionProgram);
+
+		obj.bindOctree();
+		obj.bind();
+
+		bind();
+
+		glUniform2f(glGetUniformLocation(intersectionProgram, "sceneRes"), width, height);
+		glUniform1ui(glGetUniformLocation(intersectionProgram, "maxDepth"), obj.maxDepth);
+		glUniform3fv(glGetUniformLocation(intersectionProgram, "offset"), 1, glm::value_ptr(obj.offset));
+		glUniform3fv(glGetUniformLocation(intersectionProgram, "scale"), 1, glm::value_ptr(obj.scale));
+		glUniform1ui(glGetUniformLocation(intersectionProgram, "materialID"), obj.materialID);
+
+		glUniformMatrix4fv(glGetUniformLocation(intersectionProgram, "transform"), 1, false, glm::value_ptr(trans));
+		glUniformMatrix4fv(glGetUniformLocation(intersectionProgram, "transformInv"), 1, false, glm::value_ptr(glm::inverse(trans)));
+
+		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+};
+
+
 
 
 class TestMat {
@@ -1207,7 +1250,7 @@ int main()
 
 
 			for (int i = 0;i < sponza.size();i++) {
-				sponza[i].intersection(rays, glm::mat4());
+				rays.intersection(sponza[i], glm::mat4());
 				//sponza[i].intersection(rays, trans);
 			}
 			//for (int i = 0;i < teapot.size();i++) {
