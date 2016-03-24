@@ -108,6 +108,7 @@ const GLuint _zero = 0;
 struct Ray {
 	GLuint previous;
 	GLuint hit;
+	GLuint shadow;
 	GLint actived;
 	glm::vec4 origin;
 	glm::vec4 direct;
