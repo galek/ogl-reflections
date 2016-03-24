@@ -652,7 +652,6 @@ private:
 	GLuint clearProgram;
 	GLuint samplerProgram;
 	GLuint intersectionProgram;
-	GLuint intersectionShadowProgram;
 
 	GLuint rays;
 	GLuint hits;
@@ -723,14 +722,6 @@ private:
 			glAttachShader(intersectionProgram, compShader);
 			glLinkProgram(intersectionProgram);
 			glUseProgram(intersectionProgram);
-		}
-
-		{
-			GLuint compShader = loadShader("./render/shadow_intersection.comp", GL_COMPUTE_SHADER);
-			intersectionShadowProgram = glCreateProgram();
-			glAttachShader(intersectionShadowProgram, compShader);
-			glLinkProgram(intersectionShadowProgram);
-			glUseProgram(intersectionShadowProgram);
 		}
 
 		{
