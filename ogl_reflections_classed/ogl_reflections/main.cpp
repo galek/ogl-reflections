@@ -1061,10 +1061,10 @@ int main()
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
-	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
+	bool ret = tinyobj::LoadObj(shapes, materials, err, "chessboard.obj");
 
 	std::vector<TObject> sponza(1);
-	sponza[0].setDepth(1024 * 1024 * 64, 9);
+	sponza[0].setDepth(1024 * 1024 * 64, 8);
 	sponza[0].setMaterialID(0);
 	sponza[0].loadMesh(shapes);
 	sponza[0].calcMinmax();
@@ -1096,7 +1096,7 @@ int main()
 		mcornell[i].setMaterialID(msponza.size() + i);
 	}
 	*/
-
+	/*
 	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
 	std::vector<TObject> teapot(1);
 	teapot[0].setDepth(256 * 256 * 64, 6);
@@ -1111,7 +1111,7 @@ int main()
 	mteapot[0].setBump(loadBump(""));
 	mteapot[0].setSpecular(loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
 	mteapot[0].setTexture(loadDiffuse(""));
-
+	*/
 
 
 	RObject rays;
@@ -1150,24 +1150,24 @@ int main()
 			rays.begin();
 			glm::mat4 trans;
 
-			trans = glm::translate(trans, glm::vec3(0.0f, 100.0f, 0.0f));
-			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
-			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+			trans = glm::translate(trans, glm::vec3(0.0f, 0.0f, 0.0f));
+			trans = glm::scale(trans, glm::vec3(100.0f, 100.0f, 100.0f));
+			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 
 			for (int i = 0;i < sponza.size();i++) {
-				sponza[i].intersection(rays, glm::mat4());
+				sponza[i].intersection(rays, trans);
 			}
-			for (int i = 0;i < teapot.size();i++) {
-				teapot[i].intersection(rays, trans);
-			}
+			//for (int i = 0;i < teapot.size();i++) {
+			//	teapot[i].intersection(rays, trans);
+			//}
 
 			for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shade(rays, 1.0f);
+				msponza[i].shade(rays, 0.1f);
 			}
-			for (int i = 0;i < mteapot.size();i++) {
-				mteapot[i].shade(rays, 1.0f);
-			}
+			//for (int i = 0;i < mteapot.size();i++) {
+			//	mteapot[i].shade(rays, 1.0f);
+			//}
 			rays.close();
 		}
 

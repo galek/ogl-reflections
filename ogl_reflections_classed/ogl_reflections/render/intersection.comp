@@ -196,7 +196,7 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
     Thash hash = thashes[vox.last];
     bool needsSkip = false;
 
-    const uint globalTCount = 300;
+    const uint globalTCount = 3000;
     const uint triangleCount = globalTCount;
 
     float d = INFINITY;
@@ -230,16 +230,17 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
                     texcoords[x] = vec2(texcs[j * 2 + 0], texcs[j * 2 + 1]);
                 }
 
-                //normal = cross(triverts[2] - triverts[0], triverts[1] - triverts[0]);
-                normal = normalizeFast(trinorms[1]) * uv.x;
+                normal = cross(triverts[2] - triverts[0], triverts[1] - triverts[0]);
+                /*normal = normalizeFast(trinorms[1]) * uv.x;
                 normal += normalizeFast(trinorms[2]) * uv.y;
-                normal += normalizeFast(trinorms[0]) * (1.0f - uv.x - uv.y);
+                normal += normalizeFast(trinorms[0]) * (1.0f - uv.x - uv.y);*/
                 normal = normalizeFast(normal);
 
                 texcoord = texcoords[1] * uv.x;
                 texcoord += texcoords[2] * uv.y;
                 texcoord += texcoords[0] * (1.0f - uv.x - uv.y);
                 texcoord.y = 1.0f - texcoord.y;
+                //texcoord = vec2(0.0);
 
                 vec3 deltaPos;
                 if(abs(dot(triverts[0] - triverts[1], vec3(1.0f))) < 0.001f) {
