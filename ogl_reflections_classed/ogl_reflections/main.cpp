@@ -1151,7 +1151,7 @@ int main()
 	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 
 	std::vector<TObject> sponza(1);
-	sponza[0].setDepth(1024 * 1024 * 64, 9);
+	sponza[0].setDepth(512 * 512 * 64, 9);
 	sponza[0].setMaterialID(0);
 	sponza[0].loadMesh(shapes);
 	sponza[0].calcMinmax();
@@ -1242,7 +1242,7 @@ int main()
 
 			//for (int i = 0;i < sponza.size();i++) {
 			//	rays.intersection(sponza[i], glm::mat4());
-			//	rays.intersection(sponza[i], trans);
+				//rays.intersection(sponza[i], trans);
 			//}
 			for (int i = 0;i < teapot.size();i++) {
 				rays.intersection(teapot[i], trans);
