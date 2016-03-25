@@ -409,7 +409,7 @@ TResult traverse(vec3 orig, vec3 dir){
                 if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
                     overlap = true;
                     TResult lres = test_intersection(orig, dir, vox);
-                    if(lres.dist <= lastRes.dist){
+                    if(lres.dist < lastRes.dist){
                         lastRes = lres;
                     }
                 }
@@ -419,7 +419,7 @@ TResult traverse(vec3 orig, vec3 dir){
                 if(
                     lastRes.triangle != LONGEST &&
                     lastRes.dist >= 0.0f &&
-                    lastRes.dist < INFINITY
+                    lastRes.dist < INFINITY - 0.0001f
                 ) {
                     return lastRes;
                     break;
@@ -439,18 +439,17 @@ TResult traverse(vec3 orig, vec3 dir){
 
                     vec3 mnc = coordf * dX - 0.0001f;
                     vec3 mxc = (coordf + 1.0f) * dX + 0.0001f;
-                    if(_vox.count > 0 && _vox.last != LONGEST){
-                        break;
-                    } else {
-                        vec2 d = intersectCube(ray_start, dir, mnc, mxc);
-                        if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
+                    vec2 d = intersectCube(ray_start, dir, mnc, mxc);
+                    if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
+                        if(_vox.count > 0 && _vox.last != LONGEST){
+                            break;
+                        } else {
                             found = true;
                             vec3 p0 = (ray_start + dir * d.y) / _bin_size;
                             test = floor(p0);
                             mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
                         }
                     }
-
                 }
             }
 
