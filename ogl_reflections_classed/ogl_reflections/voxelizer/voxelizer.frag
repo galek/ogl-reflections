@@ -192,7 +192,7 @@ void main(){
             norm.x >= 0.0f && norm.x < float(resX) &&
             norm.y >= 0.0f && norm.y < float(resX) &&
             norm.z >= 0.0f && norm.z < float(resX) &&
-            triBoxOverlap(floor(norm) + 0.5f, vec3(0.5f), triverts) == 1
+            triBoxOverlap(floor(norm) + 0.5001f, vec3(0.5f), triverts) == 1
         ){
             uint idx = atomicCounterIncrement(dcounter);
             uvec3 co = uvec3(floor(norm.xyz));
