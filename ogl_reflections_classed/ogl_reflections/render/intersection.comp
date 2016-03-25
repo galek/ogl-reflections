@@ -278,7 +278,7 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
     vec3 normal;
     vec2 texcoord;
     vec3 tangent;
-    for(uint i=0;i<=min(vox.count, triangleCount);i++){
+    for(uint i=0;i<min(vox.count, triangleCount);i++){
         if(!needsSkip){
             uint tri = hash.triangle;
 
@@ -316,7 +316,7 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
                 //texcoord = vec2(0.0);
 
                 vec3 deltaPos;
-                if(abs(dot(triverts[0] - triverts[1], vec3(1.0f))) < 0.001f) {
+                if(abs(dot(triverts[0] - triverts[1], vec3(1.0f))) < 0.0001f) {
                     deltaPos = triverts[2] - triverts[0];
                 } else {
                     deltaPos = triverts[1] - triverts[0];
@@ -367,27 +367,27 @@ TResult traverse(vec3 orig, vec3 dir){
     uint currentDepth = maxDepth-1;
     uint resX = uint(pow(2, currentDepth));
     vec3 torig = projectVoxels(orig, currentDepth+1);
-    vec2 d = intersectCube(torig, dir, vec3(0.0f), vec3(resX));
+    vec3 ray_start = torig + dir * 0.0001f;
+    vec2 d = intersectCube(ray_start, dir, vec3(0.0f) - 0.0001f, vec3(resX) + 0.0001f);
 
     TResult lastRes;
     lastRes.triangle = 0xFFFFFFFF;
     lastRes.dist = INFINITY;
 
     if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
-        vec3 ray_start = torig + dir * 0.001f;
         if(d.x >= 0.0f) {
-            ray_start = (torig + dir * (d.x + 0.001f));
+            ray_start = (torig + dir * (d.x + 0.0001f));
         }
-        vec3 ray_end = (torig + dir * (d.y + 0.001f));
+        vec3 ray_end = (torig + dir * (d.y + 0.0001f));
 
         float _bin_size = 1.0f;
         vec3 p0 = ray_start / _bin_size;
         vec3 p1 = ray_end / _bin_size;
 
         vec3 step = sign(p1 - p0);
-        if(abs(step.x) < 0.001f) step.x = 1.0f;
-        if(abs(step.y) < 0.001f) step.y = 1.0f;
-        if(abs(step.z) < 0.001f) step.z = 1.0f;
+        if(abs(step.x) < 0.0001f) step.x = 1.0f;
+        if(abs(step.y) < 0.0001f) step.y = 1.0f;
+        if(abs(step.z) < 0.0001f) step.z = 1.0f;
         vec3 delta = _bin_size / abs(p1 - p0);
         vec3 test = floor(p0);
         vec3 mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
@@ -403,22 +403,14 @@ TResult traverse(vec3 orig, vec3 dir){
             uvec3 coord = uvec3(test);
             Voxel vox = loadVoxel(coord, currentDepth);
             if(vox.count > 0 && vox.last != LONGEST) {
-                vec3 mnc = test - 0.001f;
-                vec3 mxc = mnc + 1.0f + 0.001f;
+                vec3 mnc = test;
+                vec3 mxc = mnc + 1.0f;
                 vec2 d = intersectCube(ray_start, dir, mnc, mxc);
                 if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
                     overlap = true;
                     TResult lres = test_intersection(orig, dir, vox);
-                    if(lres.dist < lastRes.dist){
+                    if(lres.dist <= lastRes.dist){
                         lastRes = lres;
-                    } else
-                    if(
-                        lastRes.triangle != LONGEST &&
-                        lastRes.dist >= 0.0f &&
-                        lastRes.dist < INFINITY
-                    ) {
-                        return lastRes;
-                        break;
                     }
                 }
             }
@@ -445,15 +437,15 @@ TResult traverse(vec3 orig, vec3 dir){
                     dX *= 2.0f;
                     coordf = floor(coordf / 2.0f);
 
-                    vec3 mnc = coordf * dX - 0.001f;
-                    vec3 mxc = (coordf + 1.0f) * dX + 0.001f;
+                    vec3 mnc = coordf * dX - 0.0001f;
+                    vec3 mxc = (coordf + 1.0f) * dX + 0.0001f;
                     if(_vox.count > 0 && _vox.last != LONGEST){
                         break;
                     } else {
                         vec2 d = intersectCube(ray_start, dir, mnc, mxc);
                         if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
                             found = true;
-                            vec3 p0 = (ray_start + dir * (d.y + 0.001f)) / _bin_size;
+                            vec3 p0 = (ray_start + dir * d.y) / _bin_size;
                             test = floor(p0);
                             mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
                         }

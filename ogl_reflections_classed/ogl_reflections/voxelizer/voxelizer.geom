@@ -62,11 +62,12 @@ void main(){
     for (int i = 0; i < 3; i++) {
         vec3 pos = positions[i];
         vec3 opos = pos;
+
         //vec3 vect = normalizeFast(opos - ce);
         //vec3 av = abs(vect);
-        //vect /= max(min(av.x, min(av.y, av.z)), 0.001f);
-
+        //vect /= max(av.x, max(av.y, av.z));
         //opos += vect;
+
         opos = (opos / res) * 2.0 - 1.0; //Centroid position
         if(shrt == 2){
             gl_Position = vec4(opos.xyz, 1.0);
