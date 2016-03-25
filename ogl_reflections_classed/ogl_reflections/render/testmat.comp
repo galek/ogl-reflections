@@ -177,7 +177,6 @@ void main()
                     vec4 tx = texture(tex, hit.texcoord);
 
                     Ray newRay = ray;
-                    //newRay.actived = 1;
                     newRay.params.w = 1.0f;
                     newRay.origin += newRay.direct * hit.dist;
 
@@ -204,16 +203,15 @@ void main()
                     }
 
                     newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.001f;
-                    storeRay(last, newRay);
+                    //storeRay(last, newRay);
 
-/*
                     uint ridx = createRay(newRay);
                     storeTexel(t, ridx);
                     storeHit(rays[ridx], hit);
 
                     ray.params0.x = 0.0f;
                     ray.actived = 0;
-                    storeRay(last, ray);*/
+                    storeRay(last, ray);
                 }
             }
             last = ray.previous;
