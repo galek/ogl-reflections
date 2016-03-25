@@ -10,6 +10,7 @@ struct Thash {
 };
 
 struct Voxel {
+    uint parent;
 	uint last;
     uint count;
     uint coordX;
@@ -435,14 +436,17 @@ TResult traverse(vec3 orig, vec3 dir){
                 float coef = 1.0f;
                 vec3 tst = test;
                 vec3 coordf = tst;
+                Voxel _vox = vox;
                 for(int i=int(currentDepth)-1;i>=0;i--){
                     float dX = pow(2, currentDepth - i);
                     coordf = floor(tst / dX);
 
+                    if(_vox.parent == LONGEST) break;
+                    _vox = voxels[_vox.parent];
+
                     vec3 mnc = coordf * dX - 0.001f;
                     vec3 mxc = (coordf + 1.0f) * dX + 0.001f;
-                    Voxel vox = loadVoxel(uvec3(coordf), i);
-                    if(vox.count > 0 && vox.last != LONGEST){
+                    if(_vox.count > 0 && _vox.last != LONGEST){
                         break;
                     } else {
                         vec2 d = intersectCube(ray_start, dir, mnc, mxc);
@@ -453,6 +457,7 @@ TResult traverse(vec3 orig, vec3 dir){
                             mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
                         }
                     }
+
                 }
             }
 

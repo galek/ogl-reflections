@@ -1,6 +1,7 @@
 #version 450 core
 
 struct Voxel {
+    uint parent;
 	uint last;
     uint count;
     uint coordX;
@@ -154,6 +155,7 @@ void main(){
             voxel.coordX = 0;
             voxel.coordY = 0;
             voxel.coordZ = 0;
+            voxel.parent = LONGEST;
 
             uint loc = atomicCounterIncrement(scounter);
             voxels[loc] = voxel;
@@ -176,6 +178,7 @@ void main(){
                 uvec3 globalSpace = parentSpace * 2 + co;
 
                 Voxel newVoxel;
+                newVoxel.parent = parent;
                 newVoxel.coordX = globalSpace.x;
                 newVoxel.coordY = globalSpace.y;
                 newVoxel.coordZ = globalSpace.z;

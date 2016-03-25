@@ -23,6 +23,7 @@ struct Thash {
 };
 
 struct Voxel {
+    uint parent;
 	uint last;
     uint count;
     uint coordX;
