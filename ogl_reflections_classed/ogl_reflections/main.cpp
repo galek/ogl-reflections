@@ -588,7 +588,6 @@ public:
 				glUseProgram(voxelizerFixProgram);
 
 				bindOctree();
-				bind();
 
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, helper_to);
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, helper);
