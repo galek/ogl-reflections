@@ -47,6 +47,7 @@ struct Thash {
 };
 
 struct Voxel {
+	GLuint parent = 0xFFFFFFFF;
 	GLuint last = 0xFFFFFFFF;
 	GLuint count = 0;
 	GLuint coordX = 0;
