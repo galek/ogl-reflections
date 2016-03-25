@@ -411,7 +411,6 @@ TResult traverse(vec3 orig, vec3 dir){
                     if(lres.dist < lastRes.dist){
                         lastRes = lres;
                     } else
-
                     if(
                         lastRes.triangle != LONGEST &&
                         lastRes.dist >= 0.0f &&

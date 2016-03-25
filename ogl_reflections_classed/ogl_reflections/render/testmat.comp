@@ -159,7 +159,14 @@ vec3 get_coord(in vec3 v)
     return vec3(f.xy * 0.5 + 0.5, f.z);
 }
 
-
+float computeFresnel(in vec3 normal, in vec3 incident, in vec3 transmissionDirection, in float refractiveIndexIncident, in float refractiveIndexTransmitted) {
+	float cosThetaIncident = dot(normal, incident);
+	float cosThetaTransmitted = dot(normal, transmissionDirection);
+	float reflectionCoefficientSPolarized = pow((refractiveIndexIncident * cosThetaIncident - refractiveIndexTransmitted * cosThetaTransmitted)   /   (refractiveIndexIncident * cosThetaIncident + refractiveIndexTransmitted * cosThetaTransmitted)   , 2);
+    float reflectionCoefficientPPolarized = pow((refractiveIndexIncident * cosThetaTransmitted - refractiveIndexTransmitted * cosThetaIncident)   /   (refractiveIndexIncident * cosThetaTransmitted + refractiveIndexTransmitted * cosThetaIncident)   , 2);
+	float reflectionCoefficientUnpolarized = (reflectionCoefficientSPolarized + reflectionCoefficientPPolarized) / 2.0; // Equal mix.
+	return clamp(reflectionCoefficientUnpolarized, 0.0f, 1.0f);
+}
 
 uniform vec3 light;
 
@@ -191,18 +198,32 @@ void main()
                     float light = clamp(dot(normalizeFast(light - newRay.origin), normal), 0.0f, 1.0f);
                     vec3 color = tx.rgb * light;
 
-                    float spc = texture(spec, hit.texcoord).r * reflectionRate;
+                    float iorIn = 1.0f;
+                    float iorOut = 1.3333f;
+
+                    bool cond = dot(prenormal, newRay.direct) <= 0;
+                    float coef = cond ? iorIn / iorOut : iorOut / iorIn;
+                    vec3 refr = refract(newRay.direct, normal, coef);
+                    float fres = computeFresnel(
+                        normal,
+                        newRay.direct,
+                        refr,
+                        cond ? iorIn : iorOut,
+                        cond ? iorOut : iorIn
+                    );
+
+                    float spc = newRay.params.x * texture(spec, hit.texcoord).r * reflectionRate * fres;
                     if(tx.a > 0.999f){
                         newRay.final = mix(newRay.final, color, newRay.params.x);
                         newRay.direct = normalizeFast(reflect(newRay.direct, normal));
-                        newRay.params.x *= spc;
+                        newRay.params.x = spc;
                         newRay.params.y += 1.0f;
                         if(spc < 0.001f) {
                             newRay.actived = 0;
                         }
                     }
 
-                    newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.001f;
+                    newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.01f;
                     //storeRay(last, newRay);
 
                     uint ridx = createRay(newRay);
