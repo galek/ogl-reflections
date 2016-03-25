@@ -118,6 +118,7 @@ void main()
                     ray.final = mix(ray.final, vec3(texture(cubeTex, ray.direct).xyz), ray.params.x);
                 }
             }
+            ray.params.w = 0.0f;
             storeRay(last, ray);
             last = ray.previous;
         }

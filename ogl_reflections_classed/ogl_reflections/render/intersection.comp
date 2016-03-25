@@ -408,16 +408,17 @@ TResult traverse(vec3 orig, vec3 dir){
                 if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
                     overlap = true;
                     TResult lres = test_intersection(orig, dir, vox);
+                    if(lres.dist < lastRes.dist){
+                        lastRes = lres;
+                    } else
+
                     if(
-                        lastRes.dist < lres.dist &&
                         lastRes.triangle != LONGEST &&
                         lastRes.dist >= 0.0f &&
                         lastRes.dist < INFINITY
                     ) {
                         return lastRes;
                         break;
-                    } else {
-                        lastRes = lres;
                     }
                 }
             }
@@ -486,8 +487,14 @@ TResult traverse(vec3 orig, vec3 dir){
             test.y < float(resX) &&
             test.z < float(resX)
         );
+    }
 
-
+    if(
+        lastRes.triangle != LONGEST &&
+        lastRes.dist >= 0.0f &&
+        lastRes.dist < INFINITY
+    ) {
+        return lastRes;
     }
 
     return lastRes;

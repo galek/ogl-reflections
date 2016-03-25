@@ -1224,8 +1224,8 @@ int main()
 		double c = tt - t;
 		t = tt;
 
-		teapot[0].calcMinmax();
-		teapot[0].buildOctree();
+		//teapot[0].calcMinmax();
+		//teapot[0].buildOctree();
 		//sponza[0].calcMinmax();
 		//sponza[0].buildOctree();
 
@@ -1236,13 +1236,13 @@ int main()
 			glm::mat4 trans;
 
 			trans = glm::translate(trans, glm::vec3(0.0f, 0.0f, 0.0f));
-			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
-			// = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
+			//trans = glm::scale(trans, glm::vec3(100.0f, 100.0f, 100.0f));
+			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 
 			//for (int i = 0;i < sponza.size();i++) {
 			//	rays.intersection(sponza[i], glm::mat4());
-				//sponza[i].intersection(rays, trans);
+			//	rays.intersection(sponza[i], trans);
 			//}
 			for (int i = 0;i < teapot.size();i++) {
 				rays.intersection(teapot[i], trans);
