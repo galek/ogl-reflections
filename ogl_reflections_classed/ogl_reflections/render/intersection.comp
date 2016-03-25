@@ -489,14 +489,6 @@ TResult traverse(vec3 orig, vec3 dir){
         );
     }
 
-    if(
-        lastRes.triangle != LONGEST &&
-        lastRes.dist >= 0.0f &&
-        lastRes.dist < INFINITY
-    ) {
-        return lastRes;
-    }
-
     return lastRes;
 }
 
