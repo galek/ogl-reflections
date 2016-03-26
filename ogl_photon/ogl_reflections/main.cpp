@@ -709,7 +709,7 @@ public:
 	glm::vec3 offset;
 	glm::vec3 scale;
 	GLuint maxDepth = 4;
-	GLuint photonCount = 100000;
+	GLuint photonCount = 50000;
 
 	void setDepth(GLuint count, GLuint d) {
 		maxDepth = d;
@@ -1696,7 +1696,7 @@ int main()
 	
 	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
 	std::vector<TObject> teapot(1);
-	teapot[0].setDepth(128 * 128 * 128, 8);
+	teapot[0].setDepth(128 * 128 * 128, 9);
 	teapot[0].setMaterialID(/*msponza.size()*/0);
 	teapot[0].loadMesh(shapes);
 	teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -1711,7 +1711,7 @@ int main()
 	
 	
 	PObject photons;
-	photons.setDepth(128 * 128 * 128, 8);
+	photons.setDepth(256 * 256 * 256, 8);
 	photons.offset = sponza[0].offset;//-glm::vec3(500.0f);//teapot[0].offset;
 	photons.scale = sponza[0].scale;//glm::vec3(1000.0f);//teapot[0].scale;
 
@@ -1721,6 +1721,10 @@ int main()
 
 	Camera cam;
 	cam.setRays(rays);
+
+
+	
+
 
 	bool running = true;
 	while (running)
@@ -1738,7 +1742,7 @@ int main()
 
 		
 		photons.generate(glm::vec3(0.0f, 200.0f, 0.0f));
-		
+
 		for (int j = 0;j < 3;j++) {
 			photons.begin();
 			glm::mat4 trans;
@@ -1748,10 +1752,10 @@ int main()
 			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 			/*
 			for (int i = 0;i < teapot.size();i++) {
-				photons.intersection(teapot[i], trans);
+			photons.intersection(teapot[i], trans);
 			}
 			for (int i = 0;i < mteapot.size();i++) {
-				mteapot[i].shadePhoton(photons, 1.0f);
+			mteapot[i].shadePhoton(photons, 1.0f);
 			}*/
 
 			for (int i = 0;i < sponza.size();i++) {

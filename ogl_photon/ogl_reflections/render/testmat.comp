@@ -202,10 +202,11 @@ vec3 gather(vec3 origin, vec3 dir){
     float rate = res.x / scale.x;
     vec3 npos = floor(pos);
 
-    float rad = 2.f;
+    float rad = 10.f;
     float dist = rad * rate;
     vec3 mn = npos - ceil(dist);
     vec3 mx = npos + ceil(dist);
+    vec3 mid = (mx + mn) / 2.0f;
     ivec3 mni = ivec3(mn);
     ivec3 mxi = ivec3(mx);
 
@@ -216,18 +217,22 @@ vec3 gather(vec3 origin, vec3 dir){
         for(int y=mni.y;y<=mxi.y;y++){
             for(int z=mni.z;z<=mxi.z;z++){
                 ivec3 co = ivec3(x, y, z);
+                vec3 fco = vec3(co);
+
+
                 if(
                     co.x >= 0 &&
                     co.y >= 0 &&
                     co.z >= 0 &&
                     co.x < ires.x &&
                     co.y < ires.y &&
-                    co.z < ires.z
+                    co.z < ires.z &&
+                    ceil(distance(mid, fco)) <= ceil(dist) + 1
                 ){
                     Voxel vox = loadVoxel(uvec3(co));
                     if(vox.count > 0){
                         Thash hash = thashes[vox.last];
-                        for(uint i=0;i<min(vox.count, 400);i++){
+                        for(uint i=0;i<min(vox.count, 1000);i++){
                             if(distance(origin, hash.position) < rad && dot(hash.normal, dir) < 0.0f) {
                                 light += hash.color;
                                 //light += 1.0f;
