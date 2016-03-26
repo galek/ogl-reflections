@@ -260,9 +260,7 @@ void main()
                     prenormal = normalizeFast(getNormalMapping(hit.texcoord) * tbn);
 
                     vec3 normal = -normalizeFast(prenormal * dot(prenormal, newRay.direct));
-
-                    float light = clamp(dot(normalizeFast(light - newRay.origin), normal), 0.0f, 1.0f);
-                    vec3 color = tx.rgb * light;
+                    vec3 color = tx.rgb;
 
                     float iorIn = 1.0f;
                     float iorOut = 1.3333f;
@@ -290,7 +288,7 @@ void main()
                         newRay.params.y += 1.0f;
                     }
 
-                    newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.01f;
+                    newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.1f;
                     storeRay(last, newRay);
 /*
                     uint ridx = createRay(newRay);

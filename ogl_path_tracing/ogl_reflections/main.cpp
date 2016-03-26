@@ -1241,20 +1241,20 @@ int main()
 			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 
-			/*for (int i = 0;i < sponza.size();i++) {
+			for (int i = 0;i < sponza.size();i++) {
 				rays.intersection(sponza[i], glm::mat4());
 				//rays.intersection(sponza[i], trans);
-			}*/
-			for (int i = 0;i < teapot.size();i++) {
+			}
+			/*for (int i = 0;i < teapot.size();i++) {
 				rays.intersection(teapot[i], trans);
-			}
-			
-			/*for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shade(rays, 0.0f);
 			}*/
-			for (int i = 0;i < mteapot.size();i++) {
-				mteapot[i].shade(rays, 1.0f);
+			
+			for (int i = 0;i < msponza.size();i++) {
+				msponza[i].shade(rays, 0.0f);
 			}
+			/*for (int i = 0;i < mteapot.size();i++) {
+				mteapot[i].shade(rays, 1.0f);
+			}*/
 			rays.close();
 		}
 
