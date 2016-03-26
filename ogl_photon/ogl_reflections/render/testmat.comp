@@ -190,7 +190,8 @@ Voxel loadVoxel(in uvec3 coord){
 }
 
 
-
+uniform vec3 center;
+uniform vec2 cubeRes;
 
 vec3 gather(vec3 origin, vec3 dir){
     vec3 res = vec3(pow(2, maxDepth-1));
@@ -202,7 +203,7 @@ vec3 gather(vec3 origin, vec3 dir){
     float rate = res.x / scale.x;
     vec3 npos = floor(pos);
 
-    float rad = 10.f;
+    float rad = distance(origin, center) / cubeRes.x * sqrt(3.0);
     float dist = rad * rate;
     vec3 mn = npos - ceil(dist);
     vec3 mx = npos + ceil(dist);
@@ -245,7 +246,7 @@ vec3 gather(vec3 origin, vec3 dir){
         }
     }
 
-    return light / photonCount * 100000.0f / pow(rad, 2.0f);
+    return light / photonCount * 20000.0f / pow(rad, 2.0f);
 }
 
 

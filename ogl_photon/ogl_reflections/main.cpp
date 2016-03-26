@@ -659,6 +659,44 @@ struct VoxelRawPhoton {
 	glm::vec4 normal;
 };
 
+
+
+
+const GLuint cube_s = 32;
+
+void prepare_cubemaps(GLuint &frameBuffer) {
+	GLuint tempBuffer;
+	GLuint rboDepthStencil;
+
+	glGenFramebuffers(1, &frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+	glGenTextures(1, &tempBuffer);
+	glBindTexture(GL_TEXTURE_2D, tempBuffer);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cube_s, cube_s, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tempBuffer, 0);
+
+	glGenRenderbuffers(1, &rboDepthStencil);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepthStencil);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, cube_s, cube_s);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void prepare_projections(glm::mat4 looks[6], glm::mat4 &proj, glm::vec3 center) {
+	proj = glm::perspective((float)M_PI / 2.0f, 1.0f, 0.0001f, 10000.0f);
+	looks[0] = glm::lookAt(glm::vec3(0.0), glm::vec3(1.0, 0.0, 0.0), -glm::vec3(0.0, 1.0, 0.0));
+	looks[1] = glm::lookAt(glm::vec3(0.0), glm::vec3(-1.0, 0.0, 0.0), -glm::vec3(0.0, 1.0, 0.0));
+	looks[2] = glm::lookAt(glm::vec3(0.0), glm::vec3(0.0, 1.0, 0.0), -glm::vec3(0.0, 0.0, 1.0));
+	looks[3] = glm::lookAt(glm::vec3(0.0), glm::vec3(0.0, -1.0, 0.0), -glm::vec3(0.0, 0.0, 1.0));
+	looks[4] = glm::lookAt(glm::vec3(0.0), glm::vec3(0.0, 0.0, 1.0), -glm::vec3(0.0, 1.0, 0.0));
+	looks[5] = glm::lookAt(glm::vec3(0.0), glm::vec3(0.0, 0.0, -1.0), -glm::vec3(0.0, 1.0, 0.0));
+}
+
+
+
 class PObject {
 public:
 	PObject() { init(1024, 4); }
@@ -676,6 +714,7 @@ private:
 	GLuint vcounter;
 	GLuint scounter;
 	GLuint dcounter;
+	GLuint pcounter;
 
 	GLuint frameBuffer;
 	GLuint tempBuffer;
@@ -702,14 +741,19 @@ private:
 	GLuint rcounter;
 
 	GLuint renderProgram;
+	GLuint envProgram;
 	GLuint vbo;
 	GLuint ebo;
 
+	GLuint cubeTex;
+
 public:
+	glm::vec3 center;
 	glm::vec3 offset;
 	glm::vec3 scale;
 	GLuint maxDepth = 4;
 	GLuint photonCount = 50000;
+	GLuint cubeFbo;
 
 	void setDepth(GLuint count, GLuint d) {
 		maxDepth = d;
@@ -805,6 +849,7 @@ private:
 
 		glGenBuffers(1, &rcounter);
 		glGenBuffers(1, &hcounter);
+		glGenBuffers(1, &pcounter);
 
 		glGenBuffers(1, &samples);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, samples);
@@ -874,6 +919,19 @@ private:
 			glUseProgram(renderProgram);
 		}
 
+		{
+			GLuint vertexShader = loadShader("./photon_tracer/env.vert", GL_VERTEX_SHADER);
+			GLuint geometryShader = loadShader("./photon_tracer/env.geom", GL_GEOMETRY_SHADER);
+			GLuint fragmentShader = loadShader("./photon_tracer/env.frag", GL_FRAGMENT_SHADER);
+			envProgram = glCreateProgram();
+			glAttachShader(envProgram, vertexShader);
+			glAttachShader(envProgram, geometryShader);
+			glAttachShader(envProgram, fragmentShader);
+			glBindFragDataLocation(envProgram, 0, "outColor");
+			glLinkProgram(envProgram);
+			glUseProgram(envProgram);
+		}
+
 
 		glGenFramebuffers(1, &frameBuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
@@ -886,6 +944,8 @@ private:
 
 		glGenRenderbuffers(1, &rboDepthStencil);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepthStencil);
+
+		prepare_cubemaps(cubeFbo);
 	}
 
 public:
@@ -903,6 +963,7 @@ public:
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, texels);
 		glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, rcounter);
 		glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 1, hcounter);
+		glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 3, pcounter);
 	}
 
 	void clearOctree() {
@@ -1026,6 +1087,7 @@ public:
 
 	void generate(glm::vec3 view) {
 		glUseProgram(cameraProgram);
+		center = view;
 
 		GLuint _zero = 0;
 		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, rcounter);
@@ -1087,6 +1149,74 @@ public:
 
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
+
+	void includeCubemap(GLuint cube) {
+		cubeTex = cube;
+	}
+
+	void generateEnv(glm::vec3 eye) {
+		glm::mat4 cams[6];
+		glm::mat4 proj;
+		center = eye;
+		prepare_projections(cams, proj, center);
+
+		std::vector<float> floats(6 * 16);
+		unsigned off = 0;
+		for (int i = 0;i < 6;i++) {
+			float * arr = glm::value_ptr(cams[i]);
+			for (int j = 0;j < 16;j++) {
+				floats[off] = arr[j];
+				off++;
+			}
+		}
+
+		glUseProgram(0);
+		
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
+		glCullFace(GL_FRONT_AND_BACK);
+		glUseProgram(envProgram);
+		glBindFramebuffer(GL_FRAMEBUFFER, cubeFbo);
+
+		GLuint _zero = 0;
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, rcounter);
+		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, hcounter);
+		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, dcounter);
+		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, pcounter);
+		glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), &_zero, GL_DYNAMIC_DRAW);
+
+		bindPhoton();
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, cubeTex);
+		glUniform1i(glGetUniformLocation(envProgram, "cubeTex"), 0);
+
+		glUniformMatrix4fv(glGetUniformLocation(envProgram, "proj"), 1, false, glm::value_ptr(proj));
+		glUniformMatrix4fv(glGetUniformLocation(envProgram, "cams"), 6, false, floats.data());
+		glUniform3fv(glGetUniformLocation(envProgram, "center"), 1, glm::value_ptr(center));
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glUniform1f(glGetUniformLocation(envProgram, "time"), clock());
+		glUniform2f(glGetUniformLocation(envProgram, "cubeRes"), cube_s, cube_s);
+		glUniform1ui(glGetUniformLocation(envProgram, "photonCount"), photonCount);
+		glVertexAttribPointer(glGetAttribLocation(envProgram, "position"), 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glViewport(0, 0, cube_s, cube_s);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, pcounter);
+		glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &photonCount);
+	}
+
 
 };
 
@@ -1422,6 +1552,8 @@ public:
 		rays.bindPhoton();
 		rays.bindOctree();
 
+		glUniform2f(glGetUniformLocation(matProgramPhoton, "cubeRes"), cube_s, cube_s);
+		glUniform3fv(glGetUniformLocation(matProgramPhoton, "center"), 1, glm::value_ptr(rays.center));
 		glUniform3fv(glGetUniformLocation(matProgramPhoton, "offset"), 1, glm::value_ptr(rays.offset));
 		glUniform3fv(glGetUniformLocation(matProgramPhoton, "scale"), 1, glm::value_ptr(rays.scale));
 
@@ -1456,6 +1588,8 @@ public:
 
 		rays.bind();
 
+		glUniform2f(glGetUniformLocation(matProgram, "cubeRes"), cube_s, cube_s);
+		glUniform3fv(glGetUniformLocation(matProgram, "center"), 1, glm::value_ptr(photons.center));
 		glUniform3fv(glGetUniformLocation(matProgram, "offset"), 1, glm::value_ptr(photons.offset));
 		glUniform3fv(glGetUniformLocation(matProgram, "scale"), 1, glm::value_ptr(photons.scale));
 
@@ -1475,8 +1609,8 @@ public:
 
 class Camera {
 public:
-	glm::vec3 eye = glm::vec3(90.0, 100.0, 90.0);
-	glm::vec3 view = glm::vec3(0.0, 100.0, 0.0);
+	glm::vec3 eye = glm::vec3(90.0, 2000.0, 90.0);
+	glm::vec3 view = glm::vec3(0.0, 2000.0, 0.0);
 
 	sf::Vector2i mposition;
 
@@ -1599,7 +1733,7 @@ GLuint initCubeMap()
 		{
 			std::cout << "Could not load '" << tex << "'" << std::endl;
 			//return false;
-		}
+		} else 
 		if (tex != "") {
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
 		}
@@ -1655,8 +1789,6 @@ int main()
 	glewExperimental = GL_TRUE;
 	glewInit();
 
-	GLuint cubeTex = initCubeMap();
-
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
@@ -1709,11 +1841,12 @@ int main()
 	mteapot[0].setSpecular(loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
 	mteapot[0].setTexture(loadDiffuse(""));
 	
-	
+	GLuint cubeTex = initCubeMap();
 	PObject photons;
 	photons.setDepth(256 * 256 * 256, 8);
-	photons.offset = sponza[0].offset;//-glm::vec3(500.0f);//teapot[0].offset;
-	photons.scale = sponza[0].scale;//glm::vec3(1000.0f);//teapot[0].scale;
+	photons.offset = glm::vec3(-50.0f);//sponza[0].offset;//-glm::vec3(500.0f);//teapot[0].offset;
+	photons.scale = glm::vec3(100.0f);//sponza[0].scale;//glm::vec3(1000.0f);//teapot[0].scale;
+	photons.includeCubemap(cubeTex);
 
 	RObject rays;
 	rays.includeCubemap(cubeTex);
@@ -1741,7 +1874,21 @@ int main()
 		}
 
 		
-		photons.generate(glm::vec3(0.0f, 200.0f, 0.0f));
+		//photons.generate(glm::vec3(0.0f, 200.0f, 0.0f));
+		
+
+		
+
+		double tt = milliseconds();
+		double c = tt - t;
+		t = tt;
+		
+		//teapot[0].calcMinmax();
+		//teapot[0].buildOctree();
+		cam.work(c);
+
+
+		photons.generateEnv(cam.eye);
 
 		for (int j = 0;j < 3;j++) {
 			photons.begin();
@@ -1750,34 +1897,20 @@ int main()
 			trans = glm::translate(trans, glm::vec3(0.0f, 0.0f, 0.0f));
 			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
 			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
-			/*
+
 			for (int i = 0;i < teapot.size();i++) {
-			photons.intersection(teapot[i], trans);
+				photons.intersection(teapot[i], trans);
 			}
 			for (int i = 0;i < mteapot.size();i++) {
-			mteapot[i].shadePhoton(photons, 1.0f);
-			}*/
+				mteapot[i].shadePhoton(photons, 1.0f);
+			}
 
-			for (int i = 0;i < sponza.size();i++) {
-				photons.intersection(sponza[i], glm::mat4());
-			}
-			for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shadePhoton(photons, 1.0f);
-			}
 			photons.close();
 		}
 
 		photons.buildOctree();
 
 
-
-		double tt = milliseconds();
-		double c = tt - t;
-		t = tt;
-
-		//teapot[0].calcMinmax();
-		//teapot[0].buildOctree();
-		cam.work(c);
 		rays.camera(cam.eye, cam.view);
 		for (int j = 0;j < 4;j++) {
 			rays.begin();
@@ -1785,11 +1918,11 @@ int main()
 
 			trans = glm::translate(trans, glm::vec3(0.0f, 0.0f, 0.0f));
 			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
-			for (int i = 0;i < sponza.size();i++) {
-				rays.intersection(sponza[i], glm::mat4());
+			for (int i = 0;i < teapot.size();i++) {
+				rays.intersection(teapot[i], trans);
 			}
-			for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shade(photons, rays, 1.0f);
+			for (int i = 0;i < mteapot.size();i++) {
+				mteapot[i].shade(photons, rays, 1.0f);
 			}
 			rays.close();
 		}

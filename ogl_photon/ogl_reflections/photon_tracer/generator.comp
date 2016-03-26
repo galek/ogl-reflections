@@ -188,7 +188,6 @@ void main()
         ray.params.w = 0.0f;
         ray.shadow = LONGEST;
         ray.params0.x = 1.0f;
-        //ray.final = vec3(1.0f, 0.0f, 0.0f);
         storeTexel(t, createRay(ray));
     }
 }
