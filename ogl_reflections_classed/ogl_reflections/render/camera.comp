@@ -143,7 +143,7 @@ float random( vec4  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
 
 uint counter = 0;
 float random(){
-    float r = random(vec3(/*gl_GlobalInvocationID.xy*/vec2(0.0f), time + counter));
+    float r = random(vec3(gl_GlobalInvocationID.xy, time + counter));
     counter++;
     return r;
 }
