@@ -363,12 +363,19 @@ vec3 projectVoxels(in vec3 orig, in uint maxDepth){
     return torig;
 }
 
+float getScale(){
+    float resX = pow(2, maxDepth-1);
+    return resX / scale.x;
+}
+
 TResult traverse(vec3 orig, vec3 dir){
     uint currentDepth = maxDepth-1;
     uint resX = uint(pow(2, currentDepth));
     vec3 torig = projectVoxels(orig, currentDepth+1);
     vec3 ray_start = torig + dir * 0.0001f;
     vec2 d = intersectCube(ray_start, dir, vec3(0.0f) - 0.0001f, vec3(resX) + 0.0001f);
+
+    float rate = getScale();
 
     TResult lastRes;
     lastRes.triangle = 0xFFFFFFFF;
@@ -402,29 +409,30 @@ TResult traverse(vec3 orig, vec3 dir){
             bool found = false;
             uvec3 coord = uvec3(test);
             Voxel vox = loadVoxel(coord, currentDepth);
-            if(vox.count > 0 && vox.last != LONGEST) {
-                vec3 mnc = test;
-                vec3 mxc = mnc + 1.0f;
-                vec2 d = intersectCube(ray_start, dir, mnc, mxc);
-                if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
-                    overlap = true;
-                    TResult lres = test_intersection(orig, dir, vox);
-                    if(lres.dist < lastRes.dist){
-                        lastRes = lres;
-                    }
-                }
+
+            vec3 mnc = test;
+            vec3 mxc = mnc + 1.0f;
+            vec2 d = intersectCube(ray_start, dir, mnc, mxc);
+            float rd = d.x / rate;
+
+            if(
+                lastRes.triangle != LONGEST &&
+                lastRes.dist >= 0.0f &&
+                lastRes.dist <= rd - 0.0001f
+            ) {
+                return lastRes;
+                break;
             }
 
-            if(!overlap){
-                if(
-                    lastRes.triangle != LONGEST &&
-                    lastRes.dist >= 0.0f &&
-                    lastRes.dist < INFINITY - 0.0001f
-                ) {
-                    return lastRes;
-                    break;
+            if(
+                d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY &&
+                vox.count > 0 && vox.last != LONGEST
+            ) {
+                TResult lres = test_intersection(orig, dir, vox);
+                if(lres.dist < lastRes.dist){
+                    lastRes = lres;
                 }
-
+            } else {
                 float coef = 1.0f;
                 vec3 tst = test;
                 vec3 coordf = tst;
