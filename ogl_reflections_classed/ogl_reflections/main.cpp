@@ -350,6 +350,7 @@ private:
 
 		{
 			GLuint compShader = loadShader("./voxelizer/filler.comp", GL_COMPUTE_SHADER);
+			//GLuint compShader = loadShader("./voxelizer/voxelizer_filler_combined.comp", GL_COMPUTE_SHADER);
 			voxelizerFillerProgram = glCreateProgram();
 			glAttachShader(voxelizerFillerProgram, compShader);
 			glBindFragDataLocation(voxelizerFillerProgram, 0, "outColor");
@@ -523,7 +524,7 @@ public:
 			glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint), nullptr, GL_DYNAMIC_STORAGE_BIT);
 		}
 
-
+		
 		GLuint dsize = 0;
 		{
 			unsigned size_r = pow(2, maxDepth-1);
@@ -618,14 +619,24 @@ public:
 				bindOctree();
 				bind();
 
+				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, helper_to);
+				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, helper);
+
 				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, vcounter);
 				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 1, dcounter);
+				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 2, lscounter_to);
+				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 3, lscounter);
+				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 4, scounter);
 
+				glUniform1ui(glGetUniformLocation(voxelizerFillerProgram, "triangleCount"), triangleCount);
 				glUniform1ui(glGetUniformLocation(voxelizerFillerProgram, "maxDepth"), maxDepth);
 				glUniform1ui(glGetUniformLocation(voxelizerFillerProgram, "currentDepth"), i);
+				glUniform3fv(glGetUniformLocation(voxelizerFillerProgram, "offset"), 1, glm::value_ptr(offset));
+				glUniform3fv(glGetUniformLocation(voxelizerFillerProgram, "scale"), 1, glm::value_ptr(scale));
 
 				GLuint tsize = tiled(dsize, 1024);
 				glDispatchCompute((tsize < 1024 ? 1024 : tsize) / 1024, 1, 1);
+				//glDispatchCompute(triangleCount, 1, 1);
 				glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			}
 

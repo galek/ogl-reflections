@@ -11,6 +11,8 @@ struct Voxel {
 
 layout(std430, binding=0) buffer s_voxels {Voxel voxels[];};
 layout(std430, binding=1) buffer s_voxels_sub {uint voxels_subgrid[];};
+layout(std430, binding=3) buffer s_vbo {float sverts[];};
+layout(std430, binding=4) buffer s_ebo {uint indics[];};
 layout(std430, binding=5) buffer s_to_helper {uint to_helper[];};
 layout(std430, binding=6) buffer s_from_helper {uint from_helper[];};
 
