@@ -224,15 +224,7 @@ void main()
                     }
 
                     newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.01f;
-                    //storeRay(last, newRay);
-
-                    uint ridx = createRay(newRay);
-                    storeTexel(t, ridx);
-                    storeHit(rays[ridx], hit);
-
-                    ray.params0.x = 0.0f;
-                    ray.actived = 0;
-                    storeRay(last, ray);
+                    storeRay(last, newRay);
                 }
             }
             last = ray.previous;
