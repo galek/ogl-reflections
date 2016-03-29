@@ -966,6 +966,7 @@ public:
 		glUniform1f(glGetUniformLocation(matProgram, "reflectionRate"), reflectionRate);
 		glUniform2f(glGetUniformLocation(matProgram, "sceneRes"), width, height);
 		glUniform3fv(glGetUniformLocation(matProgram, "light"), 1, glm::value_ptr(glm::vec3(9.0f, 200.0f, 9.0f)));
+		glUniform1f(glGetUniformLocation(matProgram, "time"), clock());
 
 		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -1242,7 +1243,7 @@ int main()
 
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
-		for (int j = 0;j < 3;j++) {
+		for (int j = 0;j < 6;j++) {
 			rays.begin();
 			glm::mat4 trans;
 

@@ -108,7 +108,7 @@ void main()
         uint count = texelInfo[t].count;
         for(uint i=0;i<count;i++){
             if(ray.params0.x > 0.0f){
-                samples[t].xyz += ray.final;
+                samples[t].xyz += ray.final * ray.params0.y;
                 samples[t].w += 1.0f;
             }
             ray = fetchNextRay(ray);
