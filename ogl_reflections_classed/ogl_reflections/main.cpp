@@ -1207,7 +1207,7 @@ int main()
 	mteapot[0].setMaterialID(msponza.size());
 	mteapot[0].setBump(loadBump(""));
 	mteapot[0].setSpecular(loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
-	mteapot[0].setTexture(loadDiffuse(""));
+	mteapot[0].setTexture(loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
 	
 
 
