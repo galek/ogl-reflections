@@ -246,7 +246,7 @@ void main()
                     vec3 color = tx.rgb * light;
 
                     float iorIn = 1.0f;
-                    float iorOut = 1.333f;
+                    float iorOut = 1.66f;
 
                     bool cond = dot(prenormal, newRay.direct) <= 0;
                     float coef = cond ? iorIn / iorOut : iorOut / iorIn;
