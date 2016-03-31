@@ -51,7 +51,9 @@ uint createRay(in Ray original){
     uint hidx = atomicCounterIncrement(hcounter);
     uint ridx = atomicCounterIncrement(rcounter);
     Ray ray = original;
+    ray.previous = LONGEST;
     ray.hit = hidx;
+    ray.shadow = LONGEST;
     Hit hit;
     hit.dist = 100000.0f;
     hit.triangle = LONGEST;
@@ -244,11 +246,12 @@ void main()
                     vec3 color = tx.rgb * light;
 
                     float iorIn = 1.0f;
-                    float iorOut = 1.3333f;
+                    float iorOut = 1.333f;
 
                     bool cond = dot(prenormal, newRay.direct) <= 0;
                     float coef = cond ? iorIn / iorOut : iorOut / iorIn;
                     vec3 refr = normalizeFast(refract(newRay.direct, normal, coef));
+                    vec3 refl = normalizeFast(reflect(newRay.direct, normal));
                     float fres = computeFresnel(
                         normal,
                         newRay.direct,
@@ -259,8 +262,22 @@ void main()
 
                     float spc = newRay.params.x * texture(spec, hit.texcoord).r * reflectionRate * fres;
                     if(tx.a > 0.999f){
+                        for(int i=0;i<0;i++){
+                            Ray newRay2 = newRay;
+                            if(random() < spc){
+                                newRay2.direct = refl;
+                            } else {
+                                newRay2.direct = refr;
+                            }
+                            newRay2.params.y += 1.0f;
+                            newRay2.origin += normalizeFast(normal * dot(newRay2.direct, normal)) * 0.01f;
+                            uint idx = createRay(newRay2);
+                            storeHit(rays[idx], hit);
+                            storeTexel(t, idx);
+                        }
+
                         if(random() < spc){
-                            newRay.direct = normalizeFast(reflect(newRay.direct, normal));
+                            newRay.direct = refl;
                         } else {
                             newRay.direct = refr;
                         }
