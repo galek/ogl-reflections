@@ -17,22 +17,6 @@ flat in vec3 vert2;
 flat in vec3 normal;
 in int gl_PrimitiveID;
 
-struct Thash {
-	uint triangle;
-	uint previous;
-};
-
-struct Voxel {
-    uint parent;
-	uint last;
-    uint count;
-    uint coordX;
-    uint coordY;
-    uint coordZ;
-    //f16vec4 color;
-    //f16vec4 normal;
-};
-
 struct VoxelRaw {
     uint coordX;
     uint coordY;
