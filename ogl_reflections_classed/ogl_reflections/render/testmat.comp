@@ -262,7 +262,7 @@ void main()
 
                     float spc = newRay.params.x * texture(spec, hit.texcoord).r * reflectionRate * fres;
                     if(tx.a > 0.999f){
-                        for(int i=0;i<0;i++){
+                        /*for(int i=0;i<0;i++){
                             Ray newRay2 = newRay;
                             if(random() < spc){
                                 newRay2.direct = refl;
@@ -274,14 +274,26 @@ void main()
                             uint idx = createRay(newRay2);
                             storeHit(rays[idx], hit);
                             storeTexel(t, idx);
-                        }
+                        }*/
 
-                        if(random() < spc){
+                        /*if(random() < spc){
                             newRay.direct = refl;
                         } else {
                             newRay.direct = refr;
-                        }
-                        newRay.params.y += 1.0f;
+                        }*/
+
+                        Ray newRay2 = newRay;
+                        newRay2.direct = refl;
+                        newRay2.color *= spc;
+                        newRay2.params0.y *= spc;
+                        newRay2.origin += normalizeFast(normal * dot(newRay2.direct, normal)) * 0.01f;
+                        uint idx = createRay(newRay2);
+                        storeHit(rays[idx], hit);
+                        storeTexel(t, idx);
+
+                        newRay.direct = refr;
+                        newRay.color *= 1.0f - spc;
+                        newRay.params0.y *= 1.0f - spc;
                         newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.01f;
                         storeRay(last, newRay);
                     }
