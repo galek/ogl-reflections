@@ -283,6 +283,8 @@ void main()
                     );
 
                     float spc = newRay.params.x * texture(spec, hit.texcoord).r * reflectionRate * fres / tx.a;
+
+                    tx.a *= dot(newRay.direct, prenormal) <= 0.0f ? 1.0f : 0.0f;
                     if(tx.a >= 0.001f){
                         float samp = 1.0f;
 
