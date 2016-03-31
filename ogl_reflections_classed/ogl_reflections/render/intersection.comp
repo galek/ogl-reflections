@@ -425,8 +425,7 @@ TResult traverse(vec3 orig, vec3 dir){
             }
 
             if(
-                d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY &&
-                vox.count > 0 && vox.last != LONGEST
+                d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY && vox.count > 0
             ) {
                 TResult lres = test_intersection(orig, dir, vox);
                 if(lres.dist < lastRes.dist){
@@ -449,7 +448,7 @@ TResult traverse(vec3 orig, vec3 dir){
                     vec3 mxc = (coordf + 1.0f) * dX + 0.0001f;
                     vec2 d = intersectCube(ray_start, dir, mnc, mxc);
                     if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
-                        if(_vox.count > 0 && _vox.last != LONGEST){
+                        if(_vox.count > 0){
                             break;
                         } else {
                             found = true;

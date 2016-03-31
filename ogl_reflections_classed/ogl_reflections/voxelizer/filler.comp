@@ -203,10 +203,12 @@ void main(){
         uvec3 coord = uvec3(tri.coordX, tri.coordY, tri.coordZ);
         uvec2 t = searchVoxelIndex(coord);
         atomicAdd(voxels[t.x].count, 1);
-        uint i = atomicCounterIncrement(vcounter);
-        Thash thash;
-        thash.triangle = tri.triangle;
-        thash.previous = atomicExchange(voxels[t.x].last, i);
-        thashes[i] = thash;
+        if(currentDepth == maxDepth-1){
+            uint i = atomicCounterIncrement(vcounter);
+            Thash thash;
+            thash.triangle = tri.triangle;
+            thash.previous = atomicExchange(voxels[t.x].last, i);
+            thashes[i] = thash;
+        }
      }
 }
