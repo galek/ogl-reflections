@@ -214,8 +214,32 @@ float random(){
     return r;
 }
 
+#define PI                    3.1415926535897932384626422832795028841971
+#define TWO_PI				  6.2831853071795864769252867665590057683943
+#define SQRT_OF_ONE_THIRD     0.5773502691896257645091487805019574556476
+#define E                     2.7182818284590452353602874713526624977572
 
+vec3 randomCosine(in vec3 normal) {
+    float up = sqrt(random()); // cos(theta)
+    float over = sqrt(1 - up * up); // sin(theta)
+    float around = random() * TWO_PI;
 
+	vec3 directionNotNormal;
+	if (abs(normal.x) < SQRT_OF_ONE_THIRD) {
+		directionNotNormal = vec3(1, 0, 0);
+	} else if (abs(normal.y) < SQRT_OF_ONE_THIRD) {
+		directionNotNormal = vec3(0, 1, 0);
+	} else {
+		directionNotNormal = vec3(0, 0, 1);
+	}
+	vec3 perpendicular1 = normalize( cross(normal, directionNotNormal) );
+	vec3 perpendicular2 =            cross(normal, perpendicular1);
+    return ( up * normal ) + ( cos(around) * over * perpendicular1 ) + ( sin(around) * over * perpendicular2 );
+}
+
+#define DIFFUSE
+#define DIFFUSE_COUNT 2
+#define REFLECTION
 
 void main()
 {
@@ -241,9 +265,7 @@ void main()
                     prenormal = normalizeFast(getNormalMapping(hit.texcoord) * tbn);
 
                     vec3 normal = -normalizeFast(prenormal * dot(prenormal, newRay.direct));
-
-                    float light = clamp(dot(normalizeFast(light - newRay.origin), normal), 0.0f, 1.0f);
-                    vec3 color = tx.rgb * light;
+                    vec3 color = tx.rgb;
 
                     float iorIn = 1.0f;
                     float iorOut = 1.66f;
@@ -262,12 +284,14 @@ void main()
 
                     float spc = newRay.params.x * texture(spec, hit.texcoord).r * reflectionRate * fres;
                     if(tx.a > 0.999f){
+#ifdef REFRACTIVE
                         if(spc >= 0.001f){
                             Ray newRay2 = newRay;
                             newRay2.direct = refl;
                             newRay2.color *= spc;
                             newRay2.params0.y *= spc;
-                            newRay2.origin += normalizeFast(normal * dot(newRay2.direct, normal)) * 0.01f;
+                            newRay2.params.y += 1.0f;
+                            newRay2.origin += normalizeFast(normal * dot(newRay2.direct, normal)) * 0.1f;
                             if(spc > 0.999f){
                                 storeRay(last, newRay2);
                             } else {
@@ -281,10 +305,48 @@ void main()
                             newRay.direct = refr;
                             newRay.color *= 1.0f - spc;
                             newRay.params0.y *= 1.0f - spc;
-                            newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.01f;
-                            storeRay(last, newRay);
+                            newRay.params.y += 1.0f;
                         }
+#endif
+#ifdef DIFFUSE
+
+                        float samp = 1.0f / DIFFUSE_COUNT;
+#ifdef REFLECTION
+                        samp *= 1.0f - spc;
+#endif
+                        for(int i=0;i<DIFFUSE_COUNT-1;i++){
+                            Ray newRay2 = newRay;
+                            newRay2.direct = randomCosine(normal);
+                            newRay2.color *= color * samp;
+                            newRay2.params0.y *= samp;
+                            newRay2.params.y += 1.0f;
+                            newRay2.origin += normalizeFast(normal * dot(newRay2.direct, normal)) * 0.1f;
+                            uint idx = createRay(newRay2);
+                            storeHit(rays[idx], hit);
+                            storeTexel(t, idx);
+                        }
+
+#ifdef REFLECTION
+                        Ray newRay2 = newRay;
+                        newRay2.direct = refl;
+                        newRay2.color *= spc;
+                        newRay2.params0.y *= spc;
+                        newRay2.params.y += 1.0f;
+                        newRay2.origin += normalizeFast(normal * dot(newRay2.direct, normal)) * 0.1f;
+                        uint idx = createRay(newRay2);
+                        storeHit(rays[idx], hit);
+                        storeTexel(t, idx);
+#endif
+
+                        newRay.direct = randomCosine(normal);
+                        newRay.color *= color * samp;
+                        newRay.params0.y *= samp;
+                        newRay.params.y += 1.0f;
+#endif
                     }
+
+                    newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.1f;
+                    storeRay(last, newRay);
                 }
             }
             last = ray.previous;

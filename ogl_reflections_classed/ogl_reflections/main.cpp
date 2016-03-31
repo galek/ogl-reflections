@@ -714,11 +714,11 @@ private:
 
 		glGenBuffers(1, &rays);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, rays);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, 1024 * 1024 * 4 * sizeof(Ray), nullptr, GL_DYNAMIC_STORAGE_BIT);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, 1024 * 1024 * 8 * sizeof(Ray), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
 		glGenBuffers(1, &hits);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, hits);
-		glBufferStorage(GL_SHADER_STORAGE_BUFFER, 1024 * 1024 * 4 * sizeof(Hit), nullptr, GL_DYNAMIC_STORAGE_BIT);
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, 1024 * 1024 * 8 * sizeof(Hit), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
 		glGenBuffers(1, &rcounter);
 		glGenBuffers(1, &hcounter);
@@ -1243,7 +1243,7 @@ int main()
 
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
-		for (int j = 0;j < 6;j++) {
+		for (int j = 0;j < 3;j++) {
 			rays.begin();
 			glm::mat4 trans;
 
