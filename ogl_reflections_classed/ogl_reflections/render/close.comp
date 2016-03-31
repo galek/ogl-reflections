@@ -113,11 +113,11 @@ void main()
             Ray ray = rays[last];
             Hit hit = hits[ray.hit];
             if(hit.dist >= 10000.0f || ray.params.w < 1.0f || ray.params.y >= ray.params.z){
-                ray.actived = 0;
-                if(ray.params0.x > 0.0f && ray.params.y < ray.params.z && hit.dist >= 10000.0f) {
+                if(ray.actived > 0 && ray.params0.x > 0.0f && ray.params.y < ray.params.z && hit.dist >= 10000.0f) {
                     //ray.final = mix(ray.final, vec3(texture(cubeTex, ray.direct).xyz), ray.params.x);
                     ray.final = ray.color * texture(cubeTex, ray.direct).xyz;
                 }
+                ray.actived = 0;
             }
             ray.params.w = 0.0f;
             storeRay(last, ray);

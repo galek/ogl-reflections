@@ -268,7 +268,7 @@ void main()
                     vec3 color = tx.rgb;
 
                     float iorIn = 1.0f;
-                    float iorOut = 1.66f;
+                    float iorOut = 1.6666f;
 
                     bool cond = dot(prenormal, newRay.direct) <= 0;
                     float coef = cond ? iorIn / iorOut : iorOut / iorIn;
@@ -282,13 +282,16 @@ void main()
                         cond ? iorOut : iorIn
                     );
 
-                    float spc = newRay.params.x * texture(spec, hit.texcoord).r * reflectionRate * fres / tx.a;
-
-                    tx.a *= dot(newRay.direct, prenormal) <= 0.0f ? 1.0f : 0.0f;
+                    float spc = texture(spec, hit.texcoord).r * reflectionRate * fres;
+#ifndef REFLECTION
+                    spc = 0.0f;
+#endif
+                    if(tx.a >= 0.999f){
+                        tx.a *= dot(newRay.direct, prenormal) <= 0.0f ? 1.0f : 0.0f;
+                    }
                     if(tx.a >= 0.001f){
                         float samp = 1.0f;
 
-#ifdef REFLECTION
                         samp *= 1.0f - spc;
                         if(spc >= 0.001f){
                             Ray newRay2 = newRay;
@@ -301,7 +304,6 @@ void main()
                             storeHit(rays[idx], hit);
                             storeTexel(t, idx);
                         }
-#endif
 
 #ifdef DIFFUSE
                         samp *= 1.0f / DIFFUSE_COUNT * tx.a;
@@ -320,8 +322,9 @@ void main()
                         }
 #endif
 
-#ifdef REFRACTIVE
-                        float ref = 1.0f - samp;
+                        float ref = 1.0f;
+                        ref *= (1.0f - tx.a);
+                        ref *= (1.0f - spc);
                         if(ref >= 0.001f){
                             Ray newRay2 = newRay;
                             newRay2.direct = refr;
@@ -333,12 +336,13 @@ void main()
                             storeHit(rays[idx], hit);
                             storeTexel(t, idx);
                         }
-#endif
+
                         newRay.actived = 0;
+                        newRay.params0.x = 0.0f;
                     }
+
                     newRay.color *= 1.0f - tx.a;
                     newRay.params0.y *= 1.0f - tx.a;
-                    newRay.params.y += 1.0f;
                     newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.1f;
                     storeRay(last, newRay);
                 }

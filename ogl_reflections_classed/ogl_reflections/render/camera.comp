@@ -155,7 +155,7 @@ void main()
         texelInfo[t].count = 0;
         texelInfo[t].last = LONGEST;
 
-        for(int i=0;i<2;i++){
+        for(int i=0;i<1;i++){
             vec2 coord = vec2(gl_GlobalInvocationID.xy);
             coord += vec2(random(), random());
             coord /= sceneRes;
