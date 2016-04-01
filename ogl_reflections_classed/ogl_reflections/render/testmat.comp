@@ -285,7 +285,7 @@ void main()
                     vec4 ilTx = texture(illum, hit.texcoord);
                     vec3 ilColor = ilTx.rgb;
                     float ipa = ilTx.a;
-                    if(ipa > 0.001f){
+                    if(ipa >= 0.001f){
                         Ray newRay2 = newRay;
                         newRay2.direct = refr;
                         newRay2.color *= ipa;
