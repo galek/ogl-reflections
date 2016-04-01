@@ -212,10 +212,10 @@ public:
 
 		unsigned size_r = pow(2, maxDepth - 1);
 
-		GLuint vrsize = sizeof(VoxelRaw) * count / 2;
-		GLuint vsize = sizeof(Voxel) * size_r * size_r * 32;
+		GLuint vrsize = sizeof(VoxelRaw) * count;
+		GLuint vsize = sizeof(Voxel) * size_r * size_r * 64;
 		GLuint tsize = sizeof(Thash) * count;
-		GLuint subgridc = sizeof(GLuint) * size_r * size_r * 32 * 8;
+		GLuint subgridc = sizeof(GLuint) * size_r * size_r * 64 * 8;
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, vspace);
 		glBufferPageCommitmentARB(GL_SHADER_STORAGE_BUFFER, 0, vsize_g, false);
@@ -1157,24 +1157,27 @@ int main()
 
 	GLuint cubeTex = initCubeMap();
 
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-	std::string err;
-	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
-	
 	std::vector<TObject> sponza(1);
-	sponza[0].setDepth(512 * 512 * 64, 9);
-	sponza[0].setMaterialID(0);
-	sponza[0].loadMesh(shapes);
-	sponza[0].calcMinmax();
-	sponza[0].buildOctree();
-
-	std::vector<TestMat> msponza(materials.size());
-	for (int i = 0;i < msponza.size();i++) {
-		msponza[i].setBump(loadBump(materials[i].bump_texname));
-		msponza[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2], 1.0f)));
-		msponza[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2], 1.0f)));
-		msponza[i].setMaterialID(i);
+	std::vector<TestMat> msponza;
+	{
+		std::vector<tinyobj::shape_t> shapes;
+		std::vector<tinyobj::material_t> materials;
+		std::string err;
+		bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
+		
+		sponza[0].setDepth(512 * 512 * 64, 9);
+		sponza[0].setMaterialID(0);
+		sponza[0].loadMesh(shapes);
+		sponza[0].calcMinmax();
+		sponza[0].buildOctree();
+		
+		msponza.resize(materials.size());
+		for (int i = 0;i < msponza.size();i++) {
+			msponza[i].setBump(loadBump(materials[i].bump_texname));
+			msponza[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2], 1.0f)));
+			msponza[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2], 1.0f)));
+			msponza[i].setMaterialID(i);
+		}
 	}
 
 	/*
@@ -1194,21 +1197,34 @@ int main()
 		mcornell[i].setMaterialID(msponza.size() + i);
 	}*/
 	
-	ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
 	std::vector<TObject> teapot(1);
-	teapot[0].setDepth(64 * 64 * 64, 8);
-	teapot[0].setMaterialID(msponza.size());
-	teapot[0].loadMesh(shapes);
-	teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
-	teapot[0].calcMinmax();
-	teapot[0].buildOctree();
+	std::vector<TestMat> mteapot;
+	{
+		std::vector<tinyobj::shape_t> shapes;
+		std::vector<tinyobj::material_t> materials;
+		std::string err;
+		bool ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
+		
+		teapot[0].setDepth(128 * 128 * 256, 8);
+		teapot[0].setMaterialID(msponza.size());
+		teapot[0].loadMesh(shapes);
+		teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
+		teapot[0].calcMinmax();
+		teapot[0].buildOctree();
 
-	std::vector<TestMat> mteapot(1);
-	mteapot[0].setMaterialID(msponza.size());
-	mteapot[0].setBump(loadBump(""));
-	mteapot[0].setSpecular(loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
-	mteapot[0].setTexture(loadWithDefault("", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
-	
+		mteapot.resize(materials.size());
+		for (int i = 0;i < mteapot.size();i++) {
+			mteapot[i].setBump(loadBump(materials[i].bump_texname));
+			mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(1.0f), 1.0f)));
+			mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(1.0f), 1.0f)));
+			//mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]), 1.0f)));
+			//mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]), 1.0f)));
+
+			
+
+			mteapot[i].setMaterialID(msponza.size() + i);
+		}
+	}
 
 
 	RObject rays;
