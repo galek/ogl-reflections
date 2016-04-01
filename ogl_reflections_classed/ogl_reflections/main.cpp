@@ -925,6 +925,36 @@ public:
 };
 
 
+GLuint loadWithDefault(std::string tex, glm::vec4 def) {
+	sf::Image img_data;
+	GLuint texture_handle;
+	glGenTextures(1, &texture_handle);
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
+	if (tex != "" && img_data.loadFromFile(tex)) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
+	}
+	else {
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1, 1, 0, GL_RGBA, GL_FLOAT, glm::value_ptr(def));
+	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	return texture_handle;
+}
+
+GLuint loadBump(std::string tex) {
+	return loadWithDefault(tex, glm::vec4(0.5f, 0.5f, 1.0f, 1.0f));
+}
+
+GLuint loadDiffuse(std::string tex) {
+	return loadWithDefault(tex, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+}
+
+GLuint loadSpecular(std::string tex) {
+	return loadWithDefault(tex, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+}
 
 
 class TestMat {
@@ -934,6 +964,8 @@ private:
 	GLuint tex;
 	GLuint btex;
 	GLuint stex;
+	GLuint itex;
+	GLfloat illumPow = 1.0f;
 
 	void init() {
 		GLuint compShader = loadShader("./render/testmat.comp", GL_COMPUTE_SHADER);
@@ -942,10 +974,16 @@ private:
 		glBindFragDataLocation(matProgram, 0, "outColor");
 		glLinkProgram(matProgram);
 		glUseProgram(matProgram);
+
+		itex = loadWithDefault("", glm::vec4(glm::vec3(1.0f), 0.0f));
+		illumPow = 1.0f;
 	}
 public:
 	TestMat() {
 		init();
+	}
+	void setIllumPower(GLfloat a) {
+		illumPow = a;
 	}
 	void setMaterialID(GLuint id) {
 		materialID = id;
@@ -958,6 +996,9 @@ public:
 	}
 	void setSpecular(GLuint tx) {
 		stex = tx;
+	}
+	void setIllumination(GLuint tx) {
+		itex = tx;
 	}
 	void shade(RObject &rays, GLfloat reflectionRate) {
 		glUseProgram(matProgram);
@@ -974,11 +1015,16 @@ public:
 		glBindTexture(GL_TEXTURE_2D, stex);
 		glUniform1i(glGetUniformLocation(matProgram, "spec"), 2);
 
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, itex);
+		glUniform1i(glGetUniformLocation(matProgram, "illum"), 3);
+
 		rays.bind();
 		glUniform1ui(glGetUniformLocation(matProgram, "materialID"), materialID);
 		glUniform1f(glGetUniformLocation(matProgram, "reflectionRate"), reflectionRate);
 		glUniform3fv(glGetUniformLocation(matProgram, "light"), 1, glm::value_ptr(glm::vec3(9.0f, 200.0f, 9.0f)));
 		glUniform1f(glGetUniformLocation(matProgram, "time"), clock());
+		glUniform1f(glGetUniformLocation(matProgram, "illumPower"), illumPow);
 
 		GLuint rsize = rays.getRayCount();
 		glUniform1ui(glGetUniformLocation(matProgram, "rayCount"), rsize);
@@ -989,7 +1035,7 @@ public:
 
 class Camera {
 public:
-	glm::vec3 eye = glm::vec3(90.0, 100.0, 90.0);
+	glm::vec3 eye = glm::vec3(300.0, 100.0, 0.0);
 	glm::vec3 view = glm::vec3(0.0, 100.0, 0.0);
 
 	sf::Vector2i mposition;
@@ -1121,38 +1167,6 @@ GLuint initCubeMap()
 	return tex;
 }
 
-
-GLuint loadWithDefault(std::string tex, glm::vec4 def) {
-	sf::Image img_data;
-	GLuint texture_handle;
-	glGenTextures(1, &texture_handle);
-	glBindTexture(GL_TEXTURE_2D, texture_handle);
-	if (tex != "" && img_data.loadFromFile(tex)) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img_data.getSize().x, img_data.getSize().y, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data.getPixelsPtr());
-	}
-	else {
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1, 1, 0, GL_RGBA, GL_FLOAT, glm::value_ptr(def));
-	}
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	return texture_handle;
-}
-
-GLuint loadBump(std::string tex) {
-	return loadWithDefault(tex, glm::vec4(0.5f, 0.5f, 1.0f, 1.0f));
-}
-
-GLuint loadDiffuse(std::string tex) {
-	return loadWithDefault(tex, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-}
-
-GLuint loadSpecular(std::string tex) {
-	return loadWithDefault(tex, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-}
-
 double milliseconds() {
 	auto duration = std::chrono::high_resolution_clock::now();
 	double millis = std::chrono::duration_cast<std::chrono::nanoseconds>(duration.time_since_epoch()).count();
@@ -1169,8 +1183,6 @@ int main()
 	glewExperimental = GL_TRUE;
 	glewInit();
 
-	GLuint cubeTex = initCubeMap();
-
 	std::vector<TObject> sponza(1);
 	std::vector<TestMat> msponza;
 	{
@@ -1179,47 +1191,33 @@ int main()
 		std::string err;
 		bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 		
-		sponza[0].setDepth(512 * 512 * 64, 8);
+		sponza[0].setDepth(128 * 256 * 256, 9);
 		sponza[0].setMaterialID(0);
 		sponza[0].loadMesh(shapes);
+		sponza[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
 		sponza[0].calcMinmax();
 		sponza[0].buildOctree();
 		
 		msponza.resize(materials.size());
 		for (int i = 0;i < msponza.size();i++) {
 			msponza[i].setBump(loadBump(materials[i].bump_texname));
-			msponza[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2], 1.0f)));
-			msponza[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2], 1.0f)));
-			msponza[i].setMaterialID(i);
+			//mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(0.0f), 1.0f)));
+			//mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(1.0f), 1.0f)));
+			msponza[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]), 1.0f)));
+			msponza[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]), 1.0f)));
+			msponza[i].setMaterialID(0 + i);
 		}
 	}
 
-	/*
-	ret = tinyobj::LoadObj(shapes, materials, err, "cornell_box.obj");
-	std::vector<TObject> cornell(1);
-	cornell[0].setDepth(128 * 128 * 64, 5);
-	cornell[0].setMaterialID(msponza.size());
-	cornell[0].loadMesh(shapes);
-	cornell[0].calcMinmax();
-	cornell[0].buildOctree();
-
-	std::vector<TestMat> mcornell(materials.size());
-	for (int i = 0;i < mcornell.size();i++) {
-		mcornell[i].setBump(loadBump(""));
-		mcornell[i].setSpecular(loadWithDefault("", glm::vec4(glm::vec3(0.2f), 1.0f)));
-		mcornell[i].setTexture(loadWithDefault("", glm::vec4(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2], 1.0f)));
-		mcornell[i].setMaterialID(msponza.size() + i);
-	}*/
-	
 	std::vector<TObject> teapot(1);
 	std::vector<TestMat> mteapot;
 	{
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string err;
-		bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
-		
-		teapot[0].setDepth(128 * 256 * 256, 9);
+		bool ret = tinyobj::LoadObj(shapes, materials, err, "models/sphere.obj");
+
+		teapot[0].setDepth(128 * 64 * 64, 8);
 		teapot[0].setMaterialID(msponza.size());
 		teapot[0].loadMesh(shapes);
 		teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -1228,6 +1226,8 @@ int main()
 
 		mteapot.resize(materials.size());
 		for (int i = 0;i < mteapot.size();i++) {
+			mteapot[i].setIllumination(loadWithDefault("", glm::vec4(glm::vec3(1.0f, 1.0f, 1.0f), 1.0f)));
+			mteapot[i].setIllumPower(40.0f);
 			mteapot[i].setBump(loadBump(materials[i].bump_texname));
 			//mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(0.0f), 1.0f)));
 			//mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(1.0f), 1.0f)));
@@ -1239,7 +1239,7 @@ int main()
 
 
 	RObject rays;
-	rays.includeCubemap(cubeTex);
+	rays.includeCubemap(initCubeMap());
 	double t = milliseconds();//time(0) * 1000.0;
 
 	Camera cam;
@@ -1274,22 +1274,22 @@ int main()
 			rays.begin();
 			glm::mat4 trans;
 
-			trans = glm::translate(trans, glm::vec3(0.0f, 0.0f, 0.0f));
-			//trans = glm::scale(trans, glm::vec3(100.0f, 100.0f, 100.0f));
+			trans = glm::translate(trans, glm::vec3(0.0f, 2000.0f, 300.0f));
+			trans = glm::scale(trans, glm::vec3(250.0f, 250.0f, 250.0f));
 			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 
-			/*for (int i = 0;i < sponza.size();i++) {
+			for (int i = 0;i < sponza.size();i++) {
 				rays.intersection(sponza[i], glm::mat4());
 				//rays.intersection(sponza[i], trans);
-			}*/
+			}
 			for (int i = 0;i < teapot.size();i++) {
 				rays.intersection(teapot[i], trans);
 			}
-			
-			/*for (int i = 0;i < msponza.size();i++) {
+
+			for (int i = 0;i < msponza.size();i++) {
 				msponza[i].shade(rays, 0.0f);
-			}*/
+			}
 			for (int i = 0;i < mteapot.size();i++) {
 				mteapot[i].shade(rays, 1.0f);
 			}
