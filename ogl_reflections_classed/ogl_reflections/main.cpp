@@ -1217,9 +1217,9 @@ int main()
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string err;
-		bool ret = tinyobj::LoadObj(shapes, materials, err, "chessboard.obj");
+		bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 		
-		teapot[0].setDepth(128 * 128 * 256, 8);
+		teapot[0].setDepth(128 * 256 * 256, 9);
 		teapot[0].setMaterialID(msponza.size());
 		teapot[0].loadMesh(shapes);
 		teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -1275,8 +1275,8 @@ int main()
 			glm::mat4 trans;
 
 			trans = glm::translate(trans, glm::vec3(0.0f, 0.0f, 0.0f));
-			trans = glm::scale(trans, glm::vec3(100.0f, 100.0f, 100.0f));
-			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
+			//trans = glm::scale(trans, glm::vec3(100.0f, 100.0f, 100.0f));
+			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 
 			/*for (int i = 0;i < sponza.size();i++) {
