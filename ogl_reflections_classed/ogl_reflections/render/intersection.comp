@@ -251,7 +251,7 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
     Thash hash = thashes[vox.last];
     bool needsSkip = false;
 
-    const uint globalTCount = 4000;
+    const uint globalTCount = 300;
     const uint triangleCount = globalTCount;
 
     float d = INFINITY;
@@ -381,7 +381,7 @@ TResult traverse(vec3 orig, vec3 dir){
         vec3 test = floor(p0);
         vec3 mx = delta * mix(fract(p0), 1.0 - fract(p0), step * 0.5 + 0.5);
 
-        const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f))) * 4;
+        const uint iterationCount = uint(ceil(float(resX) * sqrt(3.0f)));
         uint iteration = 0;
 
         do {
@@ -468,9 +468,9 @@ TResult traverse(vec3 orig, vec3 dir){
             test.y >= 0.0f &&
             test.z >= 0.0f &&
 
-            test.x <= float(resX) &&
-            test.y <= float(resX) &&
-            test.z <= float(resX)
+            test.x < float(resX) &&
+            test.y < float(resX) &&
+            test.z < float(resX)
         );
     }
 
