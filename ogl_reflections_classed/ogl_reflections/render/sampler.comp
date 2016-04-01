@@ -6,6 +6,7 @@ const float INFINITY = 1e10;
 /* ============ RAYS ============= */
 
 struct Ray {
+    uint texel;
     uint previous;
     uint hit;
     uint shadow;

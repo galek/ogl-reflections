@@ -6,6 +6,7 @@ const float INFINITY = 1e10;
 /* ============ RAYS ============= */
 
 struct Ray {
+    uint texel;
     uint previous;
     uint hit;
     uint shadow;
@@ -95,25 +96,20 @@ Ray fetchNextRay(in Ray ray){
 
 uniform mat4 projInv;
 uniform mat4 camInv;
-uniform vec2 sceneRes;
+uniform uint rayCount;
 
-layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
 void main()
 {
-    if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
-        uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
-
-        Ray ray = fetchFirstRay(t);
-        uint count = texelInfo[t].count;
-        for(uint i=0;i<count;i++){
-            Hit hit;
-            hit.dist = 100000.0f;
-            hit.triangle = LONGEST;
-            hit.materialID = LONGEST;
-            hit.normal = vec3(0.0f);
-            storeHit(ray, hit);
-            ray = fetchNextRay(ray);
-        }
+    if(gl_GlobalInvocationID.x < rayCount){
+        uint t = gl_GlobalInvocationID.x;
+        Ray ray = rays[t];
+        Hit hit;
+        hit.dist = 100000.0f;
+        hit.triangle = LONGEST;
+        hit.materialID = LONGEST;
+        hit.normal = vec3(0.0f);
+        storeHit(ray, hit);
     }
 }

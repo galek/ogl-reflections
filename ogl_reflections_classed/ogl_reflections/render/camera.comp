@@ -6,6 +6,7 @@ const float INFINITY = 1e10;
 /* ============ RAYS ============= */
 
 struct Ray {
+    uint texel;
     uint previous;
     uint hit;
     uint shadow;
@@ -45,6 +46,7 @@ uint createRay(in Ray original){
     Ray ray = original;
     ray.hit = hidx;
     ray.previous = LONGEST;
+    ray.texel = LONGEST;
     Hit hit;
     hit.dist = 100000.0f;
     hit.triangle = LONGEST;
@@ -61,6 +63,7 @@ uint createRay(){
 
 void storeTexel(in uint texel, in uint rayIndex){
     rays[rayIndex].previous = atomicExchange(texelInfo[texel].last, rayIndex);
+    rays[rayIndex].texel = texel;
     atomicAdd(texelInfo[texel].count, 1);
 }
 

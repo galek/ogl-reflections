@@ -32,6 +32,7 @@ layout(std430, binding=7) buffer s_mat {int mats[];};
 /* ============ RAYS ============= */
 
 struct Ray {
+    uint texel;
     uint previous;
     uint hit;
     uint shadow;
@@ -119,8 +120,6 @@ Ray fetchNextRay(in Ray ray){
 
 /* ============ END =========== */
 
-
-uniform vec2 sceneRes;
 uniform uint maxDepth;
 uniform vec3 offset;
 uniform vec3 scale;
@@ -484,52 +483,48 @@ TResult traverse(vec3 orig, vec3 dir){
 
 uniform uint materialID;
 
-layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
 uniform mat4 transform;
 uniform mat4 transformInv;
+uniform uint rayCount;
 
 void main()
 {
-    if(gl_GlobalInvocationID.x < sceneRes.x && gl_GlobalInvocationID.y < sceneRes.y){
-        uint t = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(sceneRes.x);
+    if(gl_GlobalInvocationID.x < rayCount){
+        uint t = gl_GlobalInvocationID.x;
 
-        Ray ray = fetchFirstRay(t);
-        uint count = texelInfo[t].count;
-        for(uint i=0;i<count;i++){
-            if(ray.actived > 0 && ray.params.y < ray.params.z){
-                Hit hit = hits[ray.hit];
+        Ray ray = rays[t];
+        if(ray.actived > 0 && ray.params.y < ray.params.z){
+            Hit hit = hits[ray.hit];
 
-                vec3 p0 = ray.origin;
-                vec3 p1 = ray.origin + ray.direct;
-                vec3 p0t = (transformInv * vec4(ray.origin, 1.0)).xyz;
-                vec3 p1t = (transformInv * vec4(ray.origin + ray.direct, 1.0)).xyz;
+            vec3 p0 = ray.origin;
+            vec3 p1 = ray.origin + ray.direct;
+            vec3 p0t = (transformInv * vec4(ray.origin, 1.0)).xyz;
+            vec3 p1t = (transformInv * vec4(ray.origin + ray.direct, 1.0)).xyz;
 
-                Ray tray = ray;
-                tray.origin = p0t;
-                tray.direct = p1t - p0t;
-                float rate = lengthFast(tray.direct) / lengthFast(ray.direct);
-                tray.direct /= rate;
+            Ray tray = ray;
+            tray.origin = p0t;
+            tray.direct = p1t - p0t;
+            float rate = lengthFast(tray.direct) / lengthFast(ray.direct);
+            tray.direct /= rate;
 
-                TResult res = traverse(tray.origin, tray.direct);
-                float dst = res.dist / rate;
-                if(dst < hit.dist){
-                    Hit newHit = hit;
-                    newHit.dist = dst;
-                    newHit.normal = (vec4(res.normal, 0.0) * transformInv).xyz;
-                    newHit.triangle = res.triangle;
-                    if(res.materialID >= 0){
-                        newHit.materialID = uint(res.materialID) + materialID;
-                    } else {
-                        newHit.materialID = materialID;
-                    }
-                    newHit.texcoord = res.texcoord;
-                    newHit.tangent = (vec4(res.tangent, 0.0) * transformInv).xyz;
-                    storeHit(ray, newHit);
+            TResult res = traverse(tray.origin, tray.direct);
+            float dst = res.dist / rate;
+            if(dst < hit.dist){
+                Hit newHit = hit;
+                newHit.dist = dst;
+                newHit.normal = (vec4(res.normal, 0.0) * transformInv).xyz;
+                newHit.triangle = res.triangle;
+                if(res.materialID >= 0){
+                    newHit.materialID = uint(res.materialID) + materialID;
+                } else {
+                    newHit.materialID = materialID;
                 }
+                newHit.texcoord = res.texcoord;
+                newHit.tangent = (vec4(res.tangent, 0.0) * transformInv).xyz;
+                storeHit(ray, newHit);
             }
-
-            ray = fetchNextRay(ray);
         }
     }
 }

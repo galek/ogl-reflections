@@ -819,8 +819,9 @@ public:
 		glUseProgram(beginProgram);
 		bind();
 
-		glUniform2f(glGetUniformLocation(beginProgram, "sceneRes"), width, height);
-		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
+		GLuint rsize = getRayCount();
+		glUniform1ui(glGetUniformLocation(beginProgram, "rayCount"), rsize);
+		glDispatchCompute(tiled(rsize, 1024) / 1024, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -852,8 +853,9 @@ public:
 		glBindTexture(GL_TEXTURE_2D, cubeTex);
 		glUniform1i(glGetUniformLocation(closeProgram, "cubeTex"), 0);
 
-		glUniform2f(glGetUniformLocation(closeProgram, "sceneRes"), width, height);
-		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
+		GLuint rsize = getRayCount();
+		glUniform1ui(glGetUniformLocation(closeProgram, "rayCount"), rsize);
+		glDispatchCompute(tiled(rsize, 1024) / 1024, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 
@@ -906,8 +908,19 @@ public:
 		glUniformMatrix4fv(glGetUniformLocation(intersectionProgram, "transform"), 1, false, glm::value_ptr(trans));
 		glUniformMatrix4fv(glGetUniformLocation(intersectionProgram, "transformInv"), 1, false, glm::value_ptr(glm::inverse(trans)));
 
-		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
+		//glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
+
+		GLuint rsize = getRayCount();
+		glUniform1ui(glGetUniformLocation(intersectionProgram, "rayCount"), rsize);
+		glDispatchCompute(tiled(rsize, 1024) / 1024, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+
+	GLuint getRayCount() {
+		GLuint rsize = 0;
+		glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, rcounter);
+		glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &rsize);
+		return rsize;
 	}
 };
 
@@ -964,11 +977,12 @@ public:
 		rays.bind();
 		glUniform1ui(glGetUniformLocation(matProgram, "materialID"), materialID);
 		glUniform1f(glGetUniformLocation(matProgram, "reflectionRate"), reflectionRate);
-		glUniform2f(glGetUniformLocation(matProgram, "sceneRes"), width, height);
 		glUniform3fv(glGetUniformLocation(matProgram, "light"), 1, glm::value_ptr(glm::vec3(9.0f, 200.0f, 9.0f)));
 		glUniform1f(glGetUniformLocation(matProgram, "time"), clock());
 
-		glDispatchCompute(tiled(width, 32) / 32, tiled(height, 32) / 32, 1);
+		GLuint rsize = rays.getRayCount();
+		glUniform1ui(glGetUniformLocation(matProgram, "rayCount"), rsize);
+		glDispatchCompute(tiled(rsize, 1024) / 1024, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
 };
