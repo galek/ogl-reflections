@@ -37,13 +37,13 @@ main.cpp(1083): warning C4101: pBytes: неиспользованная лока
 main.cpp(1084): warning C4101: iComponents: неиспользованная локальная переменная
 main.cpp(1144): warning C4244: инициализация: преобразование "__int64" в "double", возможна потеря данных
 main.cpp(1209): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(1225): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(1260): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
+main.cpp(1222): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+main.cpp(1257): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
 LINK : warning LNK4098: библиотека по умолчанию "LIBCMT" противоречит использованию других библиотек; используйте параметр /NODEFAULTLIB:library
   Создание кода
-  35 of 2074 functions ( 1.7%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    22 functions had inline decision re-evaluated but remain unchanged
+  26 of 2074 functions ( 1.3%) were compiled, the rest were copied from previous compilation.
+    2 functions were new in current compilation
+    18 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
 glew32s.lib(glew.obj) : warning LNK4099: "vc120.pdb" PDB не найден с "glew32s.lib(glew.obj)" или на "C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Release\vc120.pdb"; компоновка объекта выполняется как при отсутствии отладочных данных
   ogl_reflections.vcxproj -> C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Release\ogl_reflections.exe
