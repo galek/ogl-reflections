@@ -1179,7 +1179,7 @@ int main()
 		std::string err;
 		bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 		
-		sponza[0].setDepth(512 * 512 * 64, 9);
+		sponza[0].setDepth(512 * 512 * 64, 8);
 		sponza[0].setMaterialID(0);
 		sponza[0].loadMesh(shapes);
 		sponza[0].calcMinmax();
@@ -1217,7 +1217,7 @@ int main()
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string err;
-		bool ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
+		bool ret = tinyobj::LoadObj(shapes, materials, err, "chessboard.obj");
 		
 		teapot[0].setDepth(128 * 128 * 256, 8);
 		teapot[0].setMaterialID(msponza.size());
@@ -1229,10 +1229,10 @@ int main()
 		mteapot.resize(materials.size());
 		for (int i = 0;i < mteapot.size();i++) {
 			mteapot[i].setBump(loadBump(materials[i].bump_texname));
-			mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(1.0f), 1.0f)));
-			mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(1.0f), 1.0f)));
-			//mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]), 1.0f)));
-			//mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]), 1.0f)));
+			//mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(0.0f), 1.0f)));
+			//mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(1.0f), 1.0f)));
+			mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]), 1.0f)));
+			mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]), 1.0f)));
 			mteapot[i].setMaterialID(msponza.size() + i);
 		}
 	}
@@ -1275,8 +1275,8 @@ int main()
 			glm::mat4 trans;
 
 			trans = glm::translate(trans, glm::vec3(0.0f, 0.0f, 0.0f));
-			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
-			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
+			trans = glm::scale(trans, glm::vec3(100.0f, 100.0f, 100.0f));
+			trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 
 			/*for (int i = 0;i < sponza.size();i++) {
