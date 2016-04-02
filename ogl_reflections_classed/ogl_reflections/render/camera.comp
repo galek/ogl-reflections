@@ -179,7 +179,7 @@ void main()
             ray.final = vec3(0.0f);
             ray.params.x = 1.0f;
             ray.params.y = 0.0f;
-            ray.params.z = 3.0f;
+            ray.params.z = 4.0f;
             ray.params.w = 0.0f;
             ray.shadow = LONGEST;
             ray.params0.x = 1.0f;

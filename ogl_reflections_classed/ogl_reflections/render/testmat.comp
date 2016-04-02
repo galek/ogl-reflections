@@ -111,9 +111,7 @@ uniform mat4 camInv;
 
 layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
-uniform float reflectionRate;
 uniform uint materialID;
-
 uniform sampler2D tex;
 uniform sampler2D bump;
 uniform sampler2D spec;
@@ -176,6 +174,8 @@ float computeFresnel(in vec3 normal, in vec3 incident, in vec3 transmissionDirec
 uniform uint rayCount;
 uniform vec3 light;
 uniform float time;
+uniform float reflectivity;
+uniform float dissolve;
 
 uint hash( uint x ) {
     x += ( x << 10u );
@@ -240,6 +240,14 @@ vec3 randomCosine(in vec3 normal) {
 #define DIFFUSE_COUNT 2
 #define REFLECTION
 
+vec3 toDir(in vec3 refl, in vec3 normal){
+    return -reflect(-refl, normal);
+}
+
+vec3 glossy(in vec3 dir, in vec3 normal, in float dissolve){
+    return mix(reflect(dir, normal), randomCosine(normal), clamp(random() * dissolve, 0.0f, 1.0f));
+}
+
 void main()
 {
     if(gl_GlobalInvocationID.x < rayCount){
@@ -268,8 +276,10 @@ void main()
 
                 bool cond = dot(prenormal, newRay.direct) <= 0;
                 float coef = cond ? iorIn / iorOut : iorOut / iorIn;
-                vec3 refr = normalizeFast(refract(newRay.direct, normal, coef));
-                vec3 refl = normalizeFast(reflect(newRay.direct, normal));
+
+                vec3 refl = normalizeFast(glossy(newRay.direct, normal, dissolve));
+                vec3 refr = normalizeFast(refract(toDir(refl, normal), normal, coef));
+
                 float fres = computeFresnel(
                     normal,
                     newRay.direct,
@@ -299,12 +309,18 @@ void main()
                         storeTexel(ray.texel, idx);
                     }
 
-                    float spc = texture(spec, hit.texcoord).r * reflectionRate * fres * (1.0f - ipa);
+
+
+                    vec4 specTx = texture(spec, hit.texcoord);
+                    float lsp = dot(specTx.rgb, specTx.rgb);
+                    float spc = clamp(mix(fres * lsp, 1.0f, reflectivity), 0.0f, 1.0f) * (1.0f - ipa);
+                    spc = clamp(spc, 0.0f, 1.0f);
+
 #ifdef REFLECTION
                     if(spc >= 0.001f){
                         Ray newRay2 = newRay;
                         newRay2.direct = refl;
-                        newRay2.color *= spc;
+                        newRay2.color *= spc * specTx.rgb;
                         newRay2.params0.y *= spc;
                         newRay2.params.y += 1.0f;
                         newRay2.origin += normalizeFast(normal * dot(newRay2.direct, normal)) * 0.1f;
@@ -313,13 +329,13 @@ void main()
                         storeTexel(ray.texel, idx);
                     }
 #else
-                    spc = 0.01f;
+                    spc = 0.00f;
 #endif
 #ifdef DIFFUSE
                     float samp = 1.0f;
-                    samp *= 1.0f - ipa;
-                    samp *= 1.0f - spc;
-                    samp *= 1.0f / DIFFUSE_COUNT * tx.a;
+                    samp *= clamp(1.0f - ipa, 0.0f, 1.0f);
+                    samp *= clamp(1.0f - spc, 0.0f, 1.0f);
+                    samp *= clamp(1.0f / DIFFUSE_COUNT * tx.a, 0.0f, 1.0f);
                     if(samp >= 0.001f){
                         for(int i=0;i<DIFFUSE_COUNT;i++){
                             Ray newRay2 = newRay;

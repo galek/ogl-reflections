@@ -285,9 +285,9 @@ TResult test_intersection(in vec3 orig, in vec3 dir, in Voxel vox){
                 }
 
                 normal = cross(triverts[1] - triverts[0], triverts[2] - triverts[0]);
-                //normal = normalizeFast(trinorms[1]) * uv.x;
-                //normal += normalizeFast(trinorms[2]) * uv.y;
-                //normal += normalizeFast(trinorms[0]) * (1.0f - uv.x - uv.y);
+                normal = normalizeFast(trinorms[1]) * uv.x;
+                normal += normalizeFast(trinorms[2]) * uv.y;
+                normal += normalizeFast(trinorms[0]) * (1.0f - uv.x - uv.y);
                 normal = normalizeFast(normal);
 
                 texcoord = texcoords[1] * uv.x;

@@ -965,7 +965,9 @@ private:
 	GLuint btex;
 	GLuint stex;
 	GLuint itex;
-	GLfloat illumPow = 1.0f;
+	GLfloat illumPow;
+	GLfloat reflectivity;
+	GLfloat dissolve;
 
 	void init() {
 		GLuint compShader = loadShader("./render/testmat.comp", GL_COMPUTE_SHADER);
@@ -977,10 +979,18 @@ private:
 
 		itex = loadWithDefault("", glm::vec4(glm::vec3(1.0f), 0.0f));
 		illumPow = 1.0f;
+		reflectivity = 0.0f;
+		dissolve = 0.0f;
 	}
 public:
 	TestMat() {
 		init();
+	}
+	void setDissolve(GLfloat a) {
+		dissolve = a;
+	}
+	void setReflectivity(GLfloat a) {
+		reflectivity = a;
 	}
 	void setIllumPower(GLfloat a) {
 		illumPow = a;
@@ -1000,7 +1010,7 @@ public:
 	void setIllumination(GLuint tx) {
 		itex = tx;
 	}
-	void shade(RObject &rays, GLfloat reflectionRate) {
+	void shade(RObject &rays) {
 		glUseProgram(matProgram);
 
 		glActiveTexture(GL_TEXTURE0);
@@ -1021,10 +1031,11 @@ public:
 
 		rays.bind();
 		glUniform1ui(glGetUniformLocation(matProgram, "materialID"), materialID);
-		glUniform1f(glGetUniformLocation(matProgram, "reflectionRate"), reflectionRate);
 		glUniform3fv(glGetUniformLocation(matProgram, "light"), 1, glm::value_ptr(glm::vec3(9.0f, 200.0f, 9.0f)));
 		glUniform1f(glGetUniformLocation(matProgram, "time"), clock());
 		glUniform1f(glGetUniformLocation(matProgram, "illumPower"), illumPow);
+		glUniform1f(glGetUniformLocation(matProgram, "reflectivity"), reflectivity);
+		glUniform1f(glGetUniformLocation(matProgram, "dissolve"), dissolve);
 
 		GLuint rsize = rays.getRayCount();
 		glUniform1ui(glGetUniformLocation(matProgram, "rayCount"), rsize);
@@ -1215,7 +1226,7 @@ int main()
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string err;
-		bool ret = tinyobj::LoadObj(shapes, materials, err, "models/sphere.obj");
+		bool ret = tinyobj::LoadObj(shapes, materials, err, "material-test.obj");
 
 		teapot[0].setDepth(128 * 64 * 64, 8);
 		teapot[0].setMaterialID(msponza.size());
@@ -1226,8 +1237,10 @@ int main()
 
 		mteapot.resize(materials.size());
 		for (int i = 0;i < mteapot.size();i++) {
-			mteapot[i].setIllumination(loadWithDefault("", glm::vec4(glm::vec3(1.0f, 1.0f, 1.0f), 1.0f)));
-			mteapot[i].setIllumPower(40.0f);
+			//mteapot[i].setIllumination(loadWithDefault("", glm::vec4(glm::vec3(1.0f, 1.0f, 1.0f), 1.0f)));
+			//mteapot[i].setIllumPower(40.0f);
+			mteapot[i].setReflectivity(materials[i].shininess);
+			mteapot[i].setDissolve(materials[i].dissolve);
 			mteapot[i].setBump(loadBump(materials[i].bump_texname));
 			//mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(0.0f), 1.0f)));
 			//mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(1.0f), 1.0f)));
@@ -1270,28 +1283,28 @@ int main()
 
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
-		for (int j = 0;j < 3;j++) {
+		for (int j = 0;j < 4;j++) {
 			rays.begin();
 			glm::mat4 trans;
 
-			trans = glm::translate(trans, glm::vec3(0.0f, 2000.0f, 300.0f));
-			trans = glm::scale(trans, glm::vec3(250.0f, 250.0f, 250.0f));
+			//trans = glm::translate(trans, glm::vec3(0.0f, 2000.0f, 300.0f));
+			//trans = glm::scale(trans, glm::vec3(250.0f, 250.0f, 250.0f));
 			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 
-			for (int i = 0;i < sponza.size();i++) {
+			/*for (int i = 0;i < sponza.size();i++) {
 				rays.intersection(sponza[i], glm::mat4());
 				//rays.intersection(sponza[i], trans);
-			}
+			}*/
 			for (int i = 0;i < teapot.size();i++) {
 				rays.intersection(teapot[i], trans);
 			}
 
-			for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shade(rays, 0.0f);
-			}
+			/*for (int i = 0;i < msponza.size();i++) {
+				msponza[i].shade(rays);
+			}*/
 			for (int i = 0;i < mteapot.size();i++) {
-				mteapot[i].shade(rays, 1.0f);
+				mteapot[i].shade(rays);
 			}
 			rays.close();
 		}
