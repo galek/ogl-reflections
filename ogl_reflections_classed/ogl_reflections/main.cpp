@@ -1217,6 +1217,7 @@ int main()
 		
 		msponza.resize(materials.size());
 		for (int i = 0;i < msponza.size();i++) {
+			msponza[i].setTransmission(materials[i].transmittance[0]);
 			msponza[i].setReflectivity(materials[i].shininess);
 			msponza[i].setDissolve(materials[i].dissolve);
 			msponza[i].setBump(loadBump(materials[i].bump_texname));
