@@ -968,6 +968,7 @@ private:
 	GLfloat illumPow;
 	GLfloat reflectivity;
 	GLfloat dissolve;
+	GLfloat transmission;
 
 	void init() {
 		GLuint compShader = loadShader("./render/testmat.comp", GL_COMPUTE_SHADER);
@@ -981,10 +982,14 @@ private:
 		illumPow = 1.0f;
 		reflectivity = 0.0f;
 		dissolve = 0.0f;
+		transmission = 1.0f;
 	}
 public:
 	TestMat() {
 		init();
+	}
+	void setTransmission(GLfloat a) {
+		transmission = a;
 	}
 	void setDissolve(GLfloat a) {
 		dissolve = a;
@@ -1036,6 +1041,7 @@ public:
 		glUniform1f(glGetUniformLocation(matProgram, "illumPower"), illumPow);
 		glUniform1f(glGetUniformLocation(matProgram, "reflectivity"), reflectivity);
 		glUniform1f(glGetUniformLocation(matProgram, "dissolve"), dissolve);
+		glUniform1f(glGetUniformLocation(matProgram, "transmission"), transmission);
 
 		GLuint rsize = rays.getRayCount();
 		glUniform1ui(glGetUniformLocation(matProgram, "rayCount"), rsize);
@@ -1211,6 +1217,8 @@ int main()
 		
 		msponza.resize(materials.size());
 		for (int i = 0;i < msponza.size();i++) {
+			msponza[i].setReflectivity(materials[i].shininess);
+			msponza[i].setDissolve(materials[i].dissolve);
 			msponza[i].setBump(loadBump(materials[i].bump_texname));
 			//mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(0.0f), 1.0f)));
 			//mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(1.0f), 1.0f)));
@@ -1239,6 +1247,7 @@ int main()
 		for (int i = 0;i < mteapot.size();i++) {
 			//mteapot[i].setIllumination(loadWithDefault("", glm::vec4(glm::vec3(1.0f, 1.0f, 1.0f), 1.0f)));
 			//mteapot[i].setIllumPower(40.0f);
+			mteapot[i].setTransmission(materials[i].transmittance[0]);
 			mteapot[i].setReflectivity(materials[i].shininess);
 			mteapot[i].setDissolve(-materials[i].dissolve);
 			mteapot[i].setBump(loadBump(materials[i].bump_texname));
@@ -1276,8 +1285,8 @@ int main()
 		double c = tt - t;
 		t = tt;
 
-		teapot[0].calcMinmax();
-		teapot[0].buildOctree();
+		//teapot[0].calcMinmax();
+		//teapot[0].buildOctree();
 		//sponza[0].calcMinmax();
 		//sponza[0].buildOctree();
 
@@ -1292,20 +1301,20 @@ int main()
 			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 
-			/*for (int i = 0;i < sponza.size();i++) {
+			for (int i = 0;i < sponza.size();i++) {
 				rays.intersection(sponza[i], glm::mat4());
 				//rays.intersection(sponza[i], trans);
-			}*/
-			for (int i = 0;i < teapot.size();i++) {
+			}
+			/*for (int i = 0;i < teapot.size();i++) {
 				rays.intersection(teapot[i], trans);
-			}
-
-			/*for (int i = 0;i < msponza.size();i++) {
-				msponza[i].shade(rays);
 			}*/
-			for (int i = 0;i < mteapot.size();i++) {
-				mteapot[i].shade(rays);
+
+			for (int i = 0;i < msponza.size();i++) {
+				msponza[i].shade(rays);
 			}
+			/*for (int i = 0;i < mteapot.size();i++) {
+				mteapot[i].shade(rays);
+			}*/
 			rays.close();
 		}
 
