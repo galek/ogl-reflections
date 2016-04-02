@@ -245,6 +245,10 @@ vec3 toDir(in vec3 refl, in vec3 normal){
 }
 
 vec3 glossy(in vec3 dir, in vec3 normal, in float dissolve){
+    return mix(reflect(dir, normal), randomCosine(normal), clamp(random() * dissolve, 0.0f, 1.0f));
+}
+
+vec3 mate(in vec3 dir, in vec3 normal, in float dissolve){
     return mix(randomCosine(normal), reflect(dir, normal), clamp(random() * dissolve, 0.0f, 1.0f));
 }
 
@@ -277,7 +281,7 @@ void main()
                 bool cond = dot(prenormal, newRay.direct) <= 0;
                 float coef = cond ? iorIn / iorOut : iorOut / iorIn;
 
-                vec3 refl = normalizeFast(glossy(newRay.direct, normal, dissolve));
+                vec3 refl = normalizeFast(mate(newRay.direct, normal, dissolve));
                 vec3 refr = normalizeFast(refract(toDir(refl, normal), normal, coef));
 
                 float fres = computeFresnel(
@@ -352,9 +356,9 @@ void main()
 #endif
 
                     float ref = 1.0f;
-                    ref *= (1.0f - ipa);
-                    ref *= (1.0f - tx.a);
-                    ref *= (1.0f - spc);
+                    ref *= clamp(1.0f - ipa, 0.0f, 1.0f);
+                    ref *= clamp(1.0f - tx.a, 0.0f, 1.0f);
+                    ref *= clamp(1.0f - spc, 0.0f, 1.0f);
                     if(ref >= 0.001f){
                         Ray newRay2 = newRay;
                         newRay2.direct = refr;

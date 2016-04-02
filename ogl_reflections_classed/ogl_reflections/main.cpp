@@ -1245,7 +1245,7 @@ int main()
 			//mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(0.0f), 1.0f)));
 			//mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(1.0f), 1.0f)));
 			mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]), 1.0f)));
-			mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]), 1.0f)));
+			mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]), 1.00f)));
 			mteapot[i].setMaterialID(msponza.size() + i);
 		}
 	}
