@@ -1240,7 +1240,7 @@ int main()
 			//mteapot[i].setIllumination(loadWithDefault("", glm::vec4(glm::vec3(1.0f, 1.0f, 1.0f), 1.0f)));
 			//mteapot[i].setIllumPower(40.0f);
 			mteapot[i].setReflectivity(materials[i].shininess);
-			mteapot[i].setDissolve(materials[i].dissolve);
+			mteapot[i].setDissolve(-materials[i].dissolve);
 			mteapot[i].setBump(loadBump(materials[i].bump_texname));
 			//mteapot[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(0.0f), 1.0f)));
 			//mteapot[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(1.0f), 1.0f)));

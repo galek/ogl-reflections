@@ -245,7 +245,7 @@ vec3 toDir(in vec3 refl, in vec3 normal){
 }
 
 vec3 glossy(in vec3 dir, in vec3 normal, in float dissolve){
-    return mix(reflect(dir, normal), randomCosine(normal), clamp(random() * dissolve, 0.0f, 1.0f));
+    return mix(randomCosine(normal), reflect(dir, normal), clamp(random() * dissolve, 0.0f, 1.0f));
 }
 
 void main()
@@ -313,7 +313,7 @@ void main()
 
                     vec4 specTx = texture(spec, hit.texcoord);
                     float lsp = dot(specTx.rgb, specTx.rgb);
-                    float spc = clamp(mix(fres * lsp, 1.0f, reflectivity), 0.0f, 1.0f) * (1.0f - ipa);
+                    float spc = mix(clamp(fres * lsp, 0.0f, 1.0f), 1.0f, clamp(1.0f - reflectivity, 0.0f, 1.0f)) * (1.0f - ipa);
                     spc = clamp(spc, 0.0f, 1.0f);
 
 #ifdef REFLECTION
