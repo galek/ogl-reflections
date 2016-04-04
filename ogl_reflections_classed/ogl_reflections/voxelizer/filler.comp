@@ -1,50 +1,17 @@
-#version 450 core
-//#extension GL_NV_fragment_shader_interlock : enable
+#version 450 compatibility
+#extension GL_ARB_shading_language_include : require
 #extension GL_NV_gpu_shader5 : enable
-#extension GL_NV_shader_atomic_fp16_vector : enable
 
-//layout(sample_interlock_unordered) in;
+#include </constants>
+#include </uniforms>
+#include </fastmath>
+#include </octree>
+#include </octree_raw>
+layout (binding=1) uniform atomic_uint vcounter;
 
-const uint LONGEST = 0xFFFFFFFF;
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
-struct Thash {
-	uint triangle;
-	uint previous;
-};
-
-struct Voxel {
-    uint parent;
-	uint last;
-    uint count;
-    uint coordX;
-    uint coordY;
-    uint coordZ;
-    //f16vec4 color;
-    //f16vec4 normal;
-};
-
-struct VoxelRaw {
-    uint coordX;
-    uint coordY;
-    uint coordZ;
-    uint triangle;
-};
-
-layout(std430, binding=0) coherent buffer s_voxels {Voxel voxels[];};
-layout(std430, binding=1) coherent buffer s_voxels_sub {uint voxels_subgrid[];};
-layout(std430, binding=2) coherent buffer s_thashes {Thash thashes[];};
-layout(std430, binding=8) coherent buffer s_voxels_raw {VoxelRaw voxels_raw[];};
-layout (binding=0) uniform atomic_uint vcounter;
-layout (binding=1) uniform atomic_uint dcounter;
-
-uniform uint currentDepth;
-uniform uint maxDepth;
-
-uint cnv_subgrid(uint sub, uvec3 idu){
-    return sub * 8 + idu.x + idu.y * 2 + idu.z * 4;
-}
-
-uvec2 searchVoxelIndex(uvec3 idx){
+uvec2 searchVoxelIndexAlt(uvec3 idx){
     uvec3 id = uvec3(0);
     bool fail = false;
     uint sub = 0;
@@ -81,14 +48,12 @@ uvec2 searchVoxelIndex(uvec3 idx){
     return uvec2(LONGEST);
 }
 
-layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
-
 void main(){
     uint t = gl_GlobalInvocationID.x;
     if(t < atomicCounter(dcounter)){
         VoxelRaw tri = voxels_raw[t];
         uvec3 coord = uvec3(tri.coordX, tri.coordY, tri.coordZ);
-        uvec2 t = searchVoxelIndex(coord);
+        uvec2 t = searchVoxelIndexAlt(coord);
         atomicAdd(voxels[t.x].count, 1);
         if(currentDepth == maxDepth-1){
             uint i = atomicCounterIncrement(vcounter);

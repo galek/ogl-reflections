@@ -1,198 +1,12 @@
-#version 450 core
+#version 450 compatibility
 #extension GL_NV_gpu_shader5 : enable
-
-const uint LONGEST = 0xFFFFFFFF;
-const float INFINITY = 1e10;
-
-struct Thash {
-	uint triangle;
-	uint previous;
-};
-
-struct Voxel {
-    uint parent;
-	uint last;
-    uint count;
-    uint coordX;
-	uint coordY;
-	uint coordZ;
-    //f16vec4 color;
-    //f16vec4 normal;
-};
-
-layout(std430, binding=0) buffer s_voxels {Voxel voxels[];};
-layout(std430, binding=1) buffer s_voxels_sub {uint voxels_subgrid[];};
-layout(std430, binding=2) buffer s_thashes {Thash thashes[];};
-layout(std430, binding=3) buffer s_vbo {float verts[];};
-layout(std430, binding=4) buffer s_ebo {uint indics[];};
-layout(std430, binding=5) buffer s_norm {float norms[];};
-layout(std430, binding=6) buffer s_tex {float texcs[];};
-layout(std430, binding=7) buffer s_mat {int mats[];};
-
-/* ============ RAYS ============= */
-
-struct Ray {
-    uint texel;
-    uint previous;
-    uint hit;
-    uint shadow;
-    int actived;
-    vec3 origin;
-    vec3 direct;
-    vec3 color;
-    vec3 final;
-    vec4 params;
-    vec4 params0;
-};
-
-struct Hit {
-    float dist;
-    uint triangle;
-    uint materialID;
-    vec3 normal;
-    vec3 tangent;
-    vec2 texcoord;
-    vec4 params;
-};
-
-struct Texel {
-    uint last;
-    uint count;
-};
-
-layout(std430, binding=8) buffer s_rays {Ray rays[];};
-layout(std430, binding=9) buffer s_hits {Hit hits[];};
-layout(std430, binding=10) buffer s_texels {Texel texelInfo[];};
-layout (binding=0) uniform atomic_uint rcounter;
-layout (binding=1) uniform atomic_uint hcounter;
-
-uint createRay(in Ray original){
-    uint hidx = atomicCounterIncrement(hcounter);
-    uint ridx = atomicCounterIncrement(rcounter);
-    Ray ray = original;
-    ray.hit = hidx;
-    Hit hit;
-    hit.dist = 10000.0f;
-    hit.triangle = LONGEST;
-    hit.materialID = LONGEST;
-    hits[hidx] = hit;
-    rays[ridx] = ray;
-    return ridx;
-}
-
-uint createRay(){
-    Ray newRay;
-    return createRay(newRay);
-}
-
-void storeTexel(in uint texel, in uint rayIndex){
-    rays[rayIndex].previous = atomicExchange(texelInfo[texel].last, rayIndex);
-    atomicAdd(texelInfo[texel].count, 1);
-}
-
-void storeRay(in uint rayIndex, in Ray ray){
-    rays[rayIndex].direct = ray.direct;
-    rays[rayIndex].origin = ray.origin;
-    rays[rayIndex].actived = ray.actived;
-    rays[rayIndex].color = ray.color;
-    rays[rayIndex].final = ray.final;
-    rays[rayIndex].params = ray.params;
-    rays[rayIndex].params0 = ray.params0;
-}
-
-void storeHit(in Ray ray, in Hit hit){
-    hits[ray.hit].dist = hit.dist;
-    hits[ray.hit].triangle = hit.triangle;
-    hits[ray.hit].normal = hit.normal;
-    hits[ray.hit].texcoord = hit.texcoord;
-    hits[ray.hit].tangent = hit.tangent;
-    hits[ray.hit].materialID = hit.materialID;
-    hits[ray.hit].params = hit.params;
-}
-
-Ray fetchFirstRay(in uint texel){
-    return rays[texelInfo[texel].last];
-}
-
-Ray fetchNextRay(in Ray ray){
-    return rays[ray.previous];
-}
-
-/* ============ END =========== */
-
-uniform uint maxDepth;
-uniform vec3 offset;
-uniform vec3 scale;
-
-
-float lengthFast(in vec3 v){
-    return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-}
-
-vec3 normalizeFast(in vec3 v){
-    return v / lengthFast(v);
-}
-
-uint cnv_subgrid(uint sub, uvec3 idu){
-    return sub * 8 + (idu.x + idu.y * 2 + idu.z * 4);
-}
-
-uint searchVoxelIndex(uvec3 idx, uint maxDepth){
-    uint currentDepth = maxDepth-1;
-    uvec3 id = uvec3(0);
-    bool fail = false;
-    uint sub = 0;
-    Voxel hash = voxels[sub];
-    uvec3 idu = uvec3(0);
-    uint grid = 0;
-
-    int strt = int(currentDepth);
-    for(int i=strt;i>=0;i--){
-        if(!fail){
-            id = uvec3(idx / uint(pow(2, i)));
-            idu = id % uvec3(2);
-            if(i == strt){
-                grid = 0;
-                sub = 0;
-            } else {
-                grid = cnv_subgrid(sub, idu);
-                sub = voxels_subgrid[grid];
-            }
-            if(sub == LONGEST) {
-                fail = true;
-            } else {
-                hash = voxels[sub];
-            }
-        } else {
-            break;
-        }
-    }
-
-    if(!fail){
-        return sub;
-    }
-    return LONGEST;
-}
-
-uint searchVoxelIndex(uvec3 idx){
-    return searchVoxelIndex(idx, maxDepth);
-}
-
-Voxel loadVoxel(in uvec3 coord, in uint depth){
-    if(coord.x != LONGEST){
-        uint idx = searchVoxelIndex(coord, depth+1);
-        return voxels[idx];
-    } else {
-        Voxel voxel;
-        voxel.last = LONGEST;
-        voxel.count = 0;
-        return voxel;
-    }
-}
-
-Voxel loadVoxel(in uvec3 coord){
-    return loadVoxel(coord, maxDepth-1);
-}
+#extension GL_ARB_shading_language_include : require
+#include </constants>
+#include </uniforms>
+#include </fastmath>
+#include </vertex_attributes>
+#include </octree>
+#include </structs>
 
 vec2 intersectCube(vec3 origin, vec3 ray, vec3 cubeMin, vec3 cubeMax) {
    vec3 tMin = (cubeMin - origin) / ray;
@@ -476,18 +290,11 @@ TResult traverse(vec3 orig, vec3 dir){
     return lastRes;
 }
 
-
-
-
-
-
-uniform uint materialID;
-
 layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
+uniform uint materialID;
 uniform mat4 transform;
 uniform mat4 transformInv;
-uniform uint rayCount;
 
 void main()
 {

@@ -1,13 +1,11 @@
-#version 450 core
+#version 450 compatibility
+#extension GL_ARB_shading_language_include : require
+#include </constants>
+#include </uniforms>
 
 out vec4 outColor;
 
-const uint LONGEST = 0xFFFFFFFF;
-const float INFINITY = 1e10;
-
 layout(std430, binding=11) buffer s_samp {vec4 samples[];};
-
-uniform vec2 sceneRes;
 
 void main()
 {

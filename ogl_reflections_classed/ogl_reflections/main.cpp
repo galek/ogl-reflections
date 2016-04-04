@@ -87,19 +87,47 @@ int validateShader(GLuint shader) {
 	return 1;
 }
 
-GLuint loadShader(std::string filename, GLuint type) {
+GLuint includeShader(std::string filename, std::string path) {
+	std::string src = readFile(filename.c_str());
+	const GLchar * csrc = src.c_str();
+	const GLint len = src.size();
+	glNamedStringARB(GL_SHADER_INCLUDE_ARB, path.size(), path.c_str(), len, csrc);
+	return 1;
+}
+
+GLuint loadShader(std::string filename, GLuint type, std::vector<std::string>& ipath) {
 	GLuint shader = glCreateShader(type);
 	std::string src = readFile(filename.c_str());
 
 	const GLchar * csrc = src.c_str();
 	const GLint len = src.size();
 	glShaderSource(shader, 1, &csrc, &len);
+
+	std::vector<GLint> sizes;
+	std::vector<const GLchar *> pstr;
+	GLint count = 0;
+	for (int i = 0;i < ipath.size();i++) {
+		if (ipath[i] != "") {
+			sizes.push_back(ipath[i].size());
+			pstr.push_back(ipath[i].data());
+			count++;
+		}
+	}
+	//glCompileShaderIncludeARB(shader, count, pstr.data(), sizes.data());
 	glCompileShader(shader);
 
 	std::cout << "\n" << filename << "\n" << std::endl;
-	//std::cout << src << std::endl;
 	int valid = validateShader(shader);
 	return valid ? shader : -1;
+}
+
+GLuint loadShader(std::string filename, GLuint type, std::string ipath) {
+	std::vector<std::string> a; a.push_back(ipath);
+	return loadShader(filename, type, a);
+}
+
+GLuint loadShader(std::string filename, GLuint type) {
+	return loadShader(filename, type, "");
 }
 
 const GLuint width = 800;
@@ -339,6 +367,16 @@ private:
 
 		setDepth(count, depth);
 
+		includeShader("./voxelizer/include/octree.glsl", "/octree");
+		includeShader("./voxelizer/include/octree_raw.glsl", "/octree_raw");
+		includeShader("./voxelizer/include/octree_helper.glsl", "/octree_helper");
+		includeShader("./voxelizer/include/vertex_attributes.glsl", "/vertex_attributes");
+		includeShader("./render/include/constants.glsl", "/constants");
+		includeShader("./render/include/structs.glsl", "/structs");
+		includeShader("./render/include/uniforms.glsl", "/uniforms");
+		includeShader("./render/include/fastmath.glsl", "/fastmath");
+		includeShader("./render/include/random.glsl", "/random");
+
 		{
 			GLuint compShader = loadShader("./voxelizer/fix.comp", GL_COMPUTE_SHADER);
 			voxelizerFixProgram = glCreateProgram();
@@ -350,7 +388,6 @@ private:
 
 		{
 			GLuint compShader = loadShader("./voxelizer/filler.comp", GL_COMPUTE_SHADER);
-			//GLuint compShader = loadShader("./voxelizer/voxelizer_filler_combined_2.comp", GL_COMPUTE_SHADER);
 			voxelizerFillerProgram = glCreateProgram();
 			glAttachShader(voxelizerFillerProgram, compShader);
 			glBindFragDataLocation(voxelizerFillerProgram, 0, "outColor");
@@ -366,16 +403,6 @@ private:
 			glLinkProgram(voxelizerMinmaxProgram);
 			glUseProgram(voxelizerMinmaxProgram);
 		}
-
-		{
-			GLuint compShader = loadShader("./voxelizer/manipulator.comp", GL_COMPUTE_SHADER);
-			moverProgram = glCreateProgram();
-			glAttachShader(moverProgram, compShader);
-			glBindFragDataLocation(moverProgram, 0, "outColor");
-			glLinkProgram(moverProgram);
-			glUseProgram(moverProgram);
-		}
-
 
 		{
 			GLuint vertexShader = loadShader("./voxelizer/voxelizer.vert", GL_VERTEX_SHADER);
@@ -408,18 +435,6 @@ private:
 	}
 
 public:
-	void move(glm::vec3 offset) {
-		glUseProgram(moverProgram);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, vbo_triangle_ssbo);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ebo_triangle_ssbo);
-		glUniform1ui(glGetUniformLocation(moverProgram, "count"), verticeCount * 3);
-		glUniform3fv(glGetUniformLocation(moverProgram, "offset"), 1, glm::value_ptr(offset));
-
-		GLuint dsize = tiled(verticeCount, 1024);
-		glDispatchCompute((dsize < 1024 ? 1024 : dsize) / 1024, 1, 1);
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	}
-
 	void calcMinmax() {
 		GLuint mcounter;
 		GLuint minmaxBuf;
@@ -561,10 +576,6 @@ public:
 			glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, vcounter);
 			glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &tsz);
 
-			GLuint vsz = 0;
-			glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, scounter);
-			glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &vsz);
-
 			glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, dcounter);
 			glGetBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 0, sizeof(GLuint), &dsize);
 		}
@@ -588,12 +599,14 @@ public:
 
 				bindOctree();
 
-				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, helper_to);
-				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, helper);
+				
 
 				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, scounter);
+
 				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 2, lscounter_to);
 				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 3, lscounter);
+				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, helper_to);
+				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, helper);
 
 				glUniform1ui(glGetUniformLocation(voxelizerFixProgram, "maxDepth"), maxDepth);
 				glUniform1ui(glGetUniformLocation(voxelizerFixProgram, "currentDepth"), i);
@@ -617,13 +630,16 @@ public:
 				bindOctree();
 				bind();
 
+				
+
+				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, dcounter);
+				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 1, vcounter);
+
+				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 2, lscounter_to);
+				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 3, lscounter);
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, helper_to);
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, helper);
 
-				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, vcounter);
-				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 1, dcounter);
-				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 2, lscounter_to);
-				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 3, lscounter);
 				glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 4, scounter);
 
 				glUniform1ui(glGetUniformLocation(voxelizerFillerProgram, "triangleCount"), triangleCount);
@@ -634,8 +650,6 @@ public:
 
 				GLuint tsize = tiled(dsize, 1024);
 				glDispatchCompute((tsize < 1024 ? 1024 : tsize) / 1024, 1, 1);
-				//glDispatchCompute(triangleCount, 1, 1);
-				//glDispatchCompute(lsiz, 1, 1);
 				glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			}
 
@@ -726,6 +740,15 @@ private:
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, samples);
 		glBufferStorage(GL_SHADER_STORAGE_BUFFER, rsize * sizeof(glm::vec4), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
+		includeShader("./voxelizer/include/octree.glsl", "/octree");
+		includeShader("./voxelizer/include/octree_raw.glsl", "/octree_raw");
+		includeShader("./voxelizer/include/vertex_attributes.glsl", "/vertex_attributes");
+		includeShader("./render/include/constants.glsl", "/constants");
+		includeShader("./render/include/structs.glsl", "/structs");
+		includeShader("./render/include/uniforms.glsl", "/uniforms");
+		includeShader("./render/include/fastmath.glsl", "/fastmath");
+		includeShader("./render/include/random.glsl", "/random");
+
 		{
 			GLuint compShader = loadShader("./render/intersection.comp", GL_COMPUTE_SHADER);
 			intersectionProgram = glCreateProgram();
@@ -767,7 +790,7 @@ private:
 		}
 
 		{
-			GLuint compShader = loadShader("./render/sampler.comp", GL_COMPUTE_SHADER);
+			GLuint compShader = loadShader("./render/sampler.comp", GL_COMPUTE_SHADER, std::vector<std::string>({ "/structs" }));
 			samplerProgram = glCreateProgram();
 			glAttachShader(samplerProgram, compShader);
 			glLinkProgram(samplerProgram);
@@ -970,6 +993,15 @@ private:
 	GLfloat transmission;
 
 	void init() {
+		includeShader("./voxelizer/include/octree.glsl", "/octree");
+		includeShader("./voxelizer/include/octree_raw.glsl", "/octree_raw");
+		includeShader("./voxelizer/include/vertex_attributes.glsl", "/vertex_attributes");
+		includeShader("./render/include/constants.glsl", "/constants");
+		includeShader("./render/include/structs.glsl", "/structs");
+		includeShader("./render/include/uniforms.glsl", "/uniforms");
+		includeShader("./render/include/fastmath.glsl", "/fastmath");
+		includeShader("./render/include/random.glsl", "/random");
+
 		GLuint compShader = loadShader("./render/testmat.comp", GL_COMPUTE_SHADER);
 		matProgram = glCreateProgram();
 		glAttachShader(matProgram, compShader);
@@ -1210,7 +1242,6 @@ int main()
 		sponza[0].setDepth(128 * 256 * 256, 9);
 		sponza[0].setMaterialID(0);
 		sponza[0].loadMesh(shapes);
-		sponza[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
 		sponza[0].calcMinmax();
 		sponza[0].buildOctree();
 		
@@ -1234,12 +1265,11 @@ int main()
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string err;
-		bool ret = tinyobj::LoadObj(shapes, materials, err, "material-test.obj");
+		bool ret = tinyobj::LoadObj(shapes, materials, err, "teapot.obj");
 
 		teapot[0].setDepth(128 * 64 * 64, 8);
 		teapot[0].setMaterialID(msponza.size());
 		teapot[0].loadMesh(shapes);
-		teapot[0].move(glm::vec3(0.0f, 0.0f, 0.0f));
 		teapot[0].calcMinmax();
 		teapot[0].buildOctree();
 
@@ -1297,7 +1327,7 @@ int main()
 			glm::mat4 trans;
 
 			//trans = glm::translate(trans, glm::vec3(0.0f, 2000.0f, 300.0f));
-			//trans = glm::scale(trans, glm::vec3(250.0f, 250.0f, 250.0f));
+			trans = glm::scale(trans, glm::vec3(10.0f, 10.0f, 10.0f));
 			//trans = glm::rotate(trans, 3.14f / 2.0f, glm::vec3(-1.0f, 0.0f, 0.0f));
 
 

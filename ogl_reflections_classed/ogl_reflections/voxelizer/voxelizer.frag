@@ -1,11 +1,12 @@
 #version 450 core
-//#extension GL_NV_fragment_shader_interlock : enable
 #extension GL_NV_gpu_shader5 : enable
 #extension GL_NV_shader_atomic_fp16_vector : enable
+#extension GL_ARB_shading_language_include : require
 
-//layout(sample_interlock_unordered) in;
-
-const uint LONGEST = 0xFFFFFFFF;
+#include </constants>
+#include </uniforms>
+#include </fastmath>
+#include </octree_raw>
 
 out vec4 outColor;
 
@@ -16,16 +17,6 @@ flat in vec3 vert1;
 flat in vec3 vert2;
 flat in vec3 normal;
 in int gl_PrimitiveID;
-
-struct VoxelRaw {
-    uint coordX;
-    uint coordY;
-    uint coordZ;
-    uint triangle;
-};
-
-layout(std430, binding=8) coherent buffer s_voxels_raw {VoxelRaw voxels_raw[];};
-layout (binding=0) uniform atomic_uint dcounter;
 
 #define FINDMINMAX(x0,x1,x2,min,max) \
   min = max = x0;   \
@@ -140,12 +131,7 @@ int triBoxOverlap(in vec3 boxcenter, in vec3 boxhalfsize, in vec3 triverts[3]){
    return 1;
 }
 
-
-
-
 #define BIAS 4
-
-uniform uint currentDepth;
 
 void main(){
     vec3 coord = gl_FragCoord.xyz;

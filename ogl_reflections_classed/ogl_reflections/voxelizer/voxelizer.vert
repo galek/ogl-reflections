@@ -1,4 +1,4 @@
-#version 450 core
+#version 450 compatibility
 out vec3 verts;
 layout(std430, binding=3) buffer s_vbo {float sverts[];};
 layout(std430, binding=4) buffer s_ebo {uint indics[];};

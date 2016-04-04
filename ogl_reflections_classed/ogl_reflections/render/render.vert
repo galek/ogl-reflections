@@ -1,4 +1,4 @@
-#version 450 core
+#version 450 compatibility
 in vec2 position;
 void main()
 {

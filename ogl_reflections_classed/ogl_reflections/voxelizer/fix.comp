@@ -1,32 +1,12 @@
 #version 450 core
+#extension GL_ARB_shading_language_include : require
 
-struct Voxel {
-    uint parent;
-	uint last;
-    uint count;
-    uint coordX;
-    uint coordY;
-    uint coordZ;
-};
-
-layout(std430, binding=0) buffer s_voxels {Voxel voxels[];};
-layout(std430, binding=1) buffer s_voxels_sub {uint voxels_subgrid[];};
-layout(std430, binding=3) buffer s_vbo {float sverts[];};
-layout(std430, binding=4) buffer s_ebo {uint indics[];};
-layout(std430, binding=5) buffer s_to_helper {uint to_helper[];};
-layout(std430, binding=6) buffer s_from_helper {uint from_helper[];};
-
+#include </constants>
+#include </uniforms>
+#include </fastmath>
+#include </octree>
+#include </octree_helper>
 layout (binding=0) uniform atomic_uint scounter;
-layout (binding=2) uniform atomic_uint lscounter_to;
-layout (binding=3) uniform atomic_uint lscounter_from;
-
-uniform uint currentDepth;
-uniform uint maxDepth;
-uniform vec3 offset;
-uniform vec3 scale;
-
-const uint LONGEST = 0xFFFFFFFF;
-
 layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
 void main(){
