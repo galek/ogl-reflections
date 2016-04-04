@@ -4,9 +4,9 @@
 #include </constants>
 #include </uniforms>
 #include </fastmath>
-#include </vertex_attributes>
 #include </octree>
 #include </structs>
+#include </vertex_attributes>
 
 vec2 intersectCube(vec3 origin, vec3 ray, vec3 cubeMin, vec3 cubeMax) {
    vec3 tMin = (cubeMin - origin) / ray;

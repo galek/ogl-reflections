@@ -1,0 +1,16 @@
+#pragma once
+#include <GL/glew.h>
+#include <SFML/Window.hpp>
+#include <SFML/Graphics.hpp>
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <cassert>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/component_wise.hpp>
+#include <tiny_obj_loader/tiny_obj_loader.h>
+#include <ctime>
+#include <chrono>

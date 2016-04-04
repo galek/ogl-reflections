@@ -32,6 +32,7 @@ struct Texel {
 layout(std430, binding=8) buffer s_rays {Ray rays[];};
 layout(std430, binding=9) buffer s_hits {Hit hits[];};
 layout(std430, binding=10) buffer s_texels {Texel texelInfo[];};
+layout(std430, binding=11) buffer s_samp {vec4 samples[];};
 layout (binding=0) uniform atomic_uint rcounter;
 layout (binding=1) uniform atomic_uint hcounter;
 

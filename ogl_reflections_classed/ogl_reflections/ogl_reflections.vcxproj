@@ -142,7 +142,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLEW_STATIC;GLM_SWIZZLE;GLM_SWIZZLE_XYZW;_USE_MATH_DEFINES;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -158,6 +158,14 @@
     <ClCompile Include="tiny_obj_loader\tiny_obj_loader.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\camera.hpp" />
+    <ClInclude Include="include\constants.hpp" />
+    <ClInclude Include="include\cubemap.hpp" />
+    <ClInclude Include="include\includes.hpp" />
+    <ClInclude Include="include\robject.hpp" />
+    <ClInclude Include="include\testmat.hpp" />
+    <ClInclude Include="include\tobject.hpp" />
+    <ClInclude Include="include\utils.hpp" />
     <ClInclude Include="tiny_obj_loader\tiny_obj_loader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
