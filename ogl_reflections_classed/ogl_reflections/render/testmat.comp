@@ -21,9 +21,11 @@ uniform sampler2D bump;
 uniform sampler2D spec;
 uniform sampler2D illum;
 
+#define NOISE_DENSITY 4.0f
+
 vec3 getNormalMapping(vec2 texcoordi){
     vec2 textures = textureSize(bump, 0);
-    vec2 texcoord = texcoordi;//(floor(texcoordi * textures) + 0.5f) / textures;
+    vec2 texcoord = texcoordi * NOISE_DENSITY;//(floor(texcoordi * textures) + 0.5f) / textures;
     float val = texture(bump, texcoord).r;
     float valX = texture(bump, texcoord + vec2(1.0f / textures.x, 0.0f) * 1.0f).r;
     float valY = texture(bump, texcoord + vec2(0.0f, 1.0f / textures.y) * 1.0f).r;
