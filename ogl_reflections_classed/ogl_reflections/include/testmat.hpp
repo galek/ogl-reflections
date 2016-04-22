@@ -16,6 +16,7 @@ private:
 	GLfloat reflectivity;
 	GLfloat dissolve;
 	GLfloat transmission;
+	GLfloat ior;
 
 	void init() {
 		includeShader("./voxelizer/include/octree.glsl", "/octree");
@@ -39,6 +40,7 @@ private:
 		reflectivity = 0.0f;
 		dissolve = 0.0f;
 		transmission = 1.0f;
+		ior = 1.0f;
 	}
 public:
 	TestMat() {
@@ -71,6 +73,9 @@ public:
 	void setIllumination(GLuint tx) {
 		itex = tx;
 	}
+	void setIOR(GLuint io) {
+		ior = io;
+	}
 	void shade(RObject &rays) {
 		glUseProgram(matProgram);
 
@@ -98,6 +103,7 @@ public:
 		glUniform1f(glGetUniformLocation(matProgram, "reflectivity"), reflectivity);
 		glUniform1f(glGetUniformLocation(matProgram, "dissolve"), dissolve);
 		glUniform1f(glGetUniformLocation(matProgram, "transmission"), transmission);
+		glUniform1f(glGetUniformLocation(matProgram, "ior"), ior);
 
 		GLuint rsize = rays.getRayCount();
 		glUniform1ui(glGetUniformLocation(matProgram, "rayCount"), rsize);

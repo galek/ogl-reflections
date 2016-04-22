@@ -15,6 +15,7 @@ uniform float dissolve;
 uniform float transmission;
 uniform uint materialID;
 uniform float illumPower;
+uniform float ior;
 
 uniform sampler2D tex;
 uniform sampler2D bump;
@@ -78,12 +79,12 @@ void main()
                 vec3 normal = -normalizeFast(prenormal * dot(prenormal, newRay.direct));
 
                 float iorIn = 1.0f;
-                float iorOut = 1.6666f;
+                float iorOut = ior;
 
                 bool cond = dot(prenormal, newRay.direct) <= 0;
                 float coef = cond ? iorIn / iorOut : iorOut / iorIn;
 
-                vec3 refl = normalizeFast(mate(newRay.direct, normal, -log(1.0) / reflectivity));
+                vec3 refl = normalizeFast(glossy(newRay.direct, normal, -log(1.0) / reflectivity));
                 vec3 refr = normalizeFast(refract(toDir(refl, normal), normal, coef));
 
                 float fres = computeFresnel(
