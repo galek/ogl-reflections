@@ -95,7 +95,12 @@ void main()
                     cond ? iorOut : iorIn
                 );
 
+                
                 if(random() < tx.a){
+                    if(random() < illumPower){
+                        newRay.final = newRay.color * texture2D(illum, hit.texcoord).rgb;
+                        newRay.actived = 0;
+                    } else 
                     if(random() > fres){
                         if(random() > -log(1.0) / dissolve){
                             newRay.direct = randomCosine(normal);

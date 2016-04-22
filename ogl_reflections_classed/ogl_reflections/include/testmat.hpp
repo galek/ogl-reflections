@@ -36,7 +36,7 @@ private:
 		glUseProgram(matProgram);
 
 		itex = loadWithDefault("", glm::vec4(glm::vec3(1.0f), 0.0f));
-		illumPow = 1.0f;
+		illumPow = 0.0f;
 		reflectivity = 0.0f;
 		dissolve = 0.0f;
 		transmission = 1.0f;
