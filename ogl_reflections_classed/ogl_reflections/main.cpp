@@ -36,7 +36,7 @@ int main()
 			msponza[i].setTransmission(materials[i].transmittance[0]);
 			msponza[i].setReflectivity(materials[i].shininess);
 			msponza[i].setDissolve(materials[i].dissolve);
-			msponza[i].setBump(loadBump(/*materials[i].bump_texname*/ "bump.png"));
+			msponza[i].setBump(loadBump(materials[i].bump_texname));
 			msponza[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]), 1.0f)));
 			msponza[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]), 1.0f)));
 			msponza[i].setMaterialID(0 + i);

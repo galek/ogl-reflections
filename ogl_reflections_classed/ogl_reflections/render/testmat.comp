@@ -64,6 +64,7 @@ void main()
             Hit hit = hits[ray.hit];
             if(hit.materialID == materialID && hit.dist < 10000.0f){
                 vec4 tx = texture(tex, hit.texcoord);
+                vec4 sx = texture(spec, hit.texcoord);
 
                 Ray newRay = ray;
                 newRay.params.w = 1.0f;
@@ -76,10 +77,37 @@ void main()
                 prenormal = normalizeFast(getNormalMapping(hit.texcoord) * tbn);
                 vec3 normal = -normalizeFast(prenormal * dot(prenormal, newRay.direct));
 
-                if(tx.a > 0.99){
-                    newRay.direct = reflect(newRay.direct, normal);
-                    newRay.color *= tx.rgb;
+                float iorIn = 1.0f;
+                float iorOut = 1.6666f;
+
+                bool cond = dot(prenormal, newRay.direct) <= 0;
+                float coef = cond ? iorIn / iorOut : iorOut / iorIn;
+
+                vec3 refl = normalizeFast(mate(newRay.direct, normal, -log(1.0) / reflectivity));
+                vec3 refr = normalizeFast(refract(toDir(refl, normal), normal, coef));
+
+                float fres = computeFresnel(
+                    normal,
+                    newRay.direct,
+                    refr,
+                    cond ? iorIn : iorOut,
+                    cond ? iorOut : iorIn
+                );
+
+                if(random() < tx.a){
+                    if(random() > fres){
+                        if(random() > -log(1.0) / dissolve){
+                            newRay.direct = randomCosine(normal);
+                            newRay.color *= tx.rgb;
+                        } else {
+                            newRay.direct = refr;
+                            newRay.color *= sx.rgb;
+                        }
+                    } else {
+                        newRay.direct = refl;
+                    }
                 }
+                
                 newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.1f;
                 storeRay(t, newRay);
             }
