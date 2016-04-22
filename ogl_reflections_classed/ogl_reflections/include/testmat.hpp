@@ -12,10 +12,12 @@ private:
 	GLuint btex;
 	GLuint stex;
 	GLuint itex;
+	GLuint ttex;
+
 	GLfloat illumPow;
 	GLfloat reflectivity;
 	GLfloat dissolve;
-	GLfloat transmission;
+	//GLfloat transmission;
 	GLfloat ior;
 
 	void init() {
@@ -39,7 +41,7 @@ private:
 		illumPow = 0.0f;
 		reflectivity = 0.0f;
 		dissolve = 0.0f;
-		transmission = 1.0f;
+		//transmission = 1.0f;
 		ior = 1.0f;
 	}
 public:
@@ -47,7 +49,7 @@ public:
 		init();
 	}
 	void setTransmission(GLfloat a) {
-		transmission = a;
+		ttex = a;
 	}
 	void setDissolve(GLfloat a) {
 		dissolve = a;
@@ -95,6 +97,10 @@ public:
 		glBindTexture(GL_TEXTURE_2D, itex);
 		glUniform1i(glGetUniformLocation(matProgram, "illum"), 3);
 
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, ttex);
+		glUniform1i(glGetUniformLocation(matProgram, "trans"), 4);
+
 		rays.bind();
 		glUniform1ui(glGetUniformLocation(matProgram, "materialID"), materialID);
 		glUniform3fv(glGetUniformLocation(matProgram, "light"), 1, glm::value_ptr(glm::vec3(9.0f, 200.0f, 9.0f)));
@@ -102,7 +108,6 @@ public:
 		glUniform1f(glGetUniformLocation(matProgram, "illumPower"), illumPow);
 		glUniform1f(glGetUniformLocation(matProgram, "reflectivity"), reflectivity);
 		glUniform1f(glGetUniformLocation(matProgram, "dissolve"), dissolve);
-		glUniform1f(glGetUniformLocation(matProgram, "transmission"), transmission);
 		glUniform1f(glGetUniformLocation(matProgram, "ior"), ior);
 
 		GLuint rsize = rays.getRayCount();

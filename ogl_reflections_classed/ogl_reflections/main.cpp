@@ -30,15 +30,19 @@ int main()
 		sponza[0].loadMesh(shapes);
 		sponza[0].calcMinmax();
 		sponza[0].buildOctree();
-		
+
 		msponza.resize(materials.size());
 		for (int i = 0;i < msponza.size();i++) {
 			msponza[i].setIOR(materials[i].ior);
 			msponza[i].setReflectivity(materials[i].shininess);
 			msponza[i].setDissolve(materials[i].dissolve);
 			msponza[i].setBump(loadBump(materials[i].bump_texname));
+			msponza[i].setIllumination(loadWithDefault(materials[i].ambient_texname, glm::vec4(glm::vec3(materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2]), 1.0f)));
 			msponza[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(glm::vec3(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]), 1.0f)));
 			msponza[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(glm::vec3(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]), 1.0f)));
+			msponza[i].setTransmission(loadWithDefault("", glm::vec4(glm::vec3(materials[i].transmittance[0], materials[i].transmittance[1], materials[i].transmittance[2]), 1.0f)));
+			msponza[i].setIllumPower(materials[i].dummy);
+			
 			msponza[i].setMaterialID(0 + i);
 		}
 	}
@@ -65,10 +69,12 @@ int main()
 			msphere[i].setReflectivity(1.0f);
 			msphere[i].setDissolve(1.0f);
 			msphere[i].setBump(loadBump(""));
+			msphere[i].setIllumination(loadWithDefault("", glm::vec4(glm::vec3(10.0f), 1.0f)));
 			msphere[i].setSpecular(loadWithDefault("", glm::vec4(glm::vec3(1.0f), 1.0f)));
 			msphere[i].setTexture(loadWithDefault("", glm::vec4(glm::vec3(1.0f), 1.0f)));
+			msponza[i].setTransmission(loadWithDefault("", glm::vec4(glm::vec3(1.0f), 1.0f)));
 			msphere[i].setIllumPower(1.0f);
-			msphere[i].setIllumination(loadWithDefault("", glm::vec4(glm::vec3(1.0f) / pow(400.0f, 2.0f) * 1600000.0f, 1.0f)));
+
 			msphere[i].setMaterialID(msponza.size() + i);
 		}
 	}
@@ -112,11 +118,10 @@ int main()
 			for (int i = 0;i < sphere.size();i++) {
 				rays.intersection(sphere[i], trans);
 			}
-
 			for (int i = 0;i < sponza.size();i++) {
 				rays.intersection(sponza[i], glm::mat4());
 			}
-			for (int i = 0;i < msponza.size();i++) {
+			for (int i = 0;i < msphere.size();i++) {
 				msphere[i].shade(rays);
 			}
 			for (int i = 0;i < msponza.size();i++) {

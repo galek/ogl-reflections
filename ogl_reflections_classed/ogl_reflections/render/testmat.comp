@@ -9,11 +9,10 @@
 
 layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
+uniform uint materialID;
 uniform vec3 light;
 uniform float reflectivity;
 uniform float dissolve;
-uniform float transmission;
-uniform uint materialID;
 uniform float illumPower;
 uniform float ior;
 
@@ -21,6 +20,7 @@ uniform sampler2D tex;
 uniform sampler2D bump;
 uniform sampler2D spec;
 uniform sampler2D illum;
+uniform sampler2D trans;
 
 #define NOISE_DENSITY 4.0f
 
@@ -66,6 +66,8 @@ void main()
             if(hit.materialID == materialID && hit.dist < 10000.0f){
                 vec4 tx = texture(tex, hit.texcoord);
                 vec4 sx = texture(spec, hit.texcoord);
+                vec4 ttx = texture(trans, hit.texcoord);
+                vec4 itx = texture2D(illum, hit.texcoord);
 
                 Ray newRay = ray;
                 newRay.params.w = 1.0f;
@@ -76,15 +78,16 @@ void main()
 
                 vec3 prenormal = hit.normal;
                 prenormal = normalizeFast(getNormalMapping(hit.texcoord) * tbn);
-                vec3 normal = -normalizeFast(prenormal * dot(prenormal, newRay.direct));
+                float cos_ray = dot(prenormal, newRay.direct);
+                bool cond = cos_ray < 0.0f;
+                vec3 normal = -normalizeFast(prenormal * cos_ray);
 
                 float iorIn = 1.0f;
                 float iorOut = ior;
-
-                bool cond = dot(prenormal, newRay.direct) <= 0;
                 float coef = cond ? iorIn / iorOut : iorOut / iorIn;
 
-                vec3 refl = normalizeFast(glossy(newRay.direct, normal, -log(1.0) / reflectivity));
+                float shiny = 1.0f / reflectivity;
+                vec3 refl = normalizeFast(shiny > 0.0f ? mate(newRay.direct, normal, shiny) : glossy(newRay.direct, normal, -shiny));
                 vec3 refr = normalizeFast(refract(toDir(refl, normal), normal, coef));
 
                 float fres = computeFresnel(
@@ -94,23 +97,32 @@ void main()
                     cond ? iorIn : iorOut,
                     cond ? iorOut : iorIn
                 );
-
                 
-                if(random() < tx.a){
-                    if(random() < illumPower){
-                        newRay.final = newRay.color * texture2D(illum, hit.texcoord).rgb;
+                vec3 icolor = itx.rgb;
+                float ilen = length(icolor);
+                
+                if(random() <= tx.a){
+                    if(random() <= (1.0f / illumPower)){
+                        newRay.final = newRay.color * icolor;
                         newRay.actived = 0;
                     } else 
                     if(random() > fres){
-                        if(random() > -log(1.0) / dissolve){
-                            newRay.direct = randomCosine(normal);
-                            newRay.color *= tx.rgb;
+                        if(random() <= 1.0f / dissolve){
+                            vec3 dir = randomCosine(normal);
+                            if(dot(dir, normal) > 0.0f && cond){
+                                newRay.direct = randomCosine(normal);
+                                newRay.color *= tx.rgb;
+                            }
                         } else {
-                            newRay.direct = refr;
-                            newRay.color *= sx.rgb;
+                            if(dot(refr, normal) < 0.0f){
+                                newRay.direct = refr;
+                                newRay.color *= ttx.rgb;
+                            }
                         }
-                    } else {
+                    } else 
+                    if(dot(refl, normal) > 0.0f && cond){
                         newRay.direct = refl;
+                        newRay.color *= sx.rgb;
                     }
                 }
                 
