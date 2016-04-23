@@ -38,19 +38,18 @@ c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_re
 c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\include/testmat.hpp(79): warning C4244: =: преобразование "GLuint" в "GLfloat", возможна потеря данных
 c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\include/testmat.hpp(107): warning C4244: аргумент: преобразование "clock_t" в "GLfloat", возможна потеря данных
 c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_classed\ogl_reflections\include/testmat.hpp(115): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(36): warning C4244: аргумент: преобразование "float" в "GLuint", возможна потеря данных
-main.cpp(43): warning C4244: аргумент: преобразование "GLuint" в "GLfloat", возможна потеря данных
-main.cpp(44): warning C4244: аргумент: преобразование "int" в "GLfloat", возможна потеря данных
-main.cpp(61): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(68): warning C4244: аргумент: преобразование "float" в "GLuint", возможна потеря данных
-main.cpp(75): warning C4244: аргумент: преобразование "GLuint" в "GLfloat", возможна потеря данных
-main.cpp(78): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-main.cpp(109): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
+main.cpp(44): warning C4244: аргумент: преобразование "float" в "GLuint", возможна потеря данных
+main.cpp(51): warning C4244: аргумент: преобразование "GLuint" в "GLfloat", возможна потеря данных
+main.cpp(65): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+main.cpp(72): warning C4244: аргумент: преобразование "float" в "GLuint", возможна потеря данных
+main.cpp(79): warning C4244: аргумент: преобразование "GLuint" в "GLfloat", возможна потеря данных
+main.cpp(82): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+main.cpp(133): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
 LINK : warning LNK4098: библиотека по умолчанию "LIBCMT" противоречит использованию других библиотек; используйте параметр /NODEFAULTLIB:library
   Создание кода
-  42 of 2103 functions ( 2.0%) were compiled, the rest were copied from previous compilation.
+  44 of 2187 functions ( 2.0%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    11 functions had inline decision re-evaluated but remain unchanged
+    10 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
 glew32s.lib(glew.obj) : warning LNK4099: "vc120.pdb" PDB не найден с "glew32s.lib(glew.obj)" или на "C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Release\vc120.pdb"; компоновка объекта выполняется как при отсутствии отладочных данных
   ogl_reflections.vcxproj -> C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_classed\x64\Release\ogl_reflections.exe

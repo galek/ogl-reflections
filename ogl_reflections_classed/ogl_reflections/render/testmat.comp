@@ -87,8 +87,8 @@ void main()
                 float iorOut = ior;
                 float coef = cond ? iorIn / iorOut : iorOut / iorIn;
 
-                float shiny = 1.0f / reflectivity;
-                vec3 refl = normalizeFast(shiny > 0.0f ? mate(newRay.direct, normal, shiny) : glossy(newRay.direct, normal, -shiny));
+                float shiny = reflectivity;
+                vec3 refl = normalizeFast(glossy(newRay.direct, normal, shiny));
                 vec3 refr = normalizeFast(refract(toDir(refl, normal), normal, coef));
 
                 float fres = computeFresnel(
@@ -103,12 +103,12 @@ void main()
                 float ilen = length(icolor);
                 
                 if(random() <= tx.a){
-                    if(random() <= (1.0f / illumPower)){
+                    if(random() <= illumPower){
                         newRay.final = newRay.color * icolor;
                         newRay.actived = 0;
                     } else 
                     if(random() > fres){
-                        if(random() <= 1.0f / dissolve){
+                        if(random() <= dissolve){
                             vec3 dir = randomCosine(normal);
                             if(dot(dir, normal) > 0.0f && cond){
                                 newRay.direct = randomCosine(normal);
