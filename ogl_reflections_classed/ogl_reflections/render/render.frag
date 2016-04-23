@@ -1,5 +1,6 @@
 #version 450 compatibility
 #extension GL_ARB_shading_language_include : require
+#extension GL_NV_gpu_shader5 : enable
 #include </constants>
 #include </uniforms>
 #include </structs>

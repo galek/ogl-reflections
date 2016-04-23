@@ -6,10 +6,11 @@
 #include "tobject.hpp"
 
 struct Ray {
-	GLuint previous;
-	GLuint hit;
-	GLuint shadow;
-	GLint actived;
+	glm::uint texel;
+	glm::uint previous;
+	glm::uint hit;
+	glm::uint shadow;
+	int actived;
 	glm::vec4 origin;
 	glm::vec4 direct;
 	glm::vec4 color;
@@ -19,9 +20,9 @@ struct Ray {
 };
 
 struct Hit {
-	GLfloat dist;
-	GLuint triangle;
-	GLuint materialID;
+	float dist;
+	glm::uint triangle;
+	glm::uint materialID;
 	glm::vec4 normal;
 	glm::vec4 tangent;
 	glm::vec4 texcoord;
@@ -29,8 +30,8 @@ struct Hit {
 };
 
 struct Texel {
-	GLuint last;
-	GLuint count;
+	glm::uint last;
+	glm::uint count;
 };
 
 class RObject {

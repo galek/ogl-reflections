@@ -4,24 +4,24 @@
 #include "utils.hpp"
 
 struct VoxelRaw {
-	GLuint coordX;
-	GLuint coordY;
-	GLuint coordZ;
-	GLuint triangle;
+	glm::uint coordX;
+	glm::uint coordY;
+	glm::uint coordZ;
+	glm::uint triangle;
 };
 
 struct Thash {
-	GLuint triangle = 0xFFFFFFFF;
-	GLuint previous = 0xFFFFFFFF;
+	glm::uint triangle;
+	glm::uint previous;
 };
 
 struct Voxel {
-	GLuint parent = 0xFFFFFFFF;
-	GLuint last = 0xFFFFFFFF;
-	GLuint count = 0;
-	GLuint coordX = 0;
-	GLuint coordY = 0;
-	GLuint coordZ = 0;
+	glm::uint parent;
+	glm::uint last;
+	glm::uint count;
+	glm::uint coordX;
+	glm::uint coordY;
+	glm::uint coordZ;
 };
 
 struct Minmax {
