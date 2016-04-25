@@ -88,7 +88,7 @@ void main()
                 float coef = cond ? iorIn / iorOut : iorOut / iorIn;
 
                 float shiny = reflectivity;
-                vec3 refl = normalizeFast(glossy(newRay.direct, normal, shiny));
+                vec3 refl = normalizeFast(mate(newRay.direct, normal, shiny));
                 vec3 refr = normalizeFast(refract(toDir(refl, normal), normal, coef));
 
                 float fres = computeFresnel(

@@ -98,17 +98,25 @@ int main()
 
 	std::vector<int> objects;
 	std::vector<glm::mat4> transf;
-	for (int x = -4;x < 4;x++) {
-		for (int z = -6;z < 6;z++) {
+	for (int x = -2;x < 2;x++) {
+		for (int z = -3;z < 3;z++) {
+			objects.push_back((int)((float)dist(mt) * 5.0f));
 			objects.push_back((int)((float)dist(mt) * 5.0f));
 
 			float fx = (float)x;
 			float fy = (float)dist(mt);
 			float fz = (float)z;
 
-			glm::mat4 trans;
-			trans = translate(trans, glm::vec3(fx * 10.0f, fy * 10.0f, fz * 10.0f));
-			transf.push_back(trans);
+			{
+				glm::mat4 trans;
+				trans = translate(trans, glm::vec3(fx * 10.0f, fy * 10.0f, fz * 10.0f));
+				transf.push_back(trans);
+			}
+			{
+				glm::mat4 trans;
+				trans = translate(trans, glm::vec3(fx * 10.0f, (fy + 1.0f) * 10.0f, fz * 10.0f));
+				transf.push_back(trans);
+			}
 		}
 	}
 
