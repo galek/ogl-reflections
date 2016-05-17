@@ -59,7 +59,7 @@ int main()
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string err;
-		bool ret = tinyobj::LoadObj(shapes, materials, err, "models/sphere.obj");
+		bool ret = tinyobj::LoadObj(shapes, materials, err, "sphere.obj");
 
 		sphere[0].setDepth(64 * 64 * 64, 6);
 		sphere[0].setMaterialID(mcube.size());
@@ -110,11 +110,13 @@ int main()
 			{
 				glm::mat4 trans;
 				trans = translate(trans, glm::vec3(fx * 10.0f, fy * 10.0f, fz * 10.0f));
+				//trans = scale(trans, glm::vec3(5.0f, 5.0f, 5.0f));
 				transf.push_back(trans);
 			}
 			{
 				glm::mat4 trans;
 				trans = translate(trans, glm::vec3(fx * 10.0f, (fy + 1.0f) * 10.0f, fz * 10.0f));
+				//trans = scale(trans, glm::vec3(5.0f, 5.0f, 5.0f));
 				transf.push_back(trans);
 			}
 		}

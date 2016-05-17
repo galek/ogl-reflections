@@ -43,6 +43,7 @@ private:
 	GLuint clearProgram;
 	GLuint samplerProgram;
 	GLuint intersectionProgram;
+	GLuint fastIntersectionProgram;
 
 	GLuint rays;
 	GLuint hits;
@@ -55,6 +56,10 @@ private:
 	GLuint ebo;
 
 	GLuint cubeTex;
+	
+	GLuint frameBuffer;
+	GLuint tempBuffer;
+	GLuint rboDepthStencil;
 
 public:
 	RObject() {
@@ -72,6 +77,8 @@ private:
 		includeShader("./render/include/uniforms.glsl", "/uniforms");
 		includeShader("./render/include/fastmath.glsl", "/fastmath");
 		includeShader("./render/include/random.glsl", "/random");
+
+
 
 		{
 			GLuint compShader = loadShader("./render/intersection.comp", GL_COMPUTE_SHADER);
@@ -132,7 +139,53 @@ private:
 			glUseProgram(renderProgram);
 			glEnableVertexAttribArray(glGetAttribLocation(renderProgram, "position"));
 		}
+
+		{
+			GLuint vertexShader = loadShader("./render/fast/intersection.vert", GL_VERTEX_SHADER);
+			GLuint geometryShader = loadShader("./render/fast/intersection.geom", GL_GEOMETRY_SHADER);
+			GLuint fragmentShader = loadShader("./render/fast/intersection.frag", GL_FRAGMENT_SHADER);
+
+			fastIntersectionProgram = glCreateProgram();
+			glAttachShader(fastIntersectionProgram, vertexShader);
+			glAttachShader(fastIntersectionProgram, geometryShader);
+			glAttachShader(fastIntersectionProgram, fragmentShader);
+			glBindFragDataLocation(fastIntersectionProgram, 0, "outColor");
+			glLinkProgram(fastIntersectionProgram);
+			glUseProgram(fastIntersectionProgram);
+			glEnableVertexAttribArray(glGetAttribLocation(fastIntersectionProgram, "position"));
+			
+			GLint isCompiled = GL_FALSE;
+			glGetProgramiv(fastIntersectionProgram, GL_LINK_STATUS, &isCompiled);
+			if (isCompiled == GL_FALSE)
+			{
+				GLint maxLength = 0;
+				glGetProgramiv(fastIntersectionProgram, GL_INFO_LOG_LENGTH, &maxLength);
+				std::vector<GLchar> errorLog(maxLength);
+				glGetProgramInfoLog(fastIntersectionProgram, maxLength, &maxLength, &errorLog[0]);
+				errorLog.resize(maxLength);
+				glDeleteShader(fastIntersectionProgram);
+				std::string err(errorLog.begin(), errorLog.end());
+				std::cout << err << std::endl;
+				system("pause");
+				exit(0);
+			}
+		}
+
+		glGenFramebuffers(1, &frameBuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+		glGenTextures(1, &tempBuffer);
+		glBindTexture(GL_TEXTURE_2D, tempBuffer);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tempBuffer, 0);
+
+		glGenRenderbuffers(1, &rboDepthStencil);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepthStencil);
+
 	}
+	
+	
 
 	void init() {
 		{
@@ -305,6 +358,39 @@ public:
 		glDispatchCompute(tiled(rsize, 1024) / 1024, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
+
+	void fastIntersection(TObject &obj, glm::mat4 trans) {
+		glUseProgram(fastIntersectionProgram);
+
+		glBindRenderbuffer(GL_RENDERBUFFER, rboDepthStencil);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1024, 1024);
+		glBindTexture(GL_TEXTURE_2D, tempBuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+		//glSubpixelPrecisionBiasNV(GL_SUBPIXEL_PRECISION_BIAS_X_BITS_NV, GL_SUBPIXEL_PRECISION_BIAS_Y_BITS_NV);
+		//glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
+		glCullFace(GL_FRONT_AND_BACK);
+
+		obj.bind();
+		bind();
+
+		glUniform2f(glGetUniformLocation(fastIntersectionProgram, "sceneRes"), width, height);
+		glUniform2f(glGetUniformLocation(fastIntersectionProgram, "resolution"), 1024.0f, 1024.0f);
+		glUniform1ui(glGetUniformLocation(fastIntersectionProgram, "materialID"), obj.materialID);
+		glUniformMatrix4fv(glGetUniformLocation(fastIntersectionProgram, "transform"), 1, false, glm::value_ptr(trans));
+		glUniformMatrix4fv(glGetUniformLocation(fastIntersectionProgram, "transformInv"), 1, false, glm::value_ptr(glm::inverse(trans)));
+
+		GLuint rsize = getRayCount();
+		glUniform1ui(glGetUniformLocation(fastIntersectionProgram, "rayCount"), rsize);
+		glViewport(0, 0, 1024, 1024);
+		glDrawArrays(GL_TRIANGLES, 0, obj.triangleCount * 3);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+
 
 	GLuint getRayCount() {
 		GLuint rsize = 0;
