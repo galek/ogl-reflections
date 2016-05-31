@@ -17,7 +17,6 @@ private:
 	GLfloat illumPow;
 	GLfloat reflectivity;
 	GLfloat dissolve;
-	//GLfloat transmission;
 	GLfloat ior;
 
 	void init() {
@@ -30,7 +29,7 @@ private:
 		includeShader("./render/include/fastmath.glsl", "/fastmath");
 		includeShader("./render/include/random.glsl", "/random");
 
-		GLuint compShader = loadShader("./render/testmat.comp", GL_COMPUTE_SHADER);
+		GLuint compShader = loadShader("./render/testmat.cs.glsl", GL_COMPUTE_SHADER);
 		matProgram = glCreateProgram();
 		glAttachShader(matProgram, compShader);
 		glBindFragDataLocation(matProgram, 0, "outColor");

@@ -81,7 +81,7 @@ private:
 
 
 		{
-			GLuint compShader = loadShader("./render/intersection.comp", GL_COMPUTE_SHADER);
+			GLuint compShader = loadShader("./render/intersection.cs.glsl", GL_COMPUTE_SHADER);
 			intersectionProgram = glCreateProgram();
 			glAttachShader(intersectionProgram, compShader);
 			glLinkProgram(intersectionProgram);
@@ -89,7 +89,7 @@ private:
 		}
 
 		{
-			GLuint compShader = loadShader("./render/begin.comp", GL_COMPUTE_SHADER);
+			GLuint compShader = loadShader("./render/begin.cs.glsl", GL_COMPUTE_SHADER);
 			beginProgram = glCreateProgram();
 			glAttachShader(beginProgram, compShader);
 			glLinkProgram(beginProgram);
@@ -97,7 +97,7 @@ private:
 		}
 
 		{
-			GLuint compShader = loadShader("./render/close.comp", GL_COMPUTE_SHADER);
+			GLuint compShader = loadShader("./render/close.cs.glsl", GL_COMPUTE_SHADER);
 			closeProgram = glCreateProgram();
 			glAttachShader(closeProgram, compShader);
 			glLinkProgram(closeProgram);
@@ -105,7 +105,7 @@ private:
 		}
 
 		{
-			GLuint compShader = loadShader("./render/camera.comp", GL_COMPUTE_SHADER);
+			GLuint compShader = loadShader("./render/camera.cs.glsl", GL_COMPUTE_SHADER);
 			cameraProgram = glCreateProgram();
 			glAttachShader(cameraProgram, compShader);
 			glLinkProgram(cameraProgram);
@@ -113,7 +113,7 @@ private:
 		}
 
 		{
-			GLuint compShader = loadShader("./render/clear.comp", GL_COMPUTE_SHADER);
+			GLuint compShader = loadShader("./render/clear.cs.glsl", GL_COMPUTE_SHADER);
 			clearProgram = glCreateProgram();
 			glAttachShader(clearProgram, compShader);
 			glLinkProgram(clearProgram);
@@ -121,7 +121,7 @@ private:
 		}
 
 		{
-			GLuint compShader = loadShader("./render/sampler.comp", GL_COMPUTE_SHADER);
+			GLuint compShader = loadShader("./render/sampler.cs.glsl", GL_COMPUTE_SHADER);
 			samplerProgram = glCreateProgram();
 			glAttachShader(samplerProgram, compShader);
 			glLinkProgram(samplerProgram);
@@ -129,8 +129,8 @@ private:
 		}
 
 		{
-			GLuint vertexShader = loadShader("./render/render.vert", GL_VERTEX_SHADER);
-			GLuint fragmentShader = loadShader("./render/render.frag", GL_FRAGMENT_SHADER);
+			GLuint vertexShader = loadShader("./render/render.vs.glsl", GL_VERTEX_SHADER);
+			GLuint fragmentShader = loadShader("./render/render.fs.glsl", GL_FRAGMENT_SHADER);
 			renderProgram = glCreateProgram();
 			glAttachShader(renderProgram, vertexShader);
 			glAttachShader(renderProgram, fragmentShader);
@@ -141,9 +141,9 @@ private:
 		}
 
 		{
-			GLuint vertexShader = loadShader("./render/fast/intersection.vert", GL_VERTEX_SHADER);
-			GLuint geometryShader = loadShader("./render/fast/intersection.geom", GL_GEOMETRY_SHADER);
-			GLuint fragmentShader = loadShader("./render/fast/intersection.frag", GL_FRAGMENT_SHADER);
+			GLuint vertexShader = loadShader("./render/fast/intersection.vs.glsl", GL_VERTEX_SHADER);
+			GLuint geometryShader = loadShader("./render/fast/intersection.gs.glsl", GL_GEOMETRY_SHADER);
+			GLuint fragmentShader = loadShader("./render/fast/intersection.fs.glsl", GL_FRAGMENT_SHADER);
 
 			fastIntersectionProgram = glCreateProgram();
 			glAttachShader(fastIntersectionProgram, vertexShader);

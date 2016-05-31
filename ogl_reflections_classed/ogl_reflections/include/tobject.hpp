@@ -82,7 +82,7 @@ private:
 		includeShader("./render/include/random.glsl", "/random");
 
 		{
-			GLuint compShader = loadShader("./voxelizer/fix.comp", GL_COMPUTE_SHADER);
+			GLuint compShader = loadShader("./voxelizer/fix.cs.glsl", GL_COMPUTE_SHADER);
 			voxelizerFixProgram = glCreateProgram();
 			glAttachShader(voxelizerFixProgram, compShader);
 			glLinkProgram(voxelizerFixProgram);
@@ -90,7 +90,7 @@ private:
 		}
 
 		{
-			GLuint compShader = loadShader("./voxelizer/filler.comp", GL_COMPUTE_SHADER);
+			GLuint compShader = loadShader("./voxelizer/filler.cs.glsl", GL_COMPUTE_SHADER);
 			voxelizerFillerProgram = glCreateProgram();
 			glAttachShader(voxelizerFillerProgram, compShader);
 			glLinkProgram(voxelizerFillerProgram);
@@ -98,7 +98,7 @@ private:
 		}
 
 		{
-			GLuint compShader = loadShader("./voxelizer/minmax.comp", GL_COMPUTE_SHADER);
+			GLuint compShader = loadShader("./voxelizer/minmax.cs.glsl", GL_COMPUTE_SHADER);
 			voxelizerMinmaxProgram = glCreateProgram();
 			glAttachShader(voxelizerMinmaxProgram, compShader);
 			glLinkProgram(voxelizerMinmaxProgram);
@@ -106,9 +106,9 @@ private:
 		}
 
 		{
-			GLuint vertexShader = loadShader("./voxelizer/voxelizer.vert", GL_VERTEX_SHADER);
-			GLuint geometryShader = loadShader("./voxelizer/voxelizer.geom", GL_GEOMETRY_SHADER);
-			GLuint fragmentShader = loadShader("./voxelizer/voxelizer.frag", GL_FRAGMENT_SHADER);
+			GLuint vertexShader = loadShader("./voxelizer/voxelizer.vs.glsl", GL_VERTEX_SHADER);
+			GLuint geometryShader = loadShader("./voxelizer/voxelizer.gs.glsl", GL_GEOMETRY_SHADER);
+			GLuint fragmentShader = loadShader("./voxelizer/voxelizer.fs.glsl", GL_FRAGMENT_SHADER);
 
 			voxelizerProgram = glCreateProgram();
 			glAttachShader(voxelizerProgram, vertexShader);
