@@ -13,10 +13,11 @@ void main()
         uint t = gl_GlobalInvocationID.x;
         Ray ray = rays[t];
         Hit hit;
-        hit.dist = 100000.0f;
+        hit.dist = 10000.0f;
         hit.triangle = LONGEST;
         hit.materialID = LONGEST;
         hit.normal = vec3(0.0f);
+        hit.tangent = vec3(0.0f);
         storeHit(ray, hit);
     }
 }

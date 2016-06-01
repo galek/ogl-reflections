@@ -45,6 +45,9 @@ private:
 	GLuint intersectionProgram;
 	GLuint fastIntersectionProgram;
 
+	GLuint preloadProgram;
+	GLuint postloadProgram;
+
 	GLuint rays;
 	GLuint hits;
 	GLuint samples;
@@ -59,7 +62,10 @@ private:
 	
 	GLuint frameBuffer;
 	GLuint tempBuffer;
-	GLuint rboDepthStencil;
+	GLuint rboBuffer;
+
+	std::vector<GLuint> finalHit;
+	GLuint finalDepth;
 
 public:
 	RObject() {
@@ -77,8 +83,7 @@ private:
 		includeShader("./render/include/uniforms.glsl", "/uniforms");
 		includeShader("./render/include/fastmath.glsl", "/fastmath");
 		includeShader("./render/include/random.glsl", "/random");
-
-
+		includeShader("./render/include/fimages.glsl", "/fimages");
 
 		{
 			GLuint compShader = loadShader("./render/intersection.cs.glsl", GL_COMPUTE_SHADER);
@@ -102,6 +107,22 @@ private:
 			glAttachShader(closeProgram, compShader);
 			glLinkProgram(closeProgram);
 			glUseProgram(closeProgram);
+		}
+
+		{
+			GLuint compShader = loadShader("./render/postload.cs.glsl", GL_COMPUTE_SHADER);
+			postloadProgram = glCreateProgram();
+			glAttachShader(postloadProgram, compShader);
+			glLinkProgram(postloadProgram);
+			glUseProgram(postloadProgram);
+		}
+
+		{
+			GLuint compShader = loadShader("./render/preload.cs.glsl", GL_COMPUTE_SHADER);
+			preloadProgram = glCreateProgram();
+			glAttachShader(preloadProgram, compShader);
+			glLinkProgram(preloadProgram);
+			glUseProgram(preloadProgram);
 		}
 
 		{
@@ -171,18 +192,38 @@ private:
 			}
 		}
 
+		//Frame buffer
 		glGenFramebuffers(1, &frameBuffer);
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
-		glGenTextures(1, &tempBuffer);
-		glBindTexture(GL_TEXTURE_2D, tempBuffer);
+		//Render buffer
+		glGenRenderbuffers(1, &rboBuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, rboBuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 1024);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboBuffer);
+
+		//Draw buffers
+		GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5 };
+		glDrawBuffers(6, drawBuffers);
+
+		//Hit buffers
+		finalHit.resize(6);
+		for (int i = 0;i < 6;i++) {
+			glGenTextures(1, &finalHit[i]);
+			glBindTexture(GL_TEXTURE_2D, finalHit[i]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1024, 1024, 0, GL_RGBA, GL_FLOAT, NULL);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, finalHit[i], 0);
+		}
+
+		//Depth
+		glGenTextures(1, &finalDepth);
+		glBindTexture(GL_TEXTURE_2D, finalDepth);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tempBuffer, 0);
-
-		glGenRenderbuffers(1, &rboDepthStencil);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rboDepthStencil);
-
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, finalDepth, 0);
 	}
 	
 	
@@ -304,6 +345,16 @@ public:
 		glDispatchCompute(tiled(rsize, 1024) / 1024, 1, 1);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	}
+	
+	void bindImages() {
+		for (int i = 0;i < 6;i++) {
+			glBindImageTexture(0 + i, finalHit[i], 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+		}
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, finalDepth);
+		glUniform1i(4, 4);
+		//glBindImageTexture(4, finalDepth, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+	}
 
 	void bind() {
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, rays);
@@ -344,7 +395,7 @@ public:
 
 		bind();
 
-		glUniform2f(glGetUniformLocation(intersectionProgram, "sceneRes"), width, height);
+		glUniform2f(glGetUniformLocation(intersectionProgram, "sceneRes"), 1024, 1024);
 		glUniform1ui(glGetUniformLocation(intersectionProgram, "maxDepth"), obj.maxDepth);
 		glUniform3fv(glGetUniformLocation(intersectionProgram, "offset"), 1, glm::value_ptr(obj.offset));
 		glUniform3fv(glGetUniformLocation(intersectionProgram, "scale"), 1, glm::value_ptr(obj.scale));
@@ -360,38 +411,55 @@ public:
 	}
 
 	void fastIntersection(TObject &obj, glm::mat4 trans) {
+		glUseProgram(preloadProgram);
+		bind();
+		bindImages();
+		GLuint rsize = getRayCount();
+		glUniform1ui(glGetUniformLocation(preloadProgram, "rayCount"), rsize);
+		glDispatchCompute(tiled(rsize, 1024) / 1024, 1, 1);
+
 		glUseProgram(fastIntersectionProgram);
-
-		glBindRenderbuffer(GL_RENDERBUFFER, rboDepthStencil);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1024, 1024);
-		glBindTexture(GL_TEXTURE_2D, tempBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClearDepth(1.0f);
+		glClear(GL_DEPTH_BUFFER_BIT);
 		glDisable(GL_BLEND);
-		glDisable(GL_DEPTH_TEST);
-		glSubpixelPrecisionBiasNV(GL_SUBPIXEL_PRECISION_BIAS_X_BITS_NV, GL_SUBPIXEL_PRECISION_BIAS_Y_BITS_NV);
-		glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
+		glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
 		glCullFace(GL_FRONT_AND_BACK);
 
-		obj.bind();
+		bindImages();
 		bind();
+		obj.bind();
 
 		glUniform2f(glGetUniformLocation(fastIntersectionProgram, "sceneRes"), width, height);
 		glUniform2f(glGetUniformLocation(fastIntersectionProgram, "resolution"), 1024.0f, 1024.0f);
 		glUniform1ui(glGetUniformLocation(fastIntersectionProgram, "materialID"), obj.materialID);
 		glUniformMatrix4fv(glGetUniformLocation(fastIntersectionProgram, "transform"), 1, false, glm::value_ptr(trans));
 		glUniformMatrix4fv(glGetUniformLocation(fastIntersectionProgram, "transformInv"), 1, false, glm::value_ptr(glm::inverse(trans)));
-
-		GLuint rsize = getRayCount();
 		glUniform1ui(glGetUniformLocation(fastIntersectionProgram, "rayCount"), rsize);
 		glViewport(0, 0, 1024, 1024);
 		glDrawArrays(GL_TRIANGLES, 0, obj.triangleCount * 3);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 		glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
-	}
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_BLEND);
 
+		glUseProgram(postloadProgram);
+		bind();
+		bindImages();
+		glUniform1ui(glGetUniformLocation(postloadProgram, "rayCount"), rsize);
+		glDispatchCompute(tiled(rsize, 1024) / 1024, 1, 1);
+		/*
+		std::vector<float> pixels(1024 * 1024 * 4);
+		glBindTexture(GL_TEXTURE_2D, finalHit[1]);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels.data());
+
+		int test = 0;
+		int test2 = 0;
+		test += test2;*/
+	}
 
 	GLuint getRayCount() {
 		GLuint rsize = 0;

@@ -1,49 +1,50 @@
 ﻿  main.cpp
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\utils.hpp(12): warning C4244: инициализация: преобразование "__int64" в "double", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\utils.hpp(58): warning C4267: инициализация: преобразование из "size_t" в "GLint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\utils.hpp(58): warning C4267: инициализация: преобразование из "size_t" в "const GLint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\utils.hpp(59): warning C4267: аргумент: преобразование из "size_t" в "GLint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\utils.hpp(68): warning C4267: инициализация: преобразование из "size_t" в "GLint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\utils.hpp(68): warning C4267: инициализация: преобразование из "size_t" в "const GLint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\utils.hpp(76): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\tobject.hpp(232): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\tobject.hpp(283): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\tobject.hpp(323): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\tobject.hpp(352): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\tobject.hpp(385): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\tobject.hpp(402): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\tobject.hpp(448): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\tobject.hpp(449): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\tobject.hpp(461): warning C4267: аргумент: преобразование из "size_t" в "unsigned int"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\tobject.hpp(492): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\tobject.hpp(493): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(257): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(258): warning C4244: аргумент: преобразование "clock_t" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(260): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(270): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(280): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(281): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(289): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(290): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(304): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(329): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(347): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(358): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\robject.hpp(381): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\cubemap.hpp(17): warning C4101: height: неиспользованная локальная переменная
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\cubemap.hpp(17): warning C4101: width: неиспользованная локальная переменная
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\cubemap.hpp(16): warning C4101: eFormat: неиспользованная локальная переменная
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\cubemap.hpp(15): warning C4101: pBytes: неиспользованная локальная переменная
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\cubemap.hpp(16): warning C4101: iComponents: неиспользованная локальная переменная
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\testmat.hpp(52): warning C4244: =: преобразование "GLfloat" в "GLuint", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\testmat.hpp(79): warning C4244: =: преобразование "GLuint" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\testmat.hpp(107): warning C4244: аргумент: преобразование "clock_t" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\include\testmat.hpp(115): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\main.cpp(44): warning C4244: аргумент: преобразование "float" в "GLuint", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\main.cpp(51): warning C4244: аргумент: преобразование "GLuint" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\main.cpp(65): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\main.cpp(72): warning C4244: аргумент: преобразование "float" в "GLuint", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\main.cpp(79): warning C4244: аргумент: преобразование "GLuint" в "GLfloat", возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\main.cpp(82): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl_reflections\ogl_reflections_free\ogl_reflections\main.cpp(141): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
-  ogl_reflections.vcxproj -> C:\Users\acterhd\Documents\GitHub\ogl_reflections\ogl_reflections_free\x64\Debug\ogl_reflections.exe
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\utils.hpp(12): warning C4244: инициализация: преобразование "__int64" в "double", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\utils.hpp(58): warning C4267: инициализация: преобразование из "size_t" в "GLint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\utils.hpp(58): warning C4267: инициализация: преобразование из "size_t" в "const GLint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\utils.hpp(59): warning C4267: аргумент: преобразование из "size_t" в "GLint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\utils.hpp(68): warning C4267: инициализация: преобразование из "size_t" в "GLint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\utils.hpp(68): warning C4267: инициализация: преобразование из "size_t" в "const GLint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\utils.hpp(76): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(232): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(283): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(324): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(353): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(386): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(403): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(449): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(450): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(462): warning C4267: аргумент: преобразование из "size_t" в "unsigned int"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(493): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(494): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(298): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(299): warning C4244: аргумент: преобразование "clock_t" в "GLfloat", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(301): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(311): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(321): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(322): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(330): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(331): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(345): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(380): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(409): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(419): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(436): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(453): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\cubemap.hpp(17): warning C4101: height: неиспользованная локальная переменная
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\cubemap.hpp(17): warning C4101: width: неиспользованная локальная переменная
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\cubemap.hpp(16): warning C4101: eFormat: неиспользованная локальная переменная
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\cubemap.hpp(15): warning C4101: pBytes: неиспользованная локальная переменная
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\cubemap.hpp(16): warning C4101: iComponents: неиспользованная локальная переменная
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\testmat.hpp(51): warning C4244: =: преобразование "GLfloat" в "GLuint", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\testmat.hpp(78): warning C4244: =: преобразование "GLuint" в "GLfloat", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\testmat.hpp(106): warning C4244: аргумент: преобразование "clock_t" в "GLfloat", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\testmat.hpp(114): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\main.cpp(44): warning C4244: аргумент: преобразование "float" в "GLuint", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\main.cpp(51): warning C4244: аргумент: преобразование "GLuint" в "GLfloat", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\main.cpp(65): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\main.cpp(72): warning C4244: аргумент: преобразование "float" в "GLuint", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\main.cpp(79): warning C4244: аргумент: преобразование "GLuint" в "GLfloat", возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\main.cpp(82): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\main.cpp(143): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
+  ogl_reflections.vcxproj -> C:\Users\acterhd\Documents\GitHub\ogl-reflections\ogl_reflections_classed\x64\Debug\ogl_reflections.exe

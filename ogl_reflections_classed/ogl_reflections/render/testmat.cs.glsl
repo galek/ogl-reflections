@@ -98,15 +98,15 @@ void main()
                     cond ? iorIn : iorOut,
                     cond ? iorOut : iorIn
                 );
-                
+
                 vec3 icolor = itx.rgb;
                 float ilen = length(icolor);
-                
+
                 if(random() <= tx.a){
                     if(random() <= illumPower){
                         newRay.final = newRay.color * icolor;
                         newRay.actived = 0;
-                    } else 
+                    } else
                     if(random() > fres){
                         if(random() <= dissolve){
                             vec3 dir = randomCosine(normal);
@@ -120,13 +120,13 @@ void main()
                                 newRay.color *= ttx.rgb;
                             }
                         }
-                    } else 
+                    } else
                     if(dot(refl, normal) > 0.0f && cond){
                         newRay.direct = refl;
                         newRay.color *= sx.rgb;
                     }
                 }
-                
+
                 newRay.origin += normalizeFast(normal * dot(newRay.direct, normal)) * 0.1f;
                 storeRay(t, newRay);
             }

@@ -23,7 +23,7 @@ int main()
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
-	bool ret = tinyobj::LoadObj(shapes, materials, err, "cube.obj");
+	bool ret = tinyobj::LoadObj(shapes, materials, err, "sphere.obj");
 
 	std::array<glm::vec3, 6> colors { {
 		glm::vec3(59.0 / 255.0, 89.0 / 255.0, 106.0 / 255.0),
@@ -104,19 +104,19 @@ int main()
 			objects.push_back((int)((float)dist(mt) * 5.0f));
 
 			float fx = (float)x;
-			float fy = (float)dist(mt);
+			float fy = 0.0f;//(float)dist(mt);
 			float fz = (float)z;
 
 			{
 				glm::mat4 trans;
-				trans = translate(trans, glm::vec3(fx * 10.0f, fy * 10.0f, fz * 10.0f));
-				//trans = scale(trans, glm::vec3(5.0f, 5.0f, 5.0f));
+				//trans = translate(trans, glm::vec3(fx * 10.0f, fy * 10.0f, fz * 10.0f));
+				trans = scale(trans, glm::vec3(5.0f, 5.0f, 5.0f));
 				transf.push_back(trans);
 			}
 			{
 				glm::mat4 trans;
-				trans = translate(trans, glm::vec3(fx * 10.0f, (fy + 1.0f) * 10.0f, fz * 10.0f));
-				//trans = scale(trans, glm::vec3(5.0f, 5.0f, 5.0f));
+				//trans = translate(trans, glm::vec3(fx * 10.0f, (fy + 1.0f) * 10.0f, fz * 10.0f));
+				trans = scale(trans, glm::vec3(5.0f, 5.0f, 5.0f));
 				transf.push_back(trans);
 			}
 		}
@@ -143,13 +143,9 @@ int main()
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
 
-		
-
-		
-
 		for (int j = 0;j < 4;j++) {
 			rays.begin();
-			for (int i = 0;i < objects.size();i++) {
+			for (int i = 0;i < /*objects.size()*/1;i++) {
 				rays.intersection(cube[objects[i]], transf[i]);
 			}
 			for (int i = 0;i < mcube.size();i++) {

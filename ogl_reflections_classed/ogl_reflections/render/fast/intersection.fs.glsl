@@ -61,14 +61,17 @@ uniform vec2 resolution;
 void main()
 {
     uint t = uint(floor(gl_FragCoord.x) + resolution.x * floor(gl_FragCoord.y));
-
-    float dst = 10000.0f;
     vec2 uv = vec2(0.0f);
-    Ray ray;
-    ray.hit = 0xFFFFFFFF;
-    
+    float dst = 10000.0f;
+
+    gl_FragData[0] = vec4(dst, -1.0f, -1.0f, 1.0f);
+    gl_FragData[1] = vec4(vec3(0.0f), 1.0f);
+    gl_FragData[2] = vec4(vec3(0.0f), 1.0f);
+    gl_FragData[3] = vec4(vec3(0.0f), 1.0f);
+    gl_FragDepth = clamp(dst / 10000.0f, 0.0f, 1.0f);
+
     if(t < rayCount){
-        ray = rays[t];
+        Ray ray = rays[t];
 
         vec3 p0 = ray.origin;
         vec3 p1 = ray.origin + ray.direct;
@@ -81,55 +84,59 @@ void main()
         float rate = lengthFast(tray.direct) / lengthFast(ray.direct);
         tray.direct /= rate;
 
+        //Calculate vertices
         vec3 verts[3];
         verts[0] = vert0;
         verts[1] = vert1;
         verts[2] = vert2;
+
+        //Calculate distance
         float dist = 10000.0f;
         if(ray.actived > 0 && ray.params.y < ray.params.z){
             dist = intersect(tray.origin, tray.direct, verts, uv);
-        }
-        dst = dist / rate;
-    }
-    
-    Hit hit;
-    hit.params = vec4(0.0f);
-    hit.dist = 0.0f;
-    beginInvocationInterlockNV();
-    if(ray.hit != 0xFFFFFFFF){
-        hit = hits[ray.hit];
-    }
-    if(dst < hit.dist){
-        Hit newHit = hit;
-        newHit.dist = dst;
-        newHit.normal = (vec4(normal1 * uv.x + normal2 * uv.y + normal0 * (1.0f - uv.x - uv.y), 0.0) * transformInv).xyz;
-        newHit.triangle = gl_PrimitiveID;
-        newHit.materialID = uint(materialID);
-        if(materialID >= 0){
-            newHit.materialID = uint(materialID) + materialIDp;
-        } else {
-            newHit.materialID = materialIDp;
-        }
-        newHit.texcoord = texcoord1 * uv.x + texcoord2 * uv.y + texcoord0 * (1.0f - uv.x - uv.y);
+            dst = dist / rate;
+            if(dst > 0.0001f && dst < 10000.0f){
+                //Calculate normal
+                vec3 norm = normal1 * uv.x + normal2 * uv.y + normal0 * (1.0f - uv.x - uv.y);
+                vec3 normal = (vec4(norm, 0.0) * transformInv).xyz;
 
-        vec3 deltaPos;
-        if(abs(dot(vert0 - vert1, vec3(1.0f))) < 0.0001f) {
-            deltaPos = vert2 - vert0;
-        } else {
-            deltaPos = vert1 - vert0;
-        }
-        vec2 deltaUV1 = texcoord1 - texcoord0;
-        vec2 deltaUV2 = texcoord2 - texcoord0;
-        vec3 tan;
-        if(deltaUV1.s != 0.0f) {
-            tan = deltaPos / deltaUV1.s;
-        } else {
-            tan = deltaPos / 1.0f;
-        }
-        tan = normalizeFast(tan - dot(newHit.normal,tan)*newHit.normal);
+                //Calculate indexes
+                uint triangle = gl_PrimitiveID;
+                uint materialID = uint(materialID);
+                if(materialID >= 0){
+                    materialID = uint(materialID) + materialIDp;
+                } else {
+                    materialID = materialIDp;
+                }
 
-        newHit.tangent = (vec4(tan, 0.0) * transformInv).xyz;
-        storeHit(ray, newHit);
+                //Calculate tangent
+                vec3 deltaPos;
+                if(abs(dot(vert0 - vert1, vec3(1.0f))) < 0.0001f) {
+                    deltaPos = vert2 - vert0;
+                } else {
+                    deltaPos = vert1 - vert0;
+                }
+                vec2 deltaUV1 = texcoord1 - texcoord0;
+                vec2 deltaUV2 = texcoord2 - texcoord0;
+                vec3 tan;
+                if(deltaUV1.s != 0.0f) {
+                    tan = deltaPos / deltaUV1.s;
+                } else {
+                    tan = deltaPos / 1.0f;
+                }
+                tan = normalizeFast(tan - dot(norm,tan)*norm);
+
+                //Define results
+                vec2 texcoord = texcoord1 * uv.x + texcoord2 * uv.y + texcoord0 * (1.0f - uv.x - uv.y);
+                vec3 tangent = (vec4(tan, 0.0) * transformInv).xyz;
+
+                //All data
+                gl_FragDepth = clamp(dst / 10000.0f, 0.0f, 1.0f);
+                gl_FragData[0] = vec4(dst, float(int(materialID)), float(int(triangle)), 1.0f);
+                gl_FragData[1] = vec4(normal, 1.0f);
+                gl_FragData[2] = vec4(tangent, 1.0f);
+                gl_FragData[3] = vec4(texcoord, 0.0f, 1.0f);
+            }
+        }
     }
-    endInvocationInterlockNV();
 }
