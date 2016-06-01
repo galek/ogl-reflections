@@ -310,6 +310,7 @@ public:
 			glViewport(0, 0, size_r, size_r);
 			glDrawArrays(GL_TRIANGLES, 0, triangleCount * 3);
 			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+			glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
 
 			GLuint tsz = 0;
 			glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, vcounter);

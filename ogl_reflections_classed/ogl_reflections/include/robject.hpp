@@ -371,8 +371,8 @@ public:
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
-		//glSubpixelPrecisionBiasNV(GL_SUBPIXEL_PRECISION_BIAS_X_BITS_NV, GL_SUBPIXEL_PRECISION_BIAS_Y_BITS_NV);
-		//glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
+		glSubpixelPrecisionBiasNV(GL_SUBPIXEL_PRECISION_BIAS_X_BITS_NV, GL_SUBPIXEL_PRECISION_BIAS_Y_BITS_NV);
+		glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
 		glCullFace(GL_FRONT_AND_BACK);
 
 		obj.bind();
@@ -389,6 +389,7 @@ public:
 		glViewport(0, 0, 1024, 1024);
 		glDrawArrays(GL_TRIANGLES, 0, obj.triangleCount * 3);
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
 	}
 
 

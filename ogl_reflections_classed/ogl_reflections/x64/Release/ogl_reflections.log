@@ -8,15 +8,15 @@ c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_re
 c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include/utils.hpp(76): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
 c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(232): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
 c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(283): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
-c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(323): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(352): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(385): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(402): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
-c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(448): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(324): warning C4018: <: несоответствие типов со знаком и без знака
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(353): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(386): warning C4267: инициализация: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(403): warning C4244: инициализация: преобразование "double" в "unsigned int", возможна потеря данных
 c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(449): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(461): warning C4267: аргумент: преобразование из "size_t" в "unsigned int"; возможна потеря данных
-c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(492): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(450): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(462): warning C4267: аргумент: преобразование из "size_t" в "unsigned int"; возможна потеря данных
 c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(493): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
+c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\tobject.hpp(494): warning C4267: =: преобразование из "size_t" в "GLuint"; возможна потеря данных
 c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(257): warning C4244: аргумент: преобразование "const GLuint" в "GLfloat", возможна потеря данных
 c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(258): warning C4244: аргумент: преобразование "clock_t" в "GLfloat", возможна потеря данных
 c:\users\acterhd\documents\github\ogl-reflections\ogl_reflections_classed\ogl_reflections\include\robject.hpp(260): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
@@ -46,12 +46,11 @@ main.cpp(72): warning C4244: аргумент: преобразование "flo
 main.cpp(79): warning C4244: аргумент: преобразование "GLuint" в "GLfloat", возможна потеря данных
 main.cpp(82): warning C4267: аргумент: преобразование из "size_t" в "GLuint"; возможна потеря данных
 main.cpp(143): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
-  tiny_obj_loader.cc
 LINK : warning LNK4098: библиотека по умолчанию "LIBCMT" противоречит использованию других библиотек; используйте параметр /NODEFAULTLIB:library
   Создание кода
-  2190 of 2197 functions (99.7%) were compiled, the rest were copied from previous compilation.
-    3 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+  25 of 2197 functions ( 1.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    9 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
 glew32s.lib(glew.obj) : warning LNK4099: "vc120.pdb" PDB не найден с "glew32s.lib(glew.obj)" или на "C:\Users\acterhd\Documents\GitHub\ogl-reflections\ogl_reflections_classed\x64\Release\vc120.pdb"; компоновка объекта выполняется как при отсутствии отладочных данных
   ogl_reflections.vcxproj -> C:\Users\acterhd\Documents\GitHub\ogl-reflections\ogl_reflections_classed\x64\Release\ogl_reflections.exe

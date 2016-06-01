@@ -11,12 +11,11 @@
 out vec4 outColor;
 
 flat in int shortest;
-in vec3 fragPosition;
 flat in vec3 vert0;
 flat in vec3 vert1;
 flat in vec3 vert2;
 flat in vec3 normal;
-in int gl_PrimitiveID;
+flat in int gl_PrimitiveID;
 
 #define FINDMINMAX(x0,x1,x2,min,max) \
   min = max = x0;   \
