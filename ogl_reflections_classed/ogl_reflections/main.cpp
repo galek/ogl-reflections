@@ -146,7 +146,7 @@ int main()
 		for (int j = 0;j < 4;j++) {
 			rays.begin();
 			for (int i = 0;i < /*objects.size()*/1;i++) {
-				rays.intersection(cube[objects[i]], transf[i]);
+				rays.fastIntersection(cube[objects[i]], transf[i]);
 			}
 			for (int i = 0;i < mcube.size();i++) {
 				mcube[i].shade(rays);

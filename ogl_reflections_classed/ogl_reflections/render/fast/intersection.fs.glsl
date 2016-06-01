@@ -73,27 +73,26 @@ void main()
     if(t < rayCount){
         Ray ray = rays[t];
 
-        vec3 p0 = ray.origin;
-        vec3 p1 = ray.origin + ray.direct;
-        vec3 p0t = (transformInv * vec4(ray.origin, 1.0)).xyz;
-        vec3 p1t = (transformInv * vec4(ray.origin + ray.direct, 1.0)).xyz;
-
-        Ray tray = ray;
-        tray.origin = p0t;
-        tray.direct = p1t - p0t;
-        float rate = lengthFast(tray.direct) / lengthFast(ray.direct);
-        tray.direct /= rate;
-
-        //Calculate vertices
-        vec3 verts[3];
-        verts[0] = vert0;
-        verts[1] = vert1;
-        verts[2] = vert2;
-
         //Calculate distance
-        float dist = 10000.0f;
         if(ray.actived > 0 && ray.params.y < ray.params.z){
-            dist = intersect(tray.origin, tray.direct, verts, uv);
+            vec3 p0 = ray.origin;
+            vec3 p1 = ray.origin + ray.direct;
+            vec3 p0t = (transformInv * vec4(ray.origin, 1.0)).xyz;
+            vec3 p1t = (transformInv * vec4(ray.origin + ray.direct, 1.0)).xyz;
+
+            Ray tray = ray;
+            tray.origin = p0t;
+            tray.direct = p1t - p0t;
+            float rate = lengthFast(tray.direct) / lengthFast(ray.direct);
+            tray.direct /= rate;
+
+            //Calculate vertices
+            vec3 verts[3];
+            verts[0] = vert0;
+            verts[1] = vert1;
+            verts[2] = vert2;
+
+            float dist = intersect(tray.origin, tray.direct, verts, uv);
             dst = dist / rate;
             if(dst > 0.0001f && dst < 10000.0f){
                 //Calculate normal
