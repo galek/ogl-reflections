@@ -77,6 +77,8 @@ int main()
 
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
+		sponza[0].calcMinmax();
+		sponza[0].buildOctree();
 
 		for (int j = 0;j < 3;j++) {
 			rays.begin();
