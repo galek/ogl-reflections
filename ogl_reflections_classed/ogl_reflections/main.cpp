@@ -17,72 +17,33 @@ int main()
 	glewExperimental = GL_TRUE;
 	glewInit();
 
-	std::vector<TObject> cube(6);
-	std::vector<TestMat> mcube(6);
+	std::vector<TObject> sponza(1);
+	std::vector<TestMat> msponza;
 
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
-	bool ret = tinyobj::LoadObj(shapes, materials, err, "cube.obj");
+	bool ret = tinyobj::LoadObj(shapes, materials, err, "sponza.obj");
 
-	std::array<glm::vec3, 6> colors { {
-		glm::vec3(59.0 / 255.0, 89.0 / 255.0, 106.0 / 255.0),
-		glm::vec3(66.0 / 255.0, 118.0 / 255.0, 118.0 / 255.0),
-		glm::vec3(63.0 / 255.0, 154.0 / 255.0, 130.0 / 255.0),
-		glm::vec3(161.0 / 255.0, 205.0 / 255.0, 115.0 / 255.0),
-		glm::vec3(236.0 / 255.0, 219.0 / 255.0, 96.0 / 255.0),
-		glm::vec3(236.0 / 255.0, 96.0 / 255.0, 96.0 / 255.0)
-	} };
+	sponza[0].setDepth(128 * 128 * 256, 10);
+	sponza[0].setMaterialID(0);
+	sponza[0].loadMesh(shapes);
+	sponza[0].calcMinmax();
+	sponza[0].buildOctree();
 
-	for (int i = 0;i < 6;i++) { 
-		cube[i].setDepth(64 * 64 * 128, 6);
-		cube[i].setMaterialID(i);
-		cube[i].loadMesh(shapes);
-		cube[i].calcMinmax();
-		cube[i].buildOctree();
-
-		mcube[i].setIOR(1.5f);
-		mcube[i].setReflectivity(cos(20.0f / 180.0f * 3.14f));
-		mcube[i].setDissolve(1.0f);
-		mcube[i].setBump(loadBump(""));
-		mcube[i].setIllumination(loadWithDefault("", glm::vec4(glm::vec3(0.0f), 1.0f)));
-		mcube[i].setSpecular(loadWithDefault("", glm::vec4(glm::vec3(1.0f), 1.0f)));
-		mcube[i].setTexture(loadWithDefault("", glm::vec4(glm::vec3(colors[i]), 1.0f)));
-		mcube[i].setTransmission(loadWithDefault("", glm::vec4(glm::vec3(1.0f), 1.0f)));
-		mcube[i].setIllumPower(0.0f);
-		mcube[i].setMaterialID(i);
+	msponza.resize(materials.size());
+	for (int i = 0;i < materials.size();i++) {
+		msponza[i].setIOR(1.5f);
+		msponza[i].setReflectivity(materials[i].shininess);
+		msponza[i].setDissolve(materials[i].dissolve);
+		msponza[i].setBump(loadBump(""));
+		msponza[i].setIllumination(loadWithDefault(materials[i].ambient_texname, glm::vec4(materials[i].ambient[0], materials[i].ambient[1], materials[i].ambient[2], 1.0f)));
+		msponza[i].setSpecular(loadWithDefault(materials[i].specular_texname, glm::vec4(materials[i].specular[0], materials[i].specular[1], materials[i].specular[2], 1.0f)));
+		msponza[i].setTexture(loadWithDefault(materials[i].diffuse_texname, glm::vec4(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2], 1.0f)));
+		msponza[i].setTransmission(loadWithDefault("", glm::vec4(glm::vec3(1.0f), 1.0f)));
+		msponza[i].setIllumPower(0.0f);
+		msponza[i].setMaterialID(0+i);
 	}
-
-	std::vector<TObject> sphere(1);
-	std::vector<TestMat> msphere;
-	{
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
-		std::string err;
-		bool ret = tinyobj::LoadObj(shapes, materials, err, "cube.obj");
-
-		sphere[0].setDepth(64 * 64 * 128, 6);
-		sphere[0].setMaterialID(mcube.size());
-		sphere[0].loadMesh(shapes);
-		sphere[0].calcMinmax();
-		sphere[0].buildOctree();
-		
-		msphere.resize(materials.size());
-		for (int i = 0;i < msphere.size();i++) {
-			msphere[i].setIOR(1.0f);
-			msphere[i].setReflectivity(1.0f);
-			msphere[i].setDissolve(1.0f);
-			msphere[i].setBump(loadBump(""));
-			msphere[i].setIllumination(loadWithDefault("", glm::vec4(glm::vec3(10.0f), 1.0f)));
-			msphere[i].setSpecular(loadWithDefault("", glm::vec4(glm::vec3(1.0f), 1.0f)));
-			msphere[i].setTexture(loadWithDefault("", glm::vec4(glm::vec3(1.0f), 1.0f)));
-			msphere[i].setTransmission(loadWithDefault("", glm::vec4(glm::vec3(1.0f), 1.0f)));
-			msphere[i].setIllumPower(1.0f);
-
-			msphere[i].setMaterialID(msphere.size() + i);
-		}
-	}
-
 
 
 	RObject rays;
@@ -95,32 +56,6 @@ int main()
 	std::random_device rd;
 	std::mt19937 mt(rd());
 	std::uniform_real_distribution<> dist(0, 1);
-
-	std::vector<int> objects;
-	std::vector<glm::mat4> transf;
-	for (int x = -2;x < 2;x++) {
-		for (int z = -3;z < 3;z++) {
-			objects.push_back((int)((float)dist(mt) * 5.0f));
-			objects.push_back((int)((float)dist(mt) * 5.0f));
-
-			float fx = (float)x;
-			float fy = 0.0f;//(float)dist(mt);
-			float fz = (float)z;
-
-			{
-				glm::mat4 trans;
-				//trans = translate(trans, glm::vec3(fx * 10.0f, fy * 10.0f, fz * 10.0f));
-				trans = scale(trans, glm::vec3(5.0f, 5.0f, 5.0f));
-				transf.push_back(trans);
-			}
-			{
-				glm::mat4 trans;
-				//trans = translate(trans, glm::vec3(fx * 10.0f, (fy + 1.0f) * 10.0f, fz * 10.0f));
-				trans = scale(trans, glm::vec3(5.0f, 5.0f, 5.0f));
-				transf.push_back(trans);
-			}
-		}
-	}
 
 	bool running = true;
 	while (running)
@@ -146,10 +81,10 @@ int main()
 		for (int j = 0;j < 4;j++) {
 			rays.begin();
 			for (int i = 0;i < /*objects.size()*/1;i++) {
-				rays.intersection(cube[objects[i]], transf[i]);
+				rays.intersection(sponza[0], glm::mat4());
 			}
-			for (int i = 0;i < mcube.size();i++) {
-				mcube[i].shade(rays);
+			for (int i = 0;i < msponza.size();i++) {
+				msponza[i].shade(rays);
 			}
 			rays.close();
 		}

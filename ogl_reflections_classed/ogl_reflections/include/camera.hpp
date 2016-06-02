@@ -4,8 +4,8 @@
 
 class Camera {
 public:
-	glm::vec3 eye = glm::vec3(10.0, 0.0, 0.0);
-	glm::vec3 view = glm::vec3(0.0, 0.0, 0.0);
+	glm::vec3 eye = glm::vec3(10.0, 100.0, 0.0);
+	glm::vec3 view = glm::vec3(0.0, 100.0, 0.0);
 	sf::Vector2i mposition;
 	RObject * raysp;
 
