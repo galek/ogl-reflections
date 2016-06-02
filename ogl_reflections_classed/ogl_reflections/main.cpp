@@ -23,7 +23,7 @@ int main()
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
-	bool ret = tinyobj::LoadObj(shapes, materials, err, "sphere.obj");
+	bool ret = tinyobj::LoadObj(shapes, materials, err, "cube.obj");
 
 	std::array<glm::vec3, 6> colors { {
 		glm::vec3(59.0 / 255.0, 89.0 / 255.0, 106.0 / 255.0),
@@ -34,8 +34,8 @@ int main()
 		glm::vec3(236.0 / 255.0, 96.0 / 255.0, 96.0 / 255.0)
 	} };
 
-	for (int i = 0;i < 6;i++) {
-		cube[i].setDepth(64 * 64 * 64, 5);
+	for (int i = 0;i < 6;i++) { 
+		cube[i].setDepth(64 * 64 * 128, 6);
 		cube[i].setMaterialID(i);
 		cube[i].loadMesh(shapes);
 		cube[i].calcMinmax();
@@ -59,9 +59,9 @@ int main()
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string err;
-		bool ret = tinyobj::LoadObj(shapes, materials, err, "sphere.obj");
+		bool ret = tinyobj::LoadObj(shapes, materials, err, "cube.obj");
 
-		sphere[0].setDepth(64 * 64 * 64, 6);
+		sphere[0].setDepth(64 * 64 * 128, 6);
 		sphere[0].setMaterialID(mcube.size());
 		sphere[0].loadMesh(shapes);
 		sphere[0].calcMinmax();
@@ -146,12 +146,11 @@ int main()
 		for (int j = 0;j < 4;j++) {
 			rays.begin();
 			for (int i = 0;i < /*objects.size()*/1;i++) {
-				rays.fastIntersection(cube[objects[i]], transf[i]);
+				rays.intersection(cube[objects[i]], transf[i]);
 			}
 			for (int i = 0;i < mcube.size();i++) {
 				mcube[i].shade(rays);
 			}
-
 			rays.close();
 		}
 
