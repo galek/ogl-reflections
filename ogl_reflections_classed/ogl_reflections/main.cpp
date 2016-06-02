@@ -78,7 +78,7 @@ int main()
 		cam.work(c);
 		rays.camera(cam.eye, cam.view);
 
-		for (int j = 0;j < 4;j++) {
+		for (int j = 0;j < 3;j++) {
 			rays.begin();
 			for (int i = 0;i < /*objects.size()*/1;i++) {
 				rays.intersection(sponza[0], glm::mat4());
