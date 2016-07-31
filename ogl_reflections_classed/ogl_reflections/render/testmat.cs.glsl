@@ -50,11 +50,11 @@ vec3 toDir(in vec3 refl, in vec3 normal){
 }
 
 vec3 glossy(in vec3 dir, in vec3 normal, in float refli){
-    return mix(normalizeFast(reflect(dir, normal)), normalizeFast(randomCosine(normal)), clamp(sqrt(random()) * refli, 0.0f, 1.0f));
+    return mix(normalizeFast(reflect(dir, normal)), normalizeFast(randomCosine(normal)), clamp(-log(random()) * (refli), 0.0f, 1.0f));
 }
 
 vec3 mate(in vec3 dir, in vec3 normal, in float refli){
-    return mix(normalizeFast(randomCosine(normal)), normalizeFast(reflect(dir, normal)), clamp(sqrt(random()) * refli, 0.0f, 1.0f));
+    return mix(normalizeFast(randomCosine(normal)), normalizeFast(reflect(dir, normal)), clamp(-log(random()) * (refli), 0.0f, 1.0f));
 }
 
 void main()
@@ -87,8 +87,7 @@ void main()
                 float iorOut = ior;
                 float coef = cond ? iorIn / iorOut : iorOut / iorIn;
 
-                float shiny = reflectivity;
-                vec3 refl = normalizeFast(mate(newRay.direct, normal, shiny));
+                vec3 refl = normalizeFast(glossy(newRay.direct, normal, dissolve));
                 vec3 refr = normalizeFast(refract(toDir(refl, normal), normal, coef));
 
                 float fres = computeFresnel(
@@ -107,8 +106,8 @@ void main()
                         newRay.final = newRay.color * icolor;
                         newRay.actived = 0;
                     } else
-                    if(random() > fres){
-                        if(random() <= dissolve){
+                    if(random() > max(fres, 1.0 - 1.0 / reflectivity * 10.0)){
+                        if(random() > 1.0 - 1.0 / length(ttx.xyz)){
                             vec3 dir = randomCosine(normal);
                             if(dot(dir, normal) > 0.0f && cond){
                                 newRay.direct = randomCosine(normal);
