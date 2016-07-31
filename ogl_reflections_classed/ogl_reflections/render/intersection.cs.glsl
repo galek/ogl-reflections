@@ -243,7 +243,7 @@ TResult traverse(vec3 orig, vec3 dir){
                     vec3 mxc = (coordf + 1.0f) * dX + 0.0001f;
                     vec2 d = intersectCube(ray_start, dir, mnc, mxc);
                     if(d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY){
-                        if(_vox.count > 0 && iteration >= 0){
+                        if(_vox.count > 0){
                             break;
                         } else {
                             found = true;
