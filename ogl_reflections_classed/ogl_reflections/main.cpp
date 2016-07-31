@@ -80,10 +80,13 @@ int main()
 		//sponza[0].calcMinmax();
 		//sponza[0].buildOctree();
 
+		glm::mat4 matrix = glm::mat4();
+		matrix = glm::scale(matrix, glm::vec3(1.0f));
+
 		for (int j = 0;j < 3;j++) {
 			rays.begin();
 			for (int i = 0;i < /*objects.size()*/1;i++) {
-				rays.intersection(sponza[0], glm::mat4());
+				rays.intersection(sponza[0], matrix);
 			}
 			for (int i = 0;i < msponza.size();i++) {
 				msponza[i].shade(rays);

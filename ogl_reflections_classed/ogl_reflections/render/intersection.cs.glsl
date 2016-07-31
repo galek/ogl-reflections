@@ -159,8 +159,7 @@ vec3 projectVoxels(in vec3 orig, in uint maxDepth){
 }
 
 float getScale(){
-    float resX = pow(2, maxDepth-1);
-    return resX / scale.x;
+    return pow(2, maxDepth-1) / scale.x;
 }
 
 TResult traverse(vec3 orig, vec3 dir){
@@ -169,7 +168,6 @@ TResult traverse(vec3 orig, vec3 dir){
     vec3 torig = projectVoxels(orig, currentDepth+1);
     vec3 ray_start = torig + dir * 0.0001f;
     vec2 d = intersectCube(ray_start, dir, vec3(0.0f) - 0.0001f, vec3(resX) + 0.0001f);
-
     float rate = getScale();
 
     TResult lastRes;
@@ -198,8 +196,8 @@ TResult traverse(vec3 orig, vec3 dir){
         uint iteration = 0;
 
         do {
-            iteration++;
-
+			iteration++;
+		
             bool overlap = false;
             bool found = false;
             uvec3 coord = uvec3(test);
@@ -209,15 +207,6 @@ TResult traverse(vec3 orig, vec3 dir){
             vec3 mxc = mnc + 1.0f;
             vec2 d = intersectCube(ray_start, dir, mnc, mxc);
             float rd = d.x / rate;
-
-            if(
-                lastRes.triangle != LONGEST &&
-                lastRes.dist >= 0.0f &&
-                lastRes.dist <= rd - 0.0001f
-            ) {
-                return lastRes;
-                break;
-            }
 
             if(
                 d.y >= 0.0f && d.x < INFINITY && d.y < INFINITY && vox.count > 0
@@ -254,6 +243,13 @@ TResult traverse(vec3 orig, vec3 dir){
                     }
                 }
             }
+			
+			if(
+                lastRes.triangle != LONGEST && 
+				lastRes.dist < rd
+            ) {
+                return lastRes;
+            }
 
             if(!found){
                 if (mx.x < mx.y) {
@@ -275,7 +271,7 @@ TResult traverse(vec3 orig, vec3 dir){
                 }
             }
         } while(
-            iteration < iterationCount &&
+            iteration <= iterationCount &&
 
             test.x >= 0.0f &&
             test.y >= 0.0f &&
