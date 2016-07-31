@@ -239,6 +239,9 @@ public:
 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, minmaxBuf);
 		glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, (from - 1) * sizeof(Minmax), sizeof(Minmax), &bound);
+
+		scale = glm::vec3(glm::compMax(bound.mx.xyz - bound.mn.xyz));
+		offset = glm::vec3((bound.mx.xyz + bound.mn.xyz) - scale) / 2.0f;
 	}
 
 	void bindOctree() {
@@ -260,9 +263,6 @@ public:
 	}
 
 	void buildOctree() {
-		scale = glm::vec3(glm::compMax(bound.mx.xyz - bound.mn.xyz));
-		offset = glm::vec3((bound.mx.xyz + bound.mx.xyz) / 2.0f - scale);
-
 		clearOctree();
 
 		GLuint lscounter;
